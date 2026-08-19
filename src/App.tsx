@@ -5,7 +5,9 @@ import { AdminPanel } from './components/AdminPanel';
 import { TagsPrintView } from './components/TagsPrintView';
 import { PlantDetailModal } from './components/PlantDetailModal';
 import { PlantFormModal } from './components/PlantFormModal';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import { plantService } from './services/plantService';
+import { authService } from './services/authService';
 import type { Plant, PlantStatus } from './types/plant';
 
 export function App() {
@@ -13,10 +15,12 @@ export function App() {
   const [currentTab, setCurrentTab] = useState<AppTab>('showcase');
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [plantToEdit, setPlantToEdit] = useState<Plant | null>(null);
   const [selectedPlantForTag, setSelectedPlantForTag] = useState<string | null>(null);
 
-  // Carregar plantas do armazenamento
+  // Carregar plantas e status de autenticação
   const loadPlants = () => {
     const loaded = plantService.getPlants();
     setPlants(loaded);
@@ -24,6 +28,7 @@ export function App() {
 
   useEffect(() => {
     loadPlants();
+    setIsAdmin(authService.isAuthenticated());
 
     // Verificação de URL Hash (Ex: ao escanear o QR Code que leva a #p-TF-001)
     const checkHash = () => {
@@ -68,6 +73,17 @@ export function App() {
     setCurrentTab('tags');
   };
 
+  const handleLoginSuccess = () => {
+    setIsAdmin(true);
+    setCurrentTab('admin');
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsAdmin(false);
+    setCurrentTab('showcase');
+  };
+
   return (
     <div className="min-h-screen bg-stone-100 flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
       
@@ -75,14 +91,25 @@ export function App() {
       <Navbar 
         currentTab={currentTab}
         onSelectTab={(tab) => {
+          if (tab !== 'showcase' && !isAdmin) {
+            setIsLoginModalOpen(true);
+            return;
+          }
           if (tab !== 'tags') setSelectedPlantForTag(null);
           setCurrentTab(tab);
         }}
         onOpenAddModal={() => {
+          if (!isAdmin) {
+            setIsLoginModalOpen(true);
+            return;
+          }
           setPlantToEdit(null);
           setIsFormModalOpen(true);
         }}
-        plantCount={plants.length}
+        onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        onLogout={handleLogout}
+        isAdmin={isAdmin}
+        plantCount={plants.filter(p => p.status !== 'vendida').length}
       />
 
       {/* Conteúdo da Aba Ativa */}
@@ -94,7 +121,7 @@ export function App() {
           />
         )}
 
-        {currentTab === 'admin' && (
+        {currentTab === 'admin' && isAdmin && (
           <AdminPanel 
             plants={plants}
             onOpenAddModal={() => {
@@ -113,7 +140,7 @@ export function App() {
           />
         )}
 
-        {currentTab === 'tags' && (
+        {currentTab === 'tags' && isAdmin && (
           <TagsPrintView 
             plants={plants}
             selectedPlantId={selectedPlantForTag}
@@ -127,9 +154,24 @@ export function App() {
           <span>Tons & Flores</span>
         </div>
         <p>Sistema de Gestão & Catálogo Digital de Plantas com QR Code.</p>
-        <p className="text-stone-500 text-[11px]">
-          Desenvolvido sob medida para a Tons & Flores • 100% Gratuito & Otimizado
-        </p>
+        <div className="flex items-center justify-center gap-4 pt-1">
+          <p className="text-stone-500 text-[11px]">
+            Desenvolvido sob medida para a Tons & Flores
+          </p>
+          <span className="text-stone-700">•</span>
+          {!isAdmin ? (
+            <button 
+              onClick={() => setIsLoginModalOpen(true)}
+              className="text-stone-400 hover:text-emerald-400 text-[11px] underline cursor-pointer"
+            >
+              Acesso do Administrador
+            </button>
+          ) : (
+            <span className="text-emerald-400 font-bold text-[11px]">
+              👑 Modo Administrador Ativo
+            </span>
+          )}
+        </div>
       </footer>
 
       {/* Modal de Detalhes da Planta (Visualização Mobile ao ler o QR Code) */}
@@ -152,6 +194,13 @@ export function App() {
           setPlantToEdit(null);
         }}
         onSave={handleSavePlant}
+      />
+
+      {/* Modal de Login do Administrador */}
+      <AdminLoginModal 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
       />
 
     </div>
