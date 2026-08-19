@@ -24,9 +24,14 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
     'Ervas & Temperos',
   ];
 
-  // Filtro inteligente
-  const filteredPlants = useMemo(() => {
-    return plants.filter(plant => {
+  // Filtro inteligente da Vitrine Pública:
+  // 1. Oculta plantas com status 'vendida'
+  // 2. Ordena: 'disponivel' primeiro, e 'reservada' sempre abaixo
+  const filteredAndSortedPlants = useMemo(() => {
+    const visiblePlants = plants.filter(plant => {
+      // Regra 1: Plantas vendidas NUNCA aparecem na vitrine pública
+      if (plant.status === 'vendida') return false;
+
       // Busca textual
       const matchesSearch =
         searchTerm === '' ||
@@ -48,6 +53,13 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
       const matchesPets = !petFriendlyOnly || plant.petFriendly;
 
       return matchesSearch && matchesCategory && matchesLight && matchesWater && matchesPets;
+    });
+
+    // Regra 2: Ordenação - Disponíveis no topo, Reservadas abaixo
+    return visiblePlants.sort((a, b) => {
+      if (a.status === 'disponivel' && b.status === 'reservada') return -1;
+      if (a.status === 'reservada' && b.status === 'disponivel') return 1;
+      return 0;
     });
   }, [plants, searchTerm, selectedCategory, selectedLight, selectedWater, petFriendlyOnly]);
 
@@ -123,7 +135,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
                 : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             }`}
           >
-            Todas as Categorias ({plants.length})
+            Todas as Categorias ({filteredAndSortedPlants.length})
           </button>
           {categories.map((cat) => (
             <button 
@@ -215,19 +227,17 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
       {/* Contagem de Resultados */}
       <div className="flex items-center justify-between text-xs text-stone-500 px-1">
         <span>
-          Exibindo <strong>{filteredPlants.length}</strong> de {plants.length} vasos disponíveis
+          Exibindo <strong>{filteredAndSortedPlants.length}</strong> vasos na vitrine
         </span>
-        {hasActiveFilters && (
-          <span className="text-emerald-700 font-medium">
-            (Filtros ativos aplicados)
-          </span>
-        )}
+        <span className="text-stone-400">
+          (Disponíveis no topo • Reservadas ao final)
+        </span>
       </div>
 
       {/* Grade de Plantas */}
-      {filteredPlants.length > 0 ? (
+      {filteredAndSortedPlants.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlants.map((plant) => (
+          {filteredAndSortedPlants.map((plant) => (
             <PlantCard 
               key={plant.id} 
               plant={plant} 
@@ -242,7 +252,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
           </div>
           <h3 className="text-lg font-bold text-stone-800 font-serif-title">Nenhuma planta encontrada</h3>
           <p className="text-xs text-stone-500">
-            Não encontramos resultados para a sua busca atual. Tente buscar por outro termo ou limpe os filtros.
+            Não encontramos vasos disponíveis para os filtros selecionados.
           </p>
           <button 
             onClick={handleResetFilters}

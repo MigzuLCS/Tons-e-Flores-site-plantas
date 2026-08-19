@@ -9,11 +9,12 @@ import {
   Upload, 
   QrCode, 
   MapPin, 
-  DollarSign, 
   Sprout, 
   CheckCircle2, 
   Clock,
-  RotateCcw
+  RotateCcw,
+  Archive,
+  RefreshCw
 } from 'lucide-react';
 import type { Plant, PlantStatus } from '../types/plant';
 import { plantService } from '../services/plantService';
@@ -39,6 +40,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onStatusChange,
   onRefresh,
 }) => {
+  // Aba interna do painel: 'ativas' (em estoque/reservadas) ou 'vendidas' (histórico)
+  const [adminTab, setAdminTab] = useState<'ativas' | 'vendidas'>('ativas');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -48,18 +51,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const total = plants.length;
     const available = plants.filter(p => p.status === 'disponivel').length;
     const reserved = plants.filter(p => p.status === 'reservada').length;
-    const totalValue = plants
-      .filter(p => p.status === 'disponivel')
+    const sold = plants.filter(p => p.status === 'vendida').length;
+    
+    const stockValue = plants
+      .filter(p => p.status === 'disponivel' || p.status === 'reservada')
       .reduce((sum, p) => sum + p.price, 0);
 
-    const locations = new Set(plants.map(p => p.location)).size;
+    const soldTotalValue = plants
+      .filter(p => p.status === 'vendida')
+      .reduce((sum, p) => sum + p.price, 0);
 
-    return { total, available, reserved, totalValue, locations };
+    return { total, available, reserved, sold, stockValue, soldTotalValue };
   }, [plants]);
 
-  // Lista Filtrada
+  // Lista Filtrada por aba e critérios
   const filteredPlants = useMemo(() => {
     return plants.filter(plant => {
+      // Separação por Aba: Ativas vs Vendidas
+      if (adminTab === 'ativas' && plant.status === 'vendida') return false;
+      if (adminTab === 'vendidas' && plant.status !== 'vendida') return false;
+
       const matchesSearch =
         searchTerm === '' ||
         plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,7 +83,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       return matchesSearch && matchesStatus && matchesCategory;
     });
-  }, [plants, searchTerm, statusFilter, categoryFilter]);
+  }, [plants, adminTab, searchTerm, statusFilter, categoryFilter]);
 
   const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -112,14 +123,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             Gestão do Catálogo & Vasos
           </h2>
           <p className="text-xs text-stone-500 mt-0.5">
-            Cadastre, edite e acompanhe os vasos e suas localizações na loja
+            Cadastre, edite, altere status e acompanhe o estoque e histórico de vendas
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={onOpenAddModal}
-            className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow flex items-center gap-2 transition-colors"
+            className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow flex items-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             + Cadastrar Nova Planta
@@ -128,7 +139,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <button 
             onClick={() => plantService.exportBackup()}
             title="Baixar cópia de segurança em JSON"
-            className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold px-3 py-2.5 rounded-xl text-xs border border-stone-300 flex items-center gap-1.5 transition-colors"
+            className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold px-3 py-2.5 rounded-xl text-xs border border-stone-300 flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             Backup
@@ -152,8 +163,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <Sprout className="w-5 h-5 text-emerald-700" />
           </div>
           <div>
-            <div className="text-[11px] font-semibold text-stone-500 uppercase">Total de Vasos</div>
-            <div className="text-xl font-extrabold text-stone-900">{stats.total}</div>
+            <div className="text-[11px] font-semibold text-stone-500 uppercase">Em Estoque</div>
+            <div className="text-xl font-extrabold text-stone-900">{stats.available + stats.reserved}</div>
           </div>
         </div>
 
@@ -178,15 +189,56 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-700">
-            <DollarSign className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-700">
+            <Archive className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-semibold text-stone-500 uppercase">Valor Estoque</div>
-            <div className="text-lg font-extrabold text-stone-900">
-              R$ {stats.totalValue.toFixed(2).replace('.', ',')}
-            </div>
+            <div className="text-[11px] font-semibold text-stone-500 uppercase">Total Vendidas</div>
+            <div className="text-xl font-extrabold text-purple-700">{stats.sold}</div>
           </div>
+        </div>
+      </div>
+
+      {/* Seletor de Seção do Painel (Ativas vs Histórico de Vendidas) */}
+      <div className="flex items-center justify-between border-b border-stone-200">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setAdminTab('ativas');
+              setStatusFilter('all');
+            }}
+            className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+              adminTab === 'ativas'
+                ? 'border-emerald-700 text-emerald-900'
+                : 'border-transparent text-stone-400 hover:text-stone-700'
+            }`}
+          >
+            <Sprout className="w-4 h-4" />
+            <span>🌿 Vasos Ativos na Loja ({stats.available + stats.reserved})</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setAdminTab('vendidas');
+              setStatusFilter('all');
+            }}
+            className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+              adminTab === 'vendidas'
+                ? 'border-purple-700 text-purple-900'
+                : 'border-transparent text-stone-400 hover:text-stone-700'
+            }`}
+          >
+            <Archive className="w-4 h-4" />
+            <span>📦 Histórico de Vendidas ({stats.sold})</span>
+          </button>
+        </div>
+
+        <div className="hidden sm:block text-xs text-stone-500 pb-3">
+          {adminTab === 'ativas' ? (
+            <span>Valor em estoque: <strong className="text-stone-900">R$ {stats.stockValue.toFixed(2).replace('.', ',')}</strong></span>
+          ) : (
+            <span>Faturamento histórico: <strong className="text-purple-900">R$ {stats.soldTotalValue.toFixed(2).replace('.', ',')}</strong></span>
+          )}
         </div>
       </div>
 
@@ -198,27 +250,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             type="text" 
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            placeholder="Buscar por tag, nome ou local..." 
+            placeholder={adminTab === 'ativas' ? "Buscar vasos ativos..." : "Buscar no histórico de vendidas..."} 
             className="w-full pl-10 pr-4 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto text-xs">
-          <select 
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-700"
-          >
-            <option value="all">Todos os Status</option>
-            <option value="disponivel">Apenas Disponíveis</option>
-            <option value="reservada">Apenas Reservadas</option>
-            <option value="vendida">Apenas Vendidas</option>
-          </select>
+          {adminTab === 'ativas' && (
+            <select 
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-700 cursor-pointer"
+            >
+              <option value="all">Todos os Status Ativos</option>
+              <option value="disponivel">Apenas Disponíveis</option>
+              <option value="reservada">Apenas Reservadas</option>
+            </select>
+          )}
 
           <select 
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-700"
+            className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-700 cursor-pointer"
           >
             <option value="all">Todas as Categorias</option>
             <option value="Folhagens">Folhagens</option>
@@ -231,7 +284,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <button 
             onClick={handleResetData}
             title="Redefinir catálogo inicial"
-            className="p-2 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100"
+            className="p-2 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -310,12 +363,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                             : plant.status === 'reservada'
                             ? 'bg-amber-50 border-amber-300 text-amber-800'
-                            : 'bg-stone-100 border-stone-300 text-stone-600'
+                            : 'bg-purple-50 border-purple-300 text-purple-800'
                         }`}
                       >
                         <option value="disponivel">🟢 Disponível</option>
                         <option value="reservada">🟡 Reservada</option>
-                        <option value="vendida">⚪ Vendida</option>
+                        <option value="vendida">🟣 Vendida</option>
                       </select>
                     </td>
 
@@ -324,35 +377,45 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <button 
                         onClick={() => onViewPlant(plant)}
                         title="Ver ficha mobile"
-                        className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors"
+                        className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
 
-                      <button 
-                        onClick={() => onSelectForTag(plant)}
-                        title="Gerar Etiqueta QR"
-                        className="p-1.5 text-stone-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
-                        <QrCode className="w-4 h-4" />
-                      </button>
+                      {plant.status !== 'vendida' ? (
+                        <button 
+                          onClick={() => onSelectForTag(plant)}
+                          title="Gerar Etiqueta QR"
+                          className="p-1.5 text-stone-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => onStatusChange(plant, 'disponivel')}
+                          title="Reativar e colocar em estoque"
+                          className="p-1.5 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                      )}
 
                       <button 
                         onClick={() => onOpenEditModal(plant)}
                         title="Editar planta"
-                        className="p-1.5 text-stone-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-1.5 text-stone-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
 
                       <button 
                         onClick={() => {
-                          if (confirm(`Excluir ${plant.name} (#${plant.id})?`)) {
+                          if (confirm(`Excluir permanentemente ${plant.name} (#${plant.id}) do banco?`)) {
                             onDeletePlant(plant.id);
                           }
                         }}
-                        title="Excluir planta"
-                        className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Excluir planta permanentemente"
+                        className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -363,7 +426,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               ) : (
                 <tr>
                   <td colSpan={7} className="text-center py-8 text-stone-400 text-xs">
-                    Nenhuma planta encontrada para os filtros selecionados.
+                    {adminTab === 'ativas' 
+                      ? 'Nenhum vaso ativo encontrado para os filtros selecionados.' 
+                      : 'Nenhuma planta vendida no histórico ainda.'}
                   </td>
                 </tr>
               )}
@@ -373,8 +438,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         {/* Rodapé da Tabela */}
         <div className="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-xs text-stone-500">
-          <span>Mostrando <strong>{filteredPlants.length}</strong> de {plants.length} registros</span>
-          <span>Dica: Clique no ícone de QR Code para imprimir a etiqueta do vaso</span>
+          <span>Mostrando <strong>{filteredPlants.length}</strong> registros</span>
+          <span>
+            {adminTab === 'ativas' 
+              ? 'Dica: Ao alterar o status para "Vendida", a planta sai da vitrine e vai para o Histórico.' 
+              : 'Dica: Você pode reativar uma planta vendida a qualquer momento.'}
+          </span>
         </div>
       </div>
 
