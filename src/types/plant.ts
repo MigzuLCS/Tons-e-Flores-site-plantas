@@ -1,7 +1,8 @@
 export type LightRequirement = 'sol-pleno' | 'meia-sombra' | 'sombra-difusa';
-export type WateringFrequency = 'baixa' | 'moderada' | 'frequente';
+export type WateringFrequency = string; // Suporta opções customizadas além das padrão
 export type PlantStatus = 'disponivel' | 'reservada' | 'vendida';
-export type PlantCategory = 'Folhagens' | 'Suculentas & Cactos' | 'Flores' | 'Pendentes' | 'Arbustos & Árvores' | 'Ervas & Temperos';
+export type PlantCategory = string; // Suporta categorias customizadas criadas pela loja
+
 
 export interface Plant {
   id: string; // Ex: "TF-001"

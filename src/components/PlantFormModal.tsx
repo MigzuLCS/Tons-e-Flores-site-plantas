@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Image as ImageIcon, MapPin } from 'lucide-react';
-import type { Plant, PlantCategory, LightRequirement, WateringFrequency, PlantStatus } from '../types/plant';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Save, Sparkles, Image as ImageIcon, MapPin, Upload } from 'lucide-react';
+import type { Plant, LightRequirement, WateringFrequency, PlantStatus } from '../types/plant';
 import { plantService } from '../services/plantService';
+import { configService } from '../services/configService';
 
 interface PlantFormModalProps {
   plantToEdit?: Plant | null;
@@ -20,32 +21,28 @@ const PRESET_PHOTOS = [
 ];
 
 export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState<Partial<Plant>>({
-    id: '',
-    name: '',
-    scientificName: '',
-    category: 'Folhagens',
-    price: 45.0,
-    potSize: 'Pote 15',
-    location: 'Estufa 01 • Bancada A',
-    status: 'disponivel',
-    light: 'meia-sombra',
-    watering: 'moderada',
-    petFriendly: false,
-    wateringTip: 'Regar quando a terra estiver quase seca ao toque.',
-    careInstructions: 'Gosta de luz indireta brilhante e boa circulação de ar.',
-    imageUrl: PRESET_PHOTOS[0].url,
-  });
+  const [categories, setCategories] = useState<string[]>([]);
+  const [wateringOptions, setWateringOptions] = useState(configService.getWateringOptions());
+  const [formData, setFormData] = useState<Partial<Plant>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedFileName, setUploadedFileName] = useState('');
 
   useEffect(() => {
+    setCategories(configService.getCategories());
+    setWateringOptions(configService.getWateringOptions());
+  }, [isOpen]);
+
+  useEffect(() => {
+    const cats = configService.getCategories();
     if (plantToEdit) {
       setFormData(plantToEdit);
+      setUploadedFileName('');
     } else {
       setFormData({
         id: plantService.generateNextId(),
         name: '',
         scientificName: '',
-        category: 'Folhagens',
+        category: cats[0] || 'Folhagens',
         price: 45.0,
         potSize: 'Pote 15',
         location: 'Estufa 01 • Bancada A',
@@ -57,20 +54,48 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         careInstructions: 'Manter em local bem iluminado sem sol direto.',
         imageUrl: PRESET_PHOTOS[0].url,
       });
+      setUploadedFileName('');
     }
   }, [plantToEdit, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Redimensiona para no máximo 800px e converte para JPEG 80% para economizar espaço
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 800;
+        const scale = img.width > maxW ? maxW / img.width : 1;
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
+        setUploadedFileName(file.name);
+      };
+      img.src = evt.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.id) return;
 
     const finalPlant: Plant = {
-      id: formData.id,
-      name: formData.name,
-      scientificName: formData.scientificName || formData.name,
-      category: (formData.category as PlantCategory) || 'Folhagens',
+      id: formData.id!,
+      name: formData.name!,
+      scientificName: formData.scientificName || formData.name!,
+      category: formData.category || categories[0] || 'Folhagens',
       price: Number(formData.price) || 0,
       potSize: formData.potSize || 'Pote 15',
       location: formData.location || 'Loja',
@@ -107,7 +132,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors"
+            className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -133,7 +158,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   value={formData.id}
                   onChange={e => setFormData({ ...formData, id: e.target.value })}
                   placeholder="Ex: TF-009"
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-mono font-bold text-emerald-800 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-mono font-bold text-emerald-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -147,7 +172,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ex: Costela de Adão, Jiboia Verde"
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
                 />
               </div>
             </div>
@@ -162,7 +187,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   value={formData.scientificName}
                   onChange={e => setFormData({ ...formData, scientificName: e.target.value })}
                   placeholder="Ex: Monstera deliciosa"
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl italic focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl italic focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -172,15 +197,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 </label>
                 <select 
                   value={formData.category}
-                  onChange={e => setFormData({ ...formData, category: e.target.value as PlantCategory })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium"
+                  onChange={e => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
                 >
-                  <option value="Folhagens">Folhagens</option>
-                  <option value="Pendentes">Pendentes</option>
-                  <option value="Suculentas & Cactos">Suculentas & Cactos</option>
-                  <option value="Flores">Flores</option>
-                  <option value="Arbustos & Árvores">Arbustos & Árvores</option>
-                  <option value="Ervas & Temperos">Ervas & Temperos</option>
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -203,7 +225,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   required
                   value={formData.price}
                   onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-900 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl font-bold text-stone-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -216,7 +238,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   value={formData.potSize}
                   onChange={e => setFormData({ ...formData, potSize: e.target.value })}
                   placeholder="Ex: Pote 15, Cuia 21"
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -227,7 +249,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 <select 
                   value={formData.status}
                   onChange={e => setFormData({ ...formData, status: e.target.value as PlantStatus })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none font-medium"
                 >
                   <option value="disponivel">Disponível na Loja</option>
                   <option value="reservada">Reservada</option>
@@ -246,7 +268,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 value={formData.location}
                 onChange={e => setFormData({ ...formData, location: e.target.value })}
                 placeholder="Ex: Estufa 01 • Bancada A, Prateleira Suspensa, Entrada"
-                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
           </div>
@@ -265,7 +287,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 <select 
                   value={formData.light}
                   onChange={e => setFormData({ ...formData, light: e.target.value as LightRequirement })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:outline-none"
                 >
                   <option value="sol-pleno">☀️ Sol Pleno</option>
                   <option value="meia-sombra">🌤️ Meia Sombra</option>
@@ -280,11 +302,13 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 <select 
                   value={formData.watering}
                   onChange={e => setFormData({ ...formData, watering: e.target.value as WateringFrequency })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:outline-none"
                 >
-                  <option value="baixa">💧 Pouca Rega (Solo Seco)</option>
-                  <option value="moderada">💧💧 Moderada (1-2x/sem)</option>
-                  <option value="frequente">💧💧💧 Solo Sempre Úmido</option>
+                  {wateringOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.emoji} {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -295,7 +319,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 <select 
                   value={formData.petFriendly ? 'true' : 'false'}
                   onChange={e => setFormData({ ...formData, petFriendly: e.target.value === 'true' })}
-                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:outline-none"
                 >
                   <option value="true">🐾 Sim (Pet Friendly)</option>
                   <option value="false">⚠️ Não (Tóxica ao ingerir)</option>
@@ -312,7 +336,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 value={formData.wateringTip}
                 onChange={e => setFormData({ ...formData, wateringTip: e.target.value })}
                 placeholder="Ex: Regar quando os primeiros 2cm do solo estiverem secos."
-                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl"
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -325,7 +349,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 value={formData.careInstructions}
                 onChange={e => setFormData({ ...formData, careInstructions: e.target.value })}
                 placeholder="Ex: Borrifar água nas folhas no verão. Limpar a poeira 1x ao mês."
-                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl"
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
           </div>
@@ -337,16 +361,54 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
               4. Foto do Vaso / Planta
             </h3>
 
+            {/* Upload de foto própria */}
             <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">
-                Link da Imagem (URL)
+              <label className="block text-xs font-semibold text-stone-700 mb-1.5 flex items-center gap-1">
+                <Upload className="w-3.5 h-3.5 text-emerald-600" />
+                Enviar Foto do Celular / Computador
               </label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-xl p-4 cursor-pointer text-center bg-emerald-50/50 hover:bg-emerald-50 transition-colors"
+              >
+                <input 
+                  ref={fileInputRef}
+                  type="file" 
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+                {uploadedFileName ? (
+                  <div className="text-xs font-semibold text-emerald-800">
+                    ✅ Foto carregada: <span className="font-mono">{uploadedFileName}</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-stone-500 space-y-0.5">
+                    <div className="text-2xl">📷</div>
+                    <p className="font-semibold text-stone-700">Clique para selecionar uma foto</p>
+                    <p>JPG, PNG, WEBP — será redimensionada automaticamente</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Separador ou URL */}
+            <div className="flex items-center gap-2 text-stone-400 text-[11px]">
+              <div className="flex-1 h-px bg-stone-200" />
+              <span>ou cole uma URL de imagem da internet</span>
+              <div className="flex-1 h-px bg-stone-200" />
+            </div>
+
+            <div>
               <input 
                 type="url" 
-                value={formData.imageUrl}
-                onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                value={formData.imageUrl?.startsWith('data:') ? '' : formData.imageUrl}
+                onChange={e => {
+                  setFormData({ ...formData, imageUrl: e.target.value });
+                  setUploadedFileName('');
+                }}
                 placeholder="https://..."
-                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs"
+                className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -358,8 +420,11 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   <button 
                     key={idx}
                     type="button"
-                    onClick={() => setFormData({ ...formData, imageUrl: preset.url })}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
+                    onClick={() => {
+                      setFormData({ ...formData, imageUrl: preset.url });
+                      setUploadedFileName('');
+                    }}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                       formData.imageUrl === preset.url 
                         ? 'bg-emerald-100 border-emerald-400 text-emerald-900 font-bold' 
                         : 'bg-stone-100 border-stone-200 text-stone-700 hover:bg-stone-200'
@@ -379,7 +444,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   alt="Prévia" 
                   className="w-16 h-16 rounded-lg object-cover border"
                 />
-                <span className="text-xs text-stone-500">Prévia da foto que aparecerá na etiqueta e no site</span>
+                <span className="text-xs text-stone-500">
+                  {uploadedFileName 
+                    ? '📷 Foto própria — será exibida na vitrine e na etiqueta.'
+                    : 'Prévia da foto que aparecerá na etiqueta e no site'
+                  }
+                </span>
               </div>
             )}
           </div>

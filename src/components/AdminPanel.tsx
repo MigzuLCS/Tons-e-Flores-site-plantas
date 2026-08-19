@@ -14,10 +14,16 @@ import {
   Clock,
   RotateCcw,
   Archive,
-  RefreshCw
+  RefreshCw,
+  Settings,
+  X as XIcon,
+  Tag,
+  Droplets
 } from 'lucide-react';
 import type { Plant, PlantStatus } from '../types/plant';
 import { plantService } from '../services/plantService';
+import { configService, type WateringOption } from '../services/configService';
+
 
 interface AdminPanelProps {
   plants: Plant[];
@@ -40,11 +46,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onStatusChange,
   onRefresh,
 }) => {
-  // Aba interna do painel: 'ativas' (em estoque/reservadas) ou 'vendidas' (histórico)
-  const [adminTab, setAdminTab] = useState<'ativas' | 'vendidas'>('ativas');
+  // Aba interna do painel: 'ativas', 'vendidas' ou 'config'
+  const [adminTab, setAdminTab] = useState<'ativas' | 'vendidas' | 'config'>('ativas');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  // Estado de configurações (categorias e regas)
+  const [categories, setCategories] = useState<string[]>(() => configService.getCategories());
+  const [wateringOpts, setWateringOpts] = useState<WateringOption[]>(() => configService.getWateringOptions());
+  const [newCatName, setNewCatName] = useState('');
+  const [newWaterLabel, setNewWaterLabel] = useState('');
+  const [newWaterEmoji, setNewWaterEmoji] = useState('💧');
+
 
   // Métricas da Loja
   const stats = useMemo(() => {
@@ -199,7 +213,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       </div>
 
-      {/* Seletor de Seção do Painel (Ativas vs Histórico de Vendidas) */}
+      {/* Seletor de Seção do Painel (Ativas vs Histórico de Vendidas vs Config) */}
       <div className="flex items-center justify-between border-b border-stone-200">
         <div className="flex items-center gap-2">
           <button
@@ -214,7 +228,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             }`}
           >
             <Sprout className="w-4 h-4" />
-            <span>🌿 Vasos Ativos na Loja ({stats.available + stats.reserved})</span>
+            <span>🌿 Vasos Ativos ({stats.available + stats.reserved})</span>
           </button>
 
           <button
@@ -229,21 +243,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             }`}
           >
             <Archive className="w-4 h-4" />
-            <span>📦 Histórico de Vendidas ({stats.sold})</span>
+            <span>📦 Histórico ({stats.sold})</span>
+          </button>
+
+          <button
+            onClick={() => setAdminTab('config')}
+            className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+              adminTab === 'config'
+                ? 'border-stone-700 text-stone-900'
+                : 'border-transparent text-stone-400 hover:text-stone-700'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>⚙️ Configurações</span>
           </button>
         </div>
 
         <div className="hidden sm:block text-xs text-stone-500 pb-3">
           {adminTab === 'ativas' ? (
             <span>Valor em estoque: <strong className="text-stone-900">R$ {stats.stockValue.toFixed(2).replace('.', ',')}</strong></span>
-          ) : (
+          ) : adminTab === 'vendidas' ? (
             <span>Faturamento histórico: <strong className="text-purple-900">R$ {stats.soldTotalValue.toFixed(2).replace('.', ',')}</strong></span>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {/* Barra de Busca e Filtros da Tabela */}
+
+      {/* Barra de Busca e Filtros da Tabela — oculta na aba Config */}
+      {adminTab !== 'config' && (
       <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-stone-400" />
           <input 
@@ -290,10 +319,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </button>
         </div>
       </div>
+      )}
 
-      {/* Tabela de Plantas */}
+      {/* Tabela de Plantas — oculta na aba Config */}
+      {adminTab !== 'config' && (
       <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
+
           <table className="w-full text-left text-xs text-stone-700">
             <thead className="bg-stone-50 border-b border-stone-200 font-bold uppercase tracking-wider text-stone-500 text-[10px]">
               <tr>
@@ -446,6 +478,151 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </span>
         </div>
       </div>
+      )}
+
+      {/* ── Painel de Configurações da Loja ─────────────────────── */}
+      {adminTab === 'config' && (
+        <div className="space-y-6 animate-in fade-in">
+
+          {/* Categorias */}
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <Tag className="w-5 h-5 text-emerald-700" />
+              <h3 className="text-base font-bold text-stone-900">Categorias de Plantas</h3>
+            </div>
+            <p className="text-xs text-stone-500">
+              As categorias aparecem no formulário de cadastro e nos filtros da vitrine. Adicione novas ou remova as que não usa.
+            </p>
+
+            {/* Lista de categorias */}
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <div key={cat} className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-emerald-900">
+                  <span>{cat}</span>
+                  <button
+                    onClick={() => setCategories(configService.removeCategory(cat))}
+                    title="Remover categoria"
+                    className="text-emerald-500 hover:text-rose-600 cursor-pointer transition-colors"
+                  >
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Adicionar nova categoria */}
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={newCatName}
+                onChange={e => setNewCatName(e.target.value)}
+                placeholder="Ex: Bromeliáceas, Aquáticas, Carnívoras..."
+                className="flex-1 px-3 py-2 text-xs bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && newCatName.trim()) {
+                    setCategories(configService.addCategory(newCatName));
+                    setNewCatName('');
+                  }
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (newCatName.trim()) {
+                    setCategories(configService.addCategory(newCatName));
+                    setNewCatName('');
+                  }
+                }}
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Adicionar
+              </button>
+              <button
+                onClick={() => setCategories(configService.resetCategories())}
+                title="Restaurar categorias padrão"
+                className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-semibold rounded-xl cursor-pointer border border-stone-300 flex items-center gap-1"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Restaurar padrão
+              </button>
+            </div>
+          </div>
+
+          {/* Frequências de Rega */}
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <Droplets className="w-5 h-5 text-blue-600" />
+              <h3 className="text-base font-bold text-stone-900">Frequências de Rega</h3>
+            </div>
+            <p className="text-xs text-stone-500">
+              As três opções padrão não podem ser removidas. Adicione opções extras para casos específicos da sua loja.
+            </p>
+
+            {/* Lista de opções de rega */}
+            <div className="space-y-2">
+              {wateringOpts.map(opt => {
+                const isDefault = ['baixa', 'moderada', 'frequente'].includes(opt.value);
+                return (
+                  <div key={opt.value} className={`flex items-center justify-between px-4 py-2.5 rounded-xl border text-xs font-semibold ${isDefault ? 'bg-blue-50 border-blue-200 text-blue-900' : 'bg-stone-50 border-stone-200 text-stone-800'}`}>
+                    <span>{opt.emoji} {opt.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] text-stone-400 bg-stone-100 px-2 py-0.5 rounded-lg">{opt.value}</span>
+                      {!isDefault && (
+                        <button
+                          onClick={() => setWateringOpts(configService.removeWateringOption(opt.value))}
+                          className="text-stone-400 hover:text-rose-600 cursor-pointer transition-colors"
+                        >
+                          <XIcon className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {isDefault && <span className="text-[10px] text-blue-500 font-medium">padrão</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Adicionar nova opção de rega */}
+            <div className="flex gap-2 items-center flex-wrap">
+              <input
+                type="text"
+                value={newWaterEmoji}
+                onChange={e => setNewWaterEmoji(e.target.value)}
+                placeholder="💧"
+                maxLength={4}
+                className="w-16 px-3 py-2 text-sm text-center bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="text"
+                value={newWaterLabel}
+                onChange={e => setNewWaterLabel(e.target.value)}
+                placeholder="Ex: Nebulização Diária, Hidropônico..."
+                className="flex-1 px-3 py-2 text-xs bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={() => {
+                  if (newWaterLabel.trim()) {
+                    setWateringOpts(configService.addWateringOption(newWaterLabel, newWaterEmoji));
+                    setNewWaterLabel('');
+                    setNewWaterEmoji('💧');
+                  }
+                }}
+                className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Adicionar
+              </button>
+            </div>
+          </div>
+
+          {/* Senha de Acesso (futura expansão) */}
+          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 text-xs text-amber-900 space-y-1">
+            <p className="font-bold flex items-center gap-1.5">🔑 Alteração de Senha — Em Breve</p>
+            <p className="text-amber-700">A troca de senha de administrador estará disponível em uma próxima atualização.</p>
+          </div>
+
+        </div>
+      )}
 
     </div>
   );

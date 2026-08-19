@@ -111,13 +111,32 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
 
             {/* Badges de Cuidados Básicos (Cards Coloridos) */}
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="bg-amber-50/80 border border-amber-200/60 p-2.5 rounded-2xl flex flex-col items-center justify-center">
+              {/* Iluminação — cor do container muda com o valor */}
+              <div className={`p-2.5 rounded-2xl flex flex-col items-center justify-center border ${
+                plant.light === 'sol-pleno'
+                  ? 'bg-amber-50 border-amber-200/70'
+                  : plant.light === 'meia-sombra'
+                  ? 'bg-orange-50 border-orange-200/70'
+                  : 'bg-stone-100 border-stone-200'
+              }`}>
                 <CareBadge type="light" value={plant.light} />
               </div>
-              <div className="bg-blue-50/80 border border-blue-200/60 p-2.5 rounded-2xl flex flex-col items-center justify-center">
+              {/* Rega — cor do container muda com o valor */}
+              <div className={`p-2.5 rounded-2xl flex flex-col items-center justify-center border ${
+                plant.watering === 'baixa'
+                  ? 'bg-blue-50 border-blue-200/70'
+                  : plant.watering === 'moderada'
+                  ? 'bg-sky-50 border-sky-200/70'
+                  : 'bg-indigo-50 border-indigo-200/70'
+              }`}>
                 <CareBadge type="watering" value={plant.watering} />
               </div>
-              <div className="bg-rose-50/80 border border-rose-200/60 p-2.5 rounded-2xl flex flex-col items-center justify-center">
+              {/* Pet Friendly — cor do container muda com o valor */}
+              <div className={`p-2.5 rounded-2xl flex flex-col items-center justify-center border ${
+                plant.petFriendly
+                  ? 'bg-emerald-50 border-emerald-200/70'
+                  : 'bg-rose-50 border-rose-200/70'
+              }`}>
                 <CareBadge type="pets" value={plant.petFriendly} />
               </div>
             </div>
