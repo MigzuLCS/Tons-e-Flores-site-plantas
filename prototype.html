@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tons & Flores - Visualização do Projeto</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Font Google (Inter & Playfair) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .font-serif-title {
+      font-family: 'Playfair Display', serif;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen">
+
+  <!-- BARRA DE NAVEGAÇÃO DE PRÉVIA (DEMO SWITCHER) -->
+  <header class="no-print bg-stone-900 text-stone-100 px-6 py-4 shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-md">
+          <i data-lucide="sprout" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight tracking-tight flex items-center gap-2">
+            Tons & Flores <span class="text-xs px-2 py-0.5 bg-emerald-800 text-emerald-200 rounded-full font-medium">Protótipo Visual</span>
+          </h1>
+          <p class="text-xs text-stone-400">Alternar entre as telas para visualizar o projeto</p>
+        </div>
+      </div>
+
+      <!-- Navegador de Abas de Visualização -->
+      <nav class="flex items-center bg-stone-800 p-1.5 rounded-xl border border-stone-700 text-xs sm:text-sm font-medium gap-1 flex-wrap justify-center">
+        <button onclick="switchView('showcase')" id="btn-showcase" class="view-btn flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold shadow transition-all">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          <span>1. Vitrine & Busca (Pública)</span>
+        </button>
+        <button onclick="switchView('mobile')" id="btn-mobile" class="view-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-stone-400 hover:text-white transition-all">
+          <i data-lucide="smartphone" class="w-4 h-4"></i>
+          <span>2. Leitura QR Code (Mobile)</span>
+        </button>
+        <button onclick="switchView('admin')" id="btn-admin" class="view-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-stone-400 hover:text-white transition-all">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span>3. Painel da Loja</span>
+        </button>
+        <button onclick="switchView('tags')" id="btn-tags" class="view-btn flex items-center gap-2 px-3 py-1.5 rounded-lg text-stone-400 hover:text-white transition-all">
+          <i data-lucide="qr-code" class="w-4 h-4"></i>
+          <span>4. Etiquetas QR</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 1: VITRINE PÚBLICA & CATÁLOGO COM BUSCA (HOME PARA CLIENTES) -->
+  <!-- ========================================================================= -->
+  <section id="view-showcase" class="view-section max-w-5xl mx-auto py-8 px-4 space-y-8">
+    
+    <!-- Hero / Boas-vindas -->
+    <div class="relative bg-gradient-to-br from-emerald-900 to-stone-900 rounded-3xl p-6 sm:p-10 text-white overflow-hidden shadow-xl">
+      <div class="relative z-10 max-w-xl space-y-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-800/80 rounded-full text-xs font-semibold text-emerald-200 border border-emerald-700/50">
+          <i data-lucide="flower-2" class="w-3.5 h-3.5"></i> Tons & Flores • Catálogo Digital
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-bold font-serif-title leading-tight">Encontre a planta perfeita para o seu espaço.</h2>
+        <p class="text-xs sm:text-sm text-stone-300">Descubra espécies para a sua casa ou escritório, veja dicas de cultivo e consulte nossos vasos disponíveis.</p>
+      </div>
+      <div class="absolute -right-8 -bottom-8 opacity-20 pointer-events-none text-emerald-400">
+        <i data-lucide="leaf" class="w-64 h-64"></i>
+      </div>
+    </div>
+
+    <!-- Barra de Busca & Filtros Rápidos -->
+    <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+      <div class="relative">
+        <i data-lucide="search" class="w-5 h-5 absolute left-4 top-3.5 text-stone-400"></i>
+        <input type="text" placeholder="Pesquisar por nome da planta (ex: Costela de Adão, Jiboia, Samambaia)..." 
+               class="w-full pl-12 pr-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+      </div>
+
+      <!-- Filtros por Categoria e Tipo de Cuidado -->
+      <div class="flex flex-wrap gap-2 items-center text-xs">
+        <span class="font-bold text-stone-400 uppercase mr-1">Filtros:</span>
+        <button class="px-3.5 py-1.5 rounded-full bg-emerald-800 text-white font-medium shadow-sm">Todas as Plantas (245)</button>
+        <button class="px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium flex items-center gap-1.5">
+          <i data-lucide="sun-medium" class="w-3.5 h-3.5 text-amber-500"></i> Sol Pleno
+        </button>
+        <button class="px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium flex items-center gap-1.5">
+          <i data-lucide="cloud-sun" class="w-3.5 h-3.5 text-amber-500"></i> Meia Sombra
+        </button>
+        <button class="px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium flex items-center gap-1.5">
+          <i data-lucide="heart" class="w-3.5 h-3.5 text-emerald-600"></i> Pet Friendly
+        </button>
+        <button class="px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium flex items-center gap-1.5">
+          <i data-lucide="droplets" class="w-3.5 h-3.5 text-blue-500"></i> Pouca Rega (Fácil)
+        </button>
+      </div>
+    </div>
+
+    <!-- Grade de Plantas da Loja (Visualização da Vitrine Pública) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      
+      <!-- Card 1: Costela de Adão -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden hover:shadow-md transition-all group flex flex-col justify-between">
+        <div>
+          <div class="relative h-48 bg-stone-100 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=600&q=80" 
+                 alt="Costela de Adão" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+              3 Vasos na Loja
+            </span>
+          </div>
+          <div class="p-5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-emerald-700 uppercase">Folhagem Tropical</span>
+              <span class="text-xs font-bold text-stone-400">A partir de</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <h3 class="text-lg font-bold text-stone-900 font-serif-title">Costela de Adão</h3>
+              <span class="text-lg font-extrabold text-stone-900">R$ 68,00</span>
+            </div>
+            <p class="text-xs text-stone-500 italic">Monstera deliciosa</p>
+
+            <div class="flex items-center gap-2 pt-2 text-[11px] text-stone-600">
+              <span class="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded"><i data-lucide="sun-medium" class="w-3 h-3 text-amber-500"></i> Meia Sombra</span>
+              <span class="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded"><i data-lucide="droplets" class="w-3 h-3 text-blue-500"></i> 1-2x/sem</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button onclick="switchView('mobile')" class="w-full bg-stone-900 hover:bg-emerald-800 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+            <span>Ver Detalhes & Cuidados</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2: Jiboia Verde -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden hover:shadow-md transition-all group flex flex-col justify-between">
+        <div>
+          <div class="relative h-48 bg-stone-100 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1596724855579-2475e638b368?auto=format&fit=crop&w=600&q=80" 
+                 alt="Jiboia Verde" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+              5 Vasos na Loja
+            </span>
+          </div>
+          <div class="p-5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-emerald-700 uppercase">Pendente / Folhagem</span>
+              <span class="text-xs font-bold text-stone-400">A partir de</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <h3 class="text-lg font-bold text-stone-900 font-serif-title">Jiboia Verde</h3>
+              <span class="text-lg font-extrabold text-stone-900">R$ 35,00</span>
+            </div>
+            <p class="text-xs text-stone-500 italic">Epipremnum aureum</p>
+
+            <div class="flex items-center gap-2 pt-2 text-[11px] text-stone-600">
+              <span class="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded"><i data-lucide="cloud-sun" class="w-3 h-3 text-amber-500"></i> Luz Difusa</span>
+              <span class="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded"><i data-lucide="droplets" class="w-3 h-3 text-blue-500"></i> Moderada</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button onclick="switchView('mobile')" class="w-full bg-stone-900 hover:bg-emerald-800 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+            <span>Ver Detalhes & Cuidados</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 3: Zamioculca -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden hover:shadow-md transition-all group flex flex-col justify-between">
+        <div>
+          <div class="relative h-48 bg-stone-100 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1632207691143-643e2a9a9361?auto=format&fit=crop&w=600&q=80" 
+                 alt="Zamioculca" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+              4 Vasos na Loja
+            </span>
+          </div>
+          <div class="p-5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-emerald-700 uppercase">Super Resistente</span>
+              <span class="text-xs font-bold text-stone-400">A partir de</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <h3 class="text-lg font-bold text-stone-900 font-serif-title">Zamioculca (ZZ)</h3>
+              <span class="text-lg font-extrabold text-stone-900">R$ 55,00</span>
+            </div>
+            <p class="text-xs text-stone-500 italic">Zamioculcas zamiifolia</p>
+
+            <div class="flex items-center gap-2 pt-2 text-[11px] text-stone-600">
+              <span class="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded"><i data-lucide="moon" class="w-3 h-3 text-stone-600"></i> Pouca Luz</span>
+              <span class="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded"><i data-lucide="droplets" class="w-3 h-3 text-blue-500"></i> Rega Rara</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-5 pt-0">
+          <button onclick="switchView('mobile')" class="w-full bg-stone-900 hover:bg-emerald-800 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+            <span>Ver Detalhes & Cuidados</span>
+            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 2: PÁGINA PÚBLICA DA PLANTA (MOBILE VIEW AO LER O QR CODE) -->
+  <!-- ========================================================================= -->
+  <main id="view-mobile" class="view-section hidden py-8 px-4 flex justify-center items-center min-h-[calc(100vh-80px)]">
+    <!-- Moldura de Smartphone -->
+    <div class="w-full max-w-sm bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-8 border-stone-800 relative">
+      
+      <!-- Topo / Câmera do Smartphone -->
+      <div class="bg-stone-800 h-6 w-36 mx-auto rounded-b-xl flex items-center justify-center gap-2">
+        <div class="w-2.5 h-2.5 bg-stone-900 rounded-full"></div>
+        <div class="w-1.5 h-1.5 bg-stone-700 rounded-full"></div>
+      </div>
+
+      <!-- Conteúdo da Página da Planta Escaneada -->
+      <div class="h-[680px] overflow-y-auto hide-scrollbar bg-stone-50 pb-8">
+        
+        <!-- Header da Loja -->
+        <div class="px-5 pt-3 pb-2 flex items-center justify-between text-xs text-stone-500 border-b border-stone-200 bg-white">
+          <div class="flex items-center gap-1.5 font-semibold text-emerald-800">
+            <i data-lucide="flower-2" class="w-4 h-4 text-emerald-600"></i>
+            Tons & Flores
+          </div>
+          <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold text-[10px] border border-emerald-200">
+            Tag #TF-042
+          </span>
+        </div>
+
+        <!-- Foto do Exemplar Específico -->
+        <div class="relative h-64 bg-stone-200">
+          <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80" 
+               alt="Costela de Adão" class="w-full h-full object-cover">
+          <div class="absolute bottom-3 left-3 bg-stone-900/80 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Bancada Central • Estufa 01</span>
+          </div>
+          <div class="absolute top-3 right-3 bg-emerald-600 text-white font-bold text-xs px-2.5 py-1 rounded-full shadow-md">
+            Disponível
+          </div>
+        </div>
+
+        <!-- Informações do Exemplar & Espécie -->
+        <div class="p-5 space-y-5">
+          
+          <!-- Cabeçalho de Identificação -->
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Folhagens & Tropicais</span>
+              <span class="text-xl font-extrabold text-stone-900">R$ 68,00</span>
+            </div>
+            <h2 class="text-2xl font-bold text-stone-900 mt-1 font-serif-title">Costela de Adão</h2>
+            <p class="text-xs text-stone-500 italic">Monstera deliciosa • Vaso Pote 17</p>
+          </div>
+
+          <!-- Cards Rápidos de Cuidados (Ícones) -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-amber-50 border border-amber-200/60 p-2.5 rounded-xl">
+              <i data-lucide="sun-medium" class="w-5 h-5 mx-auto text-amber-600 mb-1"></i>
+              <div class="text-[11px] font-bold text-stone-800">Meia Sombra</div>
+              <div class="text-[9px] text-stone-500">Luz indireta</div>
+            </div>
+            <div class="bg-blue-50 border border-blue-200/60 p-2.5 rounded-xl">
+              <i data-lucide="droplets" class="w-5 h-5 mx-auto text-blue-600 mb-1"></i>
+              <div class="text-[11px] font-bold text-stone-800">1x a 2x / sem</div>
+              <div class="text-[9px] text-stone-500">Solo quase seco</div>
+            </div>
+            <div class="bg-rose-50 border border-rose-200/60 p-2.5 rounded-xl">
+              <i data-lucide="alert-triangle" class="w-5 h-5 mx-auto text-rose-500 mb-1"></i>
+              <div class="text-[11px] font-bold text-stone-800">Cuidado Pets</div>
+              <div class="text-[9px] text-stone-500">Tóxica ao ingerir</div>
+            </div>
+          </div>
+
+          <!-- Guia de Cuidados Detalhado -->
+          <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm space-y-3">
+            <h3 class="font-bold text-xs uppercase tracking-wide text-stone-800 flex items-center gap-1.5">
+              <i data-lucide="book-open" class="w-4 h-4 text-emerald-600"></i>
+              Guia de Cultivo da Espécie
+            </h3>
+            
+            <div class="text-xs text-stone-600 space-y-2 leading-relaxed">
+              <p>
+                <strong>💧 Como Regar:</strong> Regue apenas quando a superfície do solo estiver seca. Evite encharcar o pratinho para não apodrecer as raízes.
+              </p>
+              <p>
+                <strong>☀️ Onde Posicionar:</strong> Ama locais bem iluminados perto de janelas, mas sem sol direto forte nas folhas para não queimar.
+              </p>
+              <p>
+                <strong>✨ Dica Especial:</strong> Limpe as folhas com um pano úmido uma vez ao mês para retirar poeira e manter o brilho natural.
+              </p>
+            </div>
+          </div>
+
+          <!-- Detalhes da Loja / Exemplar -->
+          <div class="bg-emerald-50 border border-emerald-200/80 p-4 rounded-2xl space-y-2">
+            <h3 class="font-bold text-xs uppercase tracking-wide text-emerald-900 flex items-center gap-1.5">
+              <i data-lucide="store" class="w-4 h-4 text-emerald-700"></i>
+              Informações deste Vaso na Loja
+            </h3>
+            <div class="text-xs text-emerald-950 space-y-1">
+              <div class="flex justify-between py-1 border-b border-emerald-200/60">
+                <span class="text-emerald-700">Localização física:</span>
+                <span class="font-semibold">Bancada Central • Estufa 01</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-emerald-200/60">
+                <span class="text-emerald-700">Tamanho do vaso:</span>
+                <span class="font-semibold">Pote 17 (Plástico Terracota)</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span class="text-emerald-700">Código de Etiqueta:</span>
+                <span class="font-mono font-bold">#TF-042</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botão de Ação -->
+          <div class="pt-1">
+            <button class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm">
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+              Falar com a Tons & Flores no WhatsApp
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 2: PAINEL DA LOJA (ESPÉCIES & EXEMPLARES POR LOCALIZAÇÃO) -->
+  <!-- ========================================================================= -->
+  <section id="view-admin" class="view-section hidden max-w-7xl mx-auto py-8 px-4 sm:px-6 space-y-8">
+    
+    <!-- Cabeçalho do Painel -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+      <div>
+        <h2 class="text-2xl font-bold text-stone-900 font-serif-title">Catálogo & Exemplares da Loja</h2>
+        <p class="text-sm text-stone-500 mt-1">Organizado por tipos de espécie e seus vasos individuais com localização física.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="bg-stone-100 hover:bg-stone-200 text-stone-800 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 border border-stone-300">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          + Nova Espécie
+        </button>
+        <button class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 shadow">
+          <i data-lucide="tag" class="w-4 h-4"></i>
+          + Cadastrar Novo Vaso / Exemplar
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Métricas / Resumo Rápido -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+        <div class="text-xs font-semibold text-stone-500 uppercase">Espécies Cadastradas</div>
+        <div class="text-2xl font-extrabold text-stone-900 mt-1">28</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+        <div class="text-xs font-semibold text-stone-500 uppercase">Total de Exemplares (Vasos)</div>
+        <div class="text-2xl font-extrabold text-emerald-700 mt-1">245</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+        <div class="text-xs font-semibold text-stone-500 uppercase">Disponíveis na Loja</div>
+        <div class="text-2xl font-extrabold text-blue-700 mt-1">218</div>
+      </div>
+      <div class="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+        <div class="text-xs font-semibold text-stone-500 uppercase">Locais Ativos</div>
+        <div class="text-2xl font-extrabold text-amber-700 mt-1">6 Setores</div>
+      </div>
+    </div>
+
+    <!-- Filtro e Busca -->
+    <div class="bg-white p-4 rounded-xl border border-stone-200 flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div class="relative w-full sm:w-80">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-stone-400"></i>
+        <input type="text" placeholder="Buscar por espécie, tag ou local..." class="w-full pl-10 pr-4 py-2 text-sm bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+      </div>
+      <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+        <span class="text-xs font-semibold text-stone-500 uppercase mr-1">Filtrar:</span>
+        <button class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-800 text-white">Todas</button>
+        <button class="px-3 py-1 text-xs font-medium rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200">Folhagens</button>
+        <button class="px-3 py-1 text-xs font-medium rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200">Suculentas</button>
+        <button class="px-3 py-1 text-xs font-medium rounded-full bg-stone-100 text-stone-700 hover:bg-stone-200">Flores</button>
+      </div>
+    </div>
+
+    <!-- Lista Agrupada: ESPÉCIE -> EXEMPLARES INDIVIDUAIS -->
+    <div class="space-y-6">
+      
+      <!-- CARD DE ESPÉCIE 1: Costela de Adão -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+        <!-- Barra da Espécie -->
+        <div class="p-5 bg-stone-50 border-b border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=200&q=80" 
+                 alt="Costela de Adão" class="w-16 h-16 rounded-xl object-cover border border-stone-300">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-bold text-stone-900 font-serif-title">Costela de Adão</h3>
+                <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-full">Folhagem</span>
+              </div>
+              <p class="text-xs text-stone-500 italic">Monstera deliciosa</p>
+              <div class="flex items-center gap-4 mt-2 text-xs text-stone-600">
+                <span class="flex items-center gap-1"><i data-lucide="sun-medium" class="w-3.5 h-3.5 text-amber-500"></i> Meia Sombra</span>
+                <span class="flex items-center gap-1"><i data-lucide="droplets" class="w-3.5 h-3.5 text-blue-500"></i> Rega 1-2x/sem</span>
+                <span class="flex items-center gap-1"><i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500"></i> Tóxica para pets</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-xs bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg font-semibold">
+              3 Exemplares na loja
+            </span>
+            <button class="text-stone-500 hover:text-stone-800 p-2 rounded-lg border border-stone-200 bg-white">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Exemplares / Vasos Individuais desta Espécie -->
+        <div class="p-5">
+          <div class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">Exemplares Cadastrados desta Espécie:</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Exemplar 1 -->
+            <div class="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 hover:bg-white hover:border-emerald-300 transition-all space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-mono font-bold text-xs bg-stone-800 text-white px-2 py-0.5 rounded">#TF-042</span>
+                <span class="text-xs font-bold text-emerald-700">R$ 68,00</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=150&q=80" 
+                     class="w-12 h-12 rounded-lg object-cover border">
+                <div class="text-xs">
+                  <div class="font-semibold text-stone-800">Pote 17</div>
+                  <div class="text-stone-500 flex items-center gap-1 mt-0.5">
+                    <i data-lucide="map-pin" class="w-3 h-3 text-emerald-600"></i> Estufa 01 • Bancada A
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs">
+                <span class="text-emerald-700 font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> Disponível</span>
+                <button class="text-stone-600 hover:text-emerald-800 font-semibold flex items-center gap-1">
+                  <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> Etiqueta
+                </button>
+              </div>
+            </div>
+
+            <!-- Exemplar 2 -->
+            <div class="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 hover:bg-white hover:border-emerald-300 transition-all space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-mono font-bold text-xs bg-stone-800 text-white px-2 py-0.5 rounded">#TF-043</span>
+                <span class="text-xs font-bold text-emerald-700">R$ 95,00</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <img src="https://images.unsplash.com/photo-1599598425947-5202edd562c8?auto=format&fit=crop&w=150&q=80" 
+                     class="w-12 h-12 rounded-lg object-cover border">
+                <div class="text-xs">
+                  <div class="font-semibold text-stone-800">Cuia 21 (Muda Grande)</div>
+                  <div class="text-stone-500 flex items-center gap-1 mt-0.5">
+                    <i data-lucide="map-pin" class="w-3 h-3 text-emerald-600"></i> Entrada Principal
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs">
+                <span class="text-emerald-700 font-medium flex items-center gap-1"><i data-lucide="check-circle" class="w-3 h-3"></i> Disponível</span>
+                <button class="text-stone-600 hover:text-emerald-800 font-semibold flex items-center gap-1">
+                  <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> Etiqueta
+                </button>
+              </div>
+            </div>
+
+            <!-- Exemplar 3 -->
+            <div class="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 hover:bg-white hover:border-emerald-300 transition-all space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-mono font-bold text-xs bg-stone-800 text-white px-2 py-0.5 rounded">#TF-044</span>
+                <span class="text-xs font-bold text-stone-400 line-through">R$ 68,00</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <img src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=150&q=80" 
+                     class="w-12 h-12 rounded-lg object-cover border opacity-60">
+                <div class="text-xs">
+                  <div class="font-semibold text-stone-800">Pote 17</div>
+                  <div class="text-stone-500 flex items-center gap-1 mt-0.5">
+                    <i data-lucide="map-pin" class="w-3 h-3 text-stone-400"></i> Balcão de Reservas
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs">
+                <span class="text-amber-700 font-medium flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Reservada</span>
+                <button class="text-stone-600 hover:text-emerald-800 font-semibold flex items-center gap-1">
+                  <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> Etiqueta
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD DE ESPÉCIE 2: Jiboia Verde -->
+      <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+        <div class="p-5 bg-stone-50 border-b border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <img src="https://images.unsplash.com/photo-1596724855579-2475e638b368?auto=format&fit=crop&w=200&q=80" 
+                 alt="Jiboia Verde" class="w-16 h-16 rounded-xl object-cover border border-stone-300">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-bold text-stone-900 font-serif-title">Jiboia Verde (Pothos)</h3>
+                <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-full">Pendente</span>
+              </div>
+              <p class="text-xs text-stone-500 italic">Epipremnum aureum</p>
+              <div class="flex items-center gap-4 mt-2 text-xs text-stone-600">
+                <span class="flex items-center gap-1"><i data-lucide="sun-medium" class="w-3.5 h-3.5 text-amber-500"></i> Sombra / Luz difusa</span>
+                <span class="flex items-center gap-1"><i data-lucide="droplets" class="w-3.5 h-3.5 text-blue-500"></i> Rega moderada</span>
+                <span class="flex items-center gap-1"><i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500"></i> Tóxica para pets</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-xs bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg font-semibold">
+              5 Exemplares na loja
+            </span>
+            <button class="text-stone-500 hover:text-stone-800 p-2 rounded-lg border border-stone-200 bg-white">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 3: MODELO DE ETIQUETAS PRONTAS PARA IMPRIMIR EM FOLHA A4 -->
+  <!-- ========================================================================= -->
+  <section id="view-tags" class="view-section hidden max-w-5xl mx-auto py-8 px-4 space-y-6">
+    
+    <!-- Painel de Configuração de Impressão -->
+    <div class="no-print bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-stone-900 font-serif-title">Gerador de Etiquetas (Folha de Impressão A4)</h2>
+        <p class="text-xs text-stone-500 mt-0.5">As tags já saem no tamanho exato para colar em estacas de madeira ou no vaso.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="window.print()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow flex items-center gap-2">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          Imprimir Folha de Etiquetas
+        </button>
+      </div>
+    </div>
+
+    <!-- Simulação da Folha A4 com Grade de Etiquetas -->
+    <div class="bg-white p-8 rounded-2xl shadow-md border border-stone-300 max-w-4xl mx-auto">
+      <div class="text-center text-xs text-stone-400 border-b pb-2 mb-6 uppercase tracking-widest no-print">
+        Visualização da Grade de Impressão (Tags para vasos)
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        
+        <!-- ETIQUETA 1 -->
+        <div class="border-2 border-dashed border-stone-400 p-4 rounded-xl flex flex-col items-center text-center bg-white space-y-2">
+          <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wide flex items-center gap-1">
+            <i data-lucide="flower-2" class="w-3.5 h-3.5"></i> Tons & Flores
+          </div>
+          
+          <!-- Imagem Ilustrativa de QR Code gerada via API nativa -->
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=https://tonseflores.vercel.app/p/TF-042" 
+               alt="QR Code #TF-042" class="w-24 h-24 border p-1 rounded-lg">
+          
+          <div>
+            <div class="font-bold text-sm text-stone-900 leading-tight">Costela de Adão</div>
+            <div class="text-[10px] text-stone-500 italic">Monstera deliciosa</div>
+          </div>
+
+          <div class="w-full pt-1 border-t border-stone-200 flex items-center justify-between text-[11px]">
+            <span class="font-mono font-bold text-stone-700">#TF-042</span>
+            <span class="font-extrabold text-emerald-700">R$ 68,00</span>
+          </div>
+
+          <div class="text-[9px] text-stone-400">Escaneie para ver cuidados</div>
+        </div>
+
+        <!-- ETIQUETA 2 -->
+        <div class="border-2 border-dashed border-stone-400 p-4 rounded-xl flex flex-col items-center text-center bg-white space-y-2">
+          <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wide flex items-center gap-1">
+            <i data-lucide="flower-2" class="w-3.5 h-3.5"></i> Tons & Flores
+          </div>
+          
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=https://tonseflores.vercel.app/p/TF-043" 
+               alt="QR Code #TF-043" class="w-24 h-24 border p-1 rounded-lg">
+          
+          <div>
+            <div class="font-bold text-sm text-stone-900 leading-tight">Costela de Adão</div>
+            <div class="text-[10px] text-stone-500 italic">Muda Grande • Cuia 21</div>
+          </div>
+
+          <div class="w-full pt-1 border-t border-stone-200 flex items-center justify-between text-[11px]">
+            <span class="font-mono font-bold text-stone-700">#TF-043</span>
+            <span class="font-extrabold text-emerald-700">R$ 95,00</span>
+          </div>
+
+          <div class="text-[9px] text-stone-400">Escaneie para ver cuidados</div>
+        </div>
+
+        <!-- ETIQUETA 3 -->
+        <div class="border-2 border-dashed border-stone-400 p-4 rounded-xl flex flex-col items-center text-center bg-white space-y-2">
+          <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wide flex items-center gap-1">
+            <i data-lucide="flower-2" class="w-3.5 h-3.5"></i> Tons & Flores
+          </div>
+          
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=https://tonseflores.vercel.app/p/TF-088" 
+               alt="QR Code #TF-088" class="w-24 h-24 border p-1 rounded-lg">
+          
+          <div>
+            <div class="font-bold text-sm text-stone-900 leading-tight">Jiboia Verde</div>
+            <div class="text-[10px] text-stone-500 italic">Epipremnum aureum</div>
+          </div>
+
+          <div class="w-full pt-1 border-t border-stone-200 flex items-center justify-between text-[11px]">
+            <span class="font-mono font-bold text-stone-700">#TF-088</span>
+            <span class="font-extrabold text-emerald-700">R$ 35,00</span>
+          </div>
+
+          <div class="text-[9px] text-stone-400">Escaneie para ver cuidados</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Script para alternar as abas no protótipo -->
+  <script>
+    lucide.createIcons();
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.view-btn').forEach(el => {
+        el.classList.remove('bg-emerald-600', 'text-white', 'font-semibold', 'shadow');
+        el.classList.add('text-stone-400');
+      });
+
+      if (viewName === 'showcase') {
+        document.getElementById('view-showcase').classList.remove('hidden');
+        document.getElementById('btn-showcase').classList.add('bg-emerald-600', 'text-white', 'font-semibold', 'shadow');
+        document.getElementById('btn-showcase').classList.remove('text-stone-400');
+      } else if (viewName === 'mobile') {
+        document.getElementById('view-mobile').classList.remove('hidden');
+        document.getElementById('btn-mobile').classList.add('bg-emerald-600', 'text-white', 'font-semibold', 'shadow');
+        document.getElementById('btn-mobile').classList.remove('text-stone-400');
+      } else if (viewName === 'admin') {
+        document.getElementById('view-admin').classList.remove('hidden');
+        document.getElementById('btn-admin').classList.add('bg-emerald-600', 'text-white', 'font-semibold', 'shadow');
+        document.getElementById('btn-admin').classList.remove('text-stone-400');
+      } else if (viewName === 'tags') {
+        document.getElementById('view-tags').classList.remove('hidden');
+        document.getElementById('btn-tags').classList.add('bg-emerald-600', 'text-white', 'font-semibold', 'shadow');
+        document.getElementById('btn-tags').classList.remove('text-stone-400');
+      }
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

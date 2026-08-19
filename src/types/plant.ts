@@ -1,0 +1,37 @@
+export type LightRequirement = 'sol-pleno' | 'meia-sombra' | 'sombra-difusa';
+export type WateringFrequency = 'baixa' | 'moderada' | 'frequente';
+export type PlantStatus = 'disponivel' | 'reservada' | 'vendida';
+export type PlantCategory = 'Folhagens' | 'Suculentas & Cactos' | 'Flores' | 'Pendentes' | 'Arbustos & Árvores' | 'Ervas & Temperos';
+
+export interface Plant {
+  id: string; // Ex: "TF-001"
+  name: string; // Nome popular: "Costela de Adão"
+  scientificName: string; // "Monstera deliciosa"
+  category: PlantCategory;
+  price: number; // Ex: 68.00
+  potSize: string; // Ex: "Pote 17", "Cuia 21"
+  location: string; // Ex: "Bancada Central • Estufa 01"
+  status: PlantStatus;
+  
+  // Cuidados
+  light: LightRequirement;
+  watering: WateringFrequency;
+  petFriendly: boolean;
+  wateringTip: string;
+  careInstructions: string;
+  
+  // Mídia
+  imageUrl: string;
+  
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface FilterOptions {
+  search: string;
+  category: string;
+  light: string;
+  watering: string;
+  petFriendlyOnly: boolean;
+  status: string;
+}
