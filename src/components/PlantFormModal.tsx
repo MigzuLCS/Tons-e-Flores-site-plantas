@@ -117,13 +117,13 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
   };
 
   // Ao selecionar uma espécie, preenche Nome Popular, Nome Científico e toda a ficha botânica
-  const handleSelectSpecies = async (speciesId: number) => {
+  const handleSelectSpecies = async (species: any) => {
     setIsSearching(true);
     setShowResultsDropdown(false);
     setApiError('');
 
     try {
-      const details = await perenualService.getSpeciesDetails(speciesId, searchQuery);
+      const details = await perenualService.getSpeciesDetails(species, searchQuery);
 
       setFormData(prev => ({
         ...prev,
@@ -142,6 +142,10 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         pestsDiseases: details.pestsDiseases || '',
         toxicity: details.toxicity || '',
       }));
+
+      if (details.fromFallback) {
+        setApiError('Nota: Detalhes básicos preenchidos via acervo botânico (limite de requisições ou dados parciais da API).');
+      }
 
     } catch (err: any) {
       setApiError(err.message || 'Erro ao carregar detalhes botânicos.');
@@ -278,7 +282,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                       <button
                         key={species.id}
                         type="button"
-                        onClick={() => handleSelectSpecies(species.id)}
+                        onClick={() => handleSelectSpecies(species)}
                         className="w-full px-4 py-2.5 text-left text-xs hover:bg-emerald-50 transition-colors flex items-center justify-between group cursor-pointer"
                       >
                         <div>
