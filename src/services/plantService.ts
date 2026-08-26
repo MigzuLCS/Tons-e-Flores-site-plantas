@@ -2,230 +2,165 @@ import type { Plant } from '../types/plant';
 
 const STORAGE_KEY = 'tonseflores_plants_v1';
 
-export const INITIAL_PLANTS: Plant[] = [
+const INITIAL_PLANTS: Plant[] = [
   {
     id: 'TF-001',
     name: 'Costela de Adão',
     scientificName: 'Monstera deliciosa',
     category: 'Folhagens',
-    price: 68.00,
-    potSize: 'Pote 17',
-    location: 'Bancada Central • Estufa 01',
+    price: 85.00,
+    potSize: 'Vaso 20cm',
+    location: 'Prateleira A1',
     status: 'disponivel',
-    light: 'meia-sombra',
+    light: 'sombra-difusa',
     watering: 'moderada',
     petFriendly: false,
-    wateringTip: 'Regar 1 a 2 vezes por semana quando os primeiros 2cm do solo estiverem secos.',
-    careInstructions: 'Gosta de luz indireta brilhante. Limpar as folhas com pano úmido 1x por mês para manter o brilho natural e a respiração da planta.',
-    imageUrl: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
+    wateringTip: 'Regar quando o substrato estiver seco a 3cm de profundidade. Evitar encharcamento.',
+    careInstructions: 'Prefere ambientes com umidade. Limpe as folhas periodicamente. Adube mensalmente na primavera/verão.',
+    imageUrl: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400&q=80',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
   {
     id: 'TF-002',
-    name: 'Costela de Adão (Muda Grande)',
-    scientificName: 'Monstera deliciosa',
-    category: 'Folhagens',
-    price: 95.00,
-    potSize: 'Cuia 21',
-    location: 'Entrada Principal • Lado Direito',
+    name: 'Suculenta Echeveria',
+    scientificName: 'Echeveria elegans',
+    category: 'Suculentas & Cactos',
+    price: 25.00,
+    potSize: 'Vaso 8cm',
+    location: 'Mesa Central',
     status: 'disponivel',
-    light: 'meia-sombra',
-    watering: 'moderada',
-    petFriendly: false,
-    wateringTip: 'Regar moderadamente, evitando encharcar o pratinho.',
-    careInstructions: 'Planta de porte avantajado com folhas já fenestradas (com recortes). Ótima para salas e varandas cobertas.',
-    imageUrl: 'https://images.unsplash.com/photo-1599598425947-5202edd562c8?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
+    light: 'sol-pleno',
+    watering: 'baixa',
+    petFriendly: true,
+    wateringTip: 'Regar apenas quando o substrato estiver completamente seco. Em inverno, reduzir ainda mais.',
+    careInstructions: 'Substrato bem drenado. Evitar água nas folhas. Não tolera geada.',
+    imageUrl: 'https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=400&q=80',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
   {
     id: 'TF-003',
-    name: 'Jiboia Verde (Pothos)',
-    scientificName: 'Epipremnum aureum',
-    category: 'Pendentes',
-    price: 35.00,
-    potSize: 'Cuia 18 Pendente',
-    location: 'Varanda Suspensa • Setor 2',
-    status: 'disponivel',
+    name: 'Orquídea Phalaenopsis',
+    scientificName: 'Phalaenopsis amabilis',
+    category: 'Flores',
+    price: 120.00,
+    potSize: 'Vaso 12cm',
+    location: 'Vitrine Flores',
+    status: 'reservada',
     light: 'sombra-difusa',
     watering: 'moderada',
-    petFriendly: false,
-    wateringTip: 'Regar quando a terra estiver quase seca ao toque.',
-    careInstructions: 'Excelente para prateleiras altas e suportes pendentes de macramê. Tolera ambientes com menos luz natural.',
-    imageUrl: 'https://images.unsplash.com/photo-1596724855579-2475e638b368?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
+    petFriendly: true,
+    wateringTip: 'Mergulhar o vaso em água por 15 min a cada 7 dias. Escorrer bem antes de voltar ao lugar.',
+    careInstructions: 'Não tolera luz solar direta. Prefere ambiente fresco com boa circulação de ar. Adube levemente a cada 15 dias.',
+    imageUrl: 'https://images.unsplash.com/photo-1566909985637-3b59d80f8a20?w=400&q=80',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
   {
     id: 'TF-004',
-    name: 'Zamioculca (ZZ Plant)',
-    scientificName: 'Zamioculcas zamiifolia',
-    category: 'Folhagens',
-    price: 55.00,
-    potSize: 'Pote 15',
-    location: 'Balcão de Atendimento',
+    name: 'Jiboia',
+    scientificName: 'Epipremnum aureum',
+    category: 'Pendentes',
+    price: 40.00,
+    potSize: 'Vaso 15cm',
+    location: 'Prateleira B2',
     status: 'disponivel',
     light: 'sombra-difusa',
-    watering: 'baixa',
-    petFriendly: false,
-    wateringTip: 'Regar apenas a cada 15 a 20 dias no inverno, ou a cada 10 dias no verão.',
-    careInstructions: 'Uma das plantas mais resistentes para interiores. Sobrevive bem em salas com ar-condicionado e pouca luminosidade.',
-    imageUrl: 'https://images.unsplash.com/photo-1632207691143-643e2a9a9361?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'TF-005',
-    name: 'Ficus Lyrata (Bambu)',
-    scientificName: 'Ficus lyrata',
-    category: 'Arbustos & Árvores',
-    price: 130.00,
-    potSize: 'Vaso Cerâmica 24',
-    location: 'Corredor das Árvores • Setor 4',
-    status: 'disponivel',
-    light: 'sol-pleno',
     watering: 'moderada',
     petFriendly: false,
-    wateringTip: 'Regar generosamente 1x por semana, garantindo boa drenagem.',
-    careInstructions: 'Folhas largas em formato de violino. Necessita de bastante claridade perto de janelas grandes ou varandas.',
-    imageUrl: 'https://images.unsplash.com/photo-1545241047-6083a3684587?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'TF-006',
-    name: 'Espada de São Jorge',
-    scientificName: 'Dracaena trifasciata',
-    category: 'Folhagens',
-    price: 42.00,
-    potSize: 'Pote 17',
-    location: 'Estufa 02 • Setor Rústico',
-    status: 'disponivel',
-    light: 'sol-pleno',
-    watering: 'baixa',
-    petFriendly: false,
-    wateringTip: 'Regar a cada 15 dias. Solo bem drenado.',
-    careInstructions: 'Purificadora de ar comprovada pela NASA. Aguenta sol forte, sombra e longos períodos sem rega.',
-    imageUrl: 'https://images.unsplash.com/photo-1593482892290-f54927ae1bf6?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'TF-007',
-    name: 'Samambaia Americana',
-    scientificName: 'Nephrolepis exaltata',
-    category: 'Pendentes',
-    price: 48.00,
-    potSize: 'Cuia 21 Grande',
-    location: 'Pergolado de Entrada',
-    status: 'disponivel',
-    light: 'meia-sombra',
-    watering: 'frequente',
-    petFriendly: true,
-    wateringTip: 'Manter a terra sempre levemente úmida e borrifar água nas folhas nos dias secos.',
-    careInstructions: 'Totalmente segura para gatos e cachorros (Pet Friendly!). Gosta de umidade e vento suave.',
-    imageUrl: 'https://images.unsplash.com/photo-1596724855579-2475e638b368?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'TF-008',
-    name: 'Suculenta Echeveria Elegans',
-    scientificName: 'Echeveria elegans',
-    category: 'Suculentas & Cactos',
-    price: 18.00,
-    potSize: 'Pote 11',
-    location: 'Mesa de Suculentas • Setor Sol',
-    status: 'disponivel',
-    light: 'sol-pleno',
-    watering: 'baixa',
-    petFriendly: true,
-    wateringTip: 'Regar diretamente na terra a cada 10 a 15 dias. Nunca molhar o miolo da roseta.',
-    careInstructions: 'Necessita de pelo menos 4 a 6 horas de sol direto por dia para manter o formato compacto.',
-    imageUrl: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date().toISOString(),
+    wateringTip: 'Regar quando o topo do substrato estiver seco. Tolera bem períodos de seca.',
+    careInstructions: 'Extremamente adaptável. Pode ser cultivada em vaso suspenso ou com suporte. Ótima para purificar o ar.',
+    imageUrl: 'https://images.unsplash.com/photo-1572688484438-313a6e50c333?w=400&q=80',
+    createdAt: '2025-01-01T00:00:00.000Z',
   },
 ];
 
-export const plantService = {
-  getPlants(): Plant[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      this.savePlants(INITIAL_PLANTS);
-      return INITIAL_PLANTS;
+function getPlants(): Plant[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored) as Plant[];
     }
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return INITIAL_PLANTS;
-    }
-  },
-
-  getPlantById(id: string): Plant | undefined {
-    const plants = this.getPlants();
-    return plants.find(p => p.id.toLowerCase() === id.toLowerCase());
-  },
-
-  savePlants(plants: Plant[]): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
-  },
-
-  addPlant(plant: Omit<Plant, 'createdAt'>): Plant {
-    const plants = this.getPlants();
-    const newPlant: Plant = {
-      ...plant,
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [newPlant, ...plants];
-    this.savePlants(updated);
-    return newPlant;
-  },
-
-  updatePlant(plant: Plant): void {
-    const plants = this.getPlants();
-    const updated = plants.map(p => (p.id === plant.id ? { ...plant, updatedAt: new Date().toISOString() } : p));
-    this.savePlants(updated);
-  },
-
-  deletePlant(id: string): void {
-    const plants = this.getPlants();
-    const updated = plants.filter(p => p.id !== id);
-    this.savePlants(updated);
-  },
-
-  generateNextId(): string {
-    const plants = this.getPlants();
-    let maxNumber = 0;
-    plants.forEach(p => {
-      const match = p.id.match(/TF-(\d+)/i);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > maxNumber) maxNumber = num;
-      }
-    });
-    const nextNum = maxNumber + 1;
-    return `TF-${String(nextNum).padStart(3, '0')}`;
-  },
-
-  exportBackup(): void {
-    const plants = this.getPlants();
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(plants, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `tonseflores_backup_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  },
-
-  importBackup(jsonString: string): boolean {
-    try {
-      const parsed = JSON.parse(jsonString);
-      if (Array.isArray(parsed)) {
-        this.savePlants(parsed);
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
-    }
-  },
-
-  resetToInitial(): void {
-    this.savePlants(INITIAL_PLANTS);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_PLANTS));
+    return INITIAL_PLANTS;
+  } catch {
+    return INITIAL_PLANTS;
   }
+}
+
+function savePlants(plants: Plant[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+}
+
+function getPlantById(id: string): Plant | null {
+  return getPlants().find(p => p.id === id) ?? null;
+}
+
+function generateNextId(): string {
+  const plants = getPlants();
+  if (plants.length === 0) return 'TF-001';
+  const numbers = plants.map(p => {
+    const match = p.id.match(/TF-(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  });
+  const next = Math.max(...numbers) + 1;
+  return `TF-${String(next).padStart(3, '0')}`;
+}
+
+function addPlant(plant: Plant): boolean {
+  const plants = getPlants();
+  plants.push(plant);
+  savePlants(plants);
+  return true;
+}
+
+function updatePlant(updated: Plant): boolean {
+  const plants = getPlants();
+  const index = plants.findIndex(p => p.id === updated.id);
+  if (index === -1) return false;
+  plants[index] = updated;
+  savePlants(plants);
+  return true;
+}
+
+function deletePlant(id: string): boolean {
+  const filtered = getPlants().filter(p => p.id !== id);
+  savePlants(filtered);
+  return true;
+}
+
+function exportBackup(): void {
+  const plants = getPlants();
+  const blob = new Blob([JSON.stringify(plants, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tons-e-flores-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(jsonContent: string): boolean {
+  try {
+    const data = JSON.parse(jsonContent);
+    if (!Array.isArray(data)) return false;
+    savePlants(data as Plant[]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resetToInitial(): void {
+  savePlants(INITIAL_PLANTS);
+}
+
+export const plantService = {
+  getPlants,
+  getPlantById,
+  generateNextId,
+  addPlant,
+  updatePlant,
+  deletePlant,
+  exportBackup,
+  importBackup,
+  resetToInitial,
 };
