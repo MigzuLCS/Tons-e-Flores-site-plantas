@@ -17,12 +17,11 @@ import {
   RefreshCw,
   Settings,
   X as XIcon,
-  Tag,
-  Droplets
+  Tag
 } from 'lucide-react';
 import type { Plant, PlantStatus } from '../types/plant';
 import { plantService } from '../services/plantService';
-import { configService, type WateringOption } from '../services/configService';
+import { configService } from '../services/configService';
 
 
 interface AdminPanelProps {
@@ -52,12 +51,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  // Estado de configurações (categorias e regas)
+  // Estado de configurações (categorias e API Perenual)
   const [categories, setCategories] = useState<string[]>(() => configService.getCategories());
-  const [wateringOpts, setWateringOpts] = useState<WateringOption[]>(() => configService.getWateringOptions());
   const [newCatName, setNewCatName] = useState('');
-  const [newWaterLabel, setNewWaterLabel] = useState('');
-  const [newWaterEmoji, setNewWaterEmoji] = useState('💧');
+  const [apiKey, setApiKey] = useState(() => configService.getApiKey());
+
 
 
   // Métricas da Loja
@@ -147,7 +145,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow flex items-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            + Cadastrar Nova Planta
+            Cadastrar Nova Planta
           </button>
 
           <button 
@@ -548,70 +546,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           </div>
 
-          {/* Frequências de Rega */}
+          {/* Configuração da API Perenual */}
           <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <Droplets className="w-5 h-5 text-blue-600" />
-              <h3 className="text-base font-bold text-stone-900">Frequências de Rega</h3>
+              <RefreshCw className="w-5 h-5 text-emerald-700" />
+              <h3 className="text-base font-bold text-stone-900">Integração Perenual API</h3>
             </div>
             <p className="text-xs text-stone-500">
-              As três opções padrão não podem ser removidas. Adicione opções extras para casos específicos da sua loja.
+              Insira sua chave de API da Perenual para classificar automaticamente suas plantas (nome científico, rega, luz, família, toxicidade, etc.) na tela de cadastro.
             </p>
-
-            {/* Lista de opções de rega */}
-            <div className="space-y-2">
-              {wateringOpts.map(opt => {
-                const isDefault = ['baixa', 'moderada', 'frequente'].includes(opt.value);
-                return (
-                  <div key={opt.value} className={`flex items-center justify-between px-4 py-2.5 rounded-xl border text-xs font-semibold ${isDefault ? 'bg-blue-50 border-blue-200 text-blue-900' : 'bg-stone-50 border-stone-200 text-stone-800'}`}>
-                    <span>{opt.emoji} {opt.label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-stone-400 bg-stone-100 px-2 py-0.5 rounded-lg">{opt.value}</span>
-                      {!isDefault && (
-                        <button
-                          onClick={() => setWateringOpts(configService.removeWateringOption(opt.value))}
-                          className="text-stone-400 hover:text-rose-600 cursor-pointer transition-colors"
-                        >
-                          <XIcon className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      {isDefault && <span className="text-[10px] text-blue-500 font-medium">padrão</span>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Adicionar nova opção de rega */}
-            <div className="flex gap-2 items-center flex-wrap">
-              <input
-                type="text"
-                value={newWaterEmoji}
-                onChange={e => setNewWaterEmoji(e.target.value)}
-                placeholder="💧"
-                maxLength={4}
-                className="w-16 px-3 py-2 text-sm text-center bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                value={newWaterLabel}
-                onChange={e => setNewWaterLabel(e.target.value)}
-                placeholder="Ex: Nebulização Diária, Hidropônico..."
-                className="flex-1 px-3 py-2 text-xs bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                onClick={() => {
-                  if (newWaterLabel.trim()) {
-                    setWateringOpts(configService.addWateringOption(newWaterLabel, newWaterEmoji));
-                    setNewWaterLabel('');
-                    setNewWaterEmoji('💧');
-                  }
-                }}
-                className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Adicionar
-              </button>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Chave de API Perenual (API Key)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={e => setApiKey(e.target.value)}
+                    placeholder="Cole sua API Key aqui (ex: sk-XXXX...)"
+                    className="flex-1 px-3 py-2 text-xs bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <button
+                    onClick={() => {
+                      configService.setApiKey(apiKey);
+                      alert('Chave de API salva com sucesso!');
+                    }}
+                    className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors"
+                  >
+                    Salvar Chave
+                  </button>
+                </div>
+              </div>
+              <p className="text-[11px] text-stone-500">
+                Você pode obter uma chave gratuita registrando-se em{' '}
+                <a
+                  href="https://perenual.com/register"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-700 underline font-semibold hover:text-emerald-800"
+                >
+                  perenual.com
+                </a>.
+              </p>
             </div>
           </div>
 

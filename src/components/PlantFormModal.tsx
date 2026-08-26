@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, Sparkles, Image as ImageIcon, MapPin, Upload } from 'lucide-react';
+import { X, Save, Sparkles, Image as ImageIcon, MapPin, Upload, Search, Loader2, AlertCircle } from 'lucide-react';
 import type { Plant, LightRequirement, WateringFrequency, PlantStatus } from '../types/plant';
 import { plantService } from '../services/plantService';
 import { configService } from '../services/configService';
@@ -20,16 +20,27 @@ const PRESET_PHOTOS = [
   { label: 'Suculenta', url: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&w=800&q=80' },
 ];
 
+const WATERING_OPTIONS = [
+  { value: 'baixa',     label: 'Pouca Rega (Solo Seco)',     emoji: '💧' },
+  { value: 'moderada',  label: 'Moderada (1-2x/sem)',        emoji: '💧💧' },
+  { value: 'frequente', label: 'Solo Sempre Úmido',          emoji: '💧💧💧' },
+];
+
 export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isOpen, onClose, onSave }) => {
   const [categories, setCategories] = useState<string[]>([]);
-  const [wateringOptions, setWateringOptions] = useState(configService.getWateringOptions());
   const [formData, setFormData] = useState<Partial<Plant>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
 
+  // Perenual API State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [apiError, setApiError] = useState('');
+  const [showResultsDropdown, setShowResultsDropdown] = useState(false);
+
   useEffect(() => {
     setCategories(configService.getCategories());
-    setWateringOptions(configService.getWateringOptions());
   }, [isOpen]);
 
   useEffect(() => {
@@ -37,6 +48,9 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
     if (plantToEdit) {
       setFormData(plantToEdit);
       setUploadedFileName('');
+      setSearchQuery('');
+      setSearchResults([]);
+      setApiError('');
     } else {
       setFormData({
         id: plantService.generateNextId(),
@@ -53,12 +67,147 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         wateringTip: 'Regar 1 a 2 vezes na semana.',
         careInstructions: 'Manter em local bem iluminado sem sol direto.',
         imageUrl: PRESET_PHOTOS[0].url,
+        family: '',
+        origin: '',
+        cycle: '',
+        bloomingSeason: '',
+        pestsDiseases: '',
+        toxicity: '',
       });
       setUploadedFileName('');
+      setSearchQuery('');
+      setSearchResults([]);
+      setApiError('');
     }
   }, [plantToEdit, isOpen]);
 
   if (!isOpen) return null;
+
+  // Função para buscar na Perenual API
+  const handleSearchPerenual = async () => {
+    const apiKey = configService.getApiKey();
+    if (!apiKey) {
+      setApiError('Configuração Necessária: Defina sua chave de API nas Configurações da loja antes de buscar.');
+      return;
+    }
+    if (!searchQuery.trim()) {
+      setApiError('Digite um termo de pesquisa (ex: Monstera, Snake Plant).');
+      return;
+    }
+
+    setIsSearching(true);
+    setApiError('');
+    setSearchResults([]);
+    setShowResultsDropdown(false);
+
+    try {
+      // Perenual API Species List Search
+      const url = `https://perenual.com/api/species-list?key=${apiKey}&q=${encodeURIComponent(searchQuery)}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Falha ao buscar espécies na API.');
+      }
+      const data = await response.json();
+      if (data && data.data && data.data.length > 0) {
+        setSearchResults(data.data.slice(0, 5)); // Pega os top 5 resultados
+        setShowResultsDropdown(true);
+      } else {
+        setApiError('Nenhuma planta encontrada na base de dados com esse nome.');
+      }
+    } catch (err: any) {
+      setApiError(err.message || 'Erro ao conectar com a Perenual API.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Função para selecionar espécie e autofiliar
+  const handleSelectSpecies = async (speciesId: number) => {
+    const apiKey = configService.getApiKey();
+    setIsSearching(true);
+    setShowResultsDropdown(false);
+    setApiError('');
+
+    try {
+      // Perenual API Species Details
+      const detailsUrl = `https://perenual.com/api/species/details/${speciesId}?key=${apiKey}`;
+      const resDetails = await fetch(detailsUrl);
+      if (!resDetails.ok) {
+        throw new Error('Falha ao obter detalhes da planta.');
+      }
+      const details = await resDetails.json();
+
+      // Mapear Iluminação
+      let mappedLight: LightRequirement = 'meia-sombra';
+      if (details.sunlight) {
+        const sunlightStr = JSON.stringify(details.sunlight).toLowerCase();
+        if (sunlightStr.includes('full sun')) {
+          mappedLight = 'sol-pleno';
+        } else if (sunlightStr.includes('part shade') || sunlightStr.includes('part sun')) {
+          mappedLight = 'meia-sombra';
+        } else if (sunlightStr.includes('full shade') || sunlightStr.includes('shade')) {
+          mappedLight = 'sombra-difusa';
+        }
+      }
+
+      // Mapear Rega
+      let mappedWatering: WateringFrequency = 'moderada';
+      if (details.watering) {
+        const wateringStr = details.watering.toLowerCase();
+        if (wateringStr.includes('minimum') || wateringStr.includes('low') || wateringStr.includes('little')) {
+          mappedWatering = 'baixa';
+        } else if (wateringStr.includes('average') || wateringStr.includes('moderate')) {
+          mappedWatering = 'moderada';
+        } else if (wateringStr.includes('frequent') || wateringStr.includes('high') || wateringStr.includes('keep moist')) {
+          mappedWatering = 'frequente';
+        }
+      }
+
+      // Mapear Pet Friendly e Toxicidade
+      const hasCatsToxicity = details.toxicity_from_cats === true || (typeof details.toxicity_from_cats === 'number' && details.toxicity_from_cats > 0);
+      const hasDogsToxicity = details.toxicity_from_dogs === true || (typeof details.toxicity_from_dogs === 'number' && details.toxicity_from_dogs > 0);
+      const isToxic = hasCatsToxicity || hasDogsToxicity;
+      const petFriendly = !isToxic;
+
+      // Monta dicas de cuidado baseadas nos dados retornados
+      let careGuideText = '';
+      if (details.care_instructions) {
+        careGuideText = details.care_instructions;
+      } else {
+        careGuideText = `Planta do tipo ${details.type || 'não especificado'}. Requer ciclo ${details.cycle || 'normal'}. `;
+        if (details.pruning_month && details.pruning_month.length > 0) {
+          careGuideText += `Poda recomendada em: ${details.pruning_month.join(', ')}. `;
+        }
+      }
+
+      // Monta dica de rega
+      const wateringTipText = `Rega recomendada: Nível ${details.watering || 'médio'}. Evite encharcar a terra.`;
+
+      // Atualiza o estado
+      setFormData(prev => ({
+        ...prev,
+        name: details.common_name || prev.name,
+        scientificName: (details.scientific_name && details.scientific_name[0]) || prev.scientificName,
+        light: mappedLight,
+        watering: mappedWatering,
+        petFriendly,
+        imageUrl: (details.default_image && details.default_image.original_url) || prev.imageUrl,
+        wateringTip: wateringTipText,
+        careInstructions: careGuideText || prev.careInstructions,
+        family: details.family || '',
+        origin: (details.origin && details.origin.join(', ')) || '',
+        cycle: details.cycle || '',
+        bloomingSeason: details.blooming_season || '',
+        pestsDiseases: (details.pest_susceptibility && details.pest_susceptibility.join(', ')) || 'Nenhuma registrada',
+        toxicity: isToxic ? 'Tóxica para animais domésticos ao ingerir' : 'Segura para animais de estimação',
+      }));
+
+    } catch (err: any) {
+      setApiError(err.message || 'Erro ao carregar detalhes botânicos.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -105,6 +254,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
       petFriendly: Boolean(formData.petFriendly),
       wateringTip: formData.wateringTip || '',
       careInstructions: formData.careInstructions || '',
+      family: formData.family || '',
+      origin: formData.origin || '',
+      cycle: formData.cycle || '',
+      bloomingSeason: formData.bloomingSeason || '',
+      pestsDiseases: formData.pestsDiseases || '',
+      toxicity: formData.toxicity || '',
       imageUrl: formData.imageUrl || PRESET_PHOTOS[0].url,
       createdAt: plantToEdit?.createdAt || new Date().toISOString(),
     };
@@ -141,6 +296,76 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         {/* Formulário com Scroll */}
         <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-6 flex-1 text-sm text-stone-800">
           
+          {/* SEÇÃO INTEGRADA: Busca Perenual API */}
+          {!plantToEdit && (
+            <div className="bg-stone-50 border border-emerald-100 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800">
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+                Classificação Automática (Perenual API)
+              </div>
+              <p className="text-xs text-stone-500">
+                Busque uma planta em inglês ou nome científico para classificar e preencher automaticamente quase todos os campos.
+              </p>
+              <div className="relative flex gap-2">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Ex: Monstera deliciosa, Snake Plant, Anthurium..."
+                  className="flex-1 px-3 py-2 text-xs bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearchPerenual();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleSearchPerenual}
+                  disabled={isSearching}
+                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
+                >
+                  {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                  Buscar
+                </button>
+
+                {/* Dropdown de Resultados de Busca */}
+                {showResultsDropdown && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-stone-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-stone-100 animate-in fade-in slide-in-from-top-1">
+                    {searchResults.map((species: any) => (
+                      <button
+                        key={species.id}
+                        type="button"
+                        onClick={() => handleSelectSpecies(species.id)}
+                        className="w-full px-4 py-2.5 text-left text-xs hover:bg-stone-50 transition-colors flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-bold text-stone-900">{species.common_name || 'Desconhecida'}</div>
+                          <div className="text-stone-500 italic">{species.scientific_name ? species.scientific_name.join(', ') : ''}</div>
+                        </div>
+                        {species.default_image && (
+                          <img
+                            src={species.default_image.thumbnail || species.default_image.original_url}
+                            alt=""
+                            className="w-8 h-8 rounded-lg object-cover border"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {apiError && (
+                <div className="text-xs text-rose-600 flex items-center gap-1.5 mt-1 font-medium bg-rose-50/50 p-2 rounded-xl border border-rose-100">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  {apiError}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* BLOCO 1: Identificação Básica */}
           <div className="space-y-4">
             <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-800 border-b pb-1">
@@ -208,7 +433,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
             </div>
           </div>
 
-          {/* BLOCO 2: Localização e Informações da Loja */}
+          {/* BLOCO 2: Loja, Estoque e Localização Física */}
           <div className="space-y-4">
             <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-800 border-b pb-1">
               2. Loja, Estoque e Localização Física
@@ -304,7 +529,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   onChange={e => setFormData({ ...formData, watering: e.target.value as WateringFrequency })}
                   className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:outline-none"
                 >
-                  {wateringOptions.map(opt => (
+                  {WATERING_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>
                       {opt.emoji} {opt.label}
                     </option>
@@ -351,6 +576,96 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 placeholder="Ex: Borrifar água nas folhas no verão. Limpar a poeira 1x ao mês."
                 className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
+            </div>
+          </div>
+
+          {/* NOVO BLOCO 3b: Classificação Botânica Detalhada (Preenchido via API ou manualmente) */}
+          <div className="space-y-4">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-emerald-800 border-b pb-1">
+              3b. Ficha Botânica Auxiliar (Perenual API)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Família
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.family || ''}
+                  onChange={e => setFormData({ ...formData, family: e.target.value })}
+                  placeholder="Ex: Asparagaceae"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Origem / Habitat Natural
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.origin || ''}
+                  onChange={e => setFormData({ ...formData, origin: e.target.value })}
+                  placeholder="Ex: América Tropical"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Ciclo de Vida
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.cycle || ''}
+                  onChange={e => setFormData({ ...formData, cycle: e.target.value })}
+                  placeholder="Ex: Perene"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Época de Floração
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.bloomingSeason || ''}
+                  onChange={e => setFormData({ ...formData, bloomingSeason: e.target.value })}
+                  placeholder="Ex: Primavera / Verão"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Suscetibilidade a Pragas / Doenças
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.pestsDiseases || ''}
+                  onChange={e => setFormData({ ...formData, pestsDiseases: e.target.value })}
+                  placeholder="Ex: Cochonilha, Ácaro"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Nota de Toxicidade
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.toxicity || ''}
+                  onChange={e => setFormData({ ...formData, toxicity: e.target.value })}
+                  placeholder="Detalhes sobre toxicidade ou segurança"
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 

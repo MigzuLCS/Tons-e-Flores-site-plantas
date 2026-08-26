@@ -99,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Nova Planta</span>
+                <span>Nova Planta</span>
               </button>
 
               <button

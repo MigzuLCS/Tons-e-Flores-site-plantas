@@ -164,6 +164,53 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
               </div>
             </div>
 
+            {/* Ficha Botânica Detalhada (Perenual API) */}
+            {(plant.family || plant.origin || plant.cycle || plant.bloomingSeason || plant.pestsDiseases || plant.toxicity) && (
+              <div className="bg-white p-4.5 rounded-2xl border border-stone-200 shadow-sm space-y-2.5">
+                <h3 className="font-bold text-xs uppercase tracking-wide text-stone-850 flex items-center gap-1.5 border-b pb-1.5">
+                  🌿 Ficha Botânica Detalhada
+                </h3>
+                <div className="text-xs text-stone-600 space-y-1.5">
+                  {plant.family && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Família:</span>
+                      <span className="font-semibold">{plant.family}</span>
+                    </div>
+                  )}
+                  {plant.origin && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Origem:</span>
+                      <span className="font-semibold text-right max-w-[200px] break-words">{plant.origin}</span>
+                    </div>
+                  )}
+                  {plant.cycle && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Ciclo:</span>
+                      <span className="font-semibold">{plant.cycle}</span>
+                    </div>
+                  )}
+                  {plant.bloomingSeason && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Floração:</span>
+                      <span className="font-semibold">{plant.bloomingSeason}</span>
+                    </div>
+                  )}
+                  {plant.pestsDiseases && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Pragas comuns:</span>
+                      <span className="font-semibold text-right max-w-[200px] break-words">{plant.pestsDiseases}</span>
+                    </div>
+                  )}
+                  {plant.toxicity && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Toxicidade:</span>
+                      <span className="font-semibold text-right max-w-[200px] break-words text-rose-700">{plant.toxicity}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Informações deste Vaso na Loja */}
             <div className="bg-emerald-50/80 border border-emerald-200/80 p-4 rounded-2xl space-y-2">
               <h3 className="font-bold text-xs uppercase tracking-wide text-emerald-900 flex items-center gap-1.5">

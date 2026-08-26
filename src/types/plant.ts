@@ -1,8 +1,7 @@
 export type LightRequirement = 'sol-pleno' | 'meia-sombra' | 'sombra-difusa';
-export type WateringFrequency = string; // Suporta opções customizadas além das padrão
+export type WateringFrequency = 'baixa' | 'moderada' | 'frequente';
 export type PlantStatus = 'disponivel' | 'reservada' | 'vendida';
 export type PlantCategory = string; // Suporta categorias customizadas criadas pela loja
-
 
 export interface Plant {
   id: string; // Ex: "TF-001"
@@ -20,6 +19,14 @@ export interface Plant {
   petFriendly: boolean;
   wateringTip: string;
   careInstructions: string;
+  
+  // Informações adicionais de classificação automática (Perenual API)
+  family?: string;
+  origin?: string;
+  cycle?: string;
+  bloomingSeason?: string;
+  pestsDiseases?: string;
+  toxicity?: string;
   
   // Mídia
   imageUrl: string;
