@@ -692,6 +692,40 @@ const BOTANICAL_DATABASE: Record<string, PlantBotanicalPreset> = {
   },
 };
 
+// Chave do acervo persistente no LocalStorage
+const BOTANICAL_CACHE_KEY = 'tons_botanical_custom_cache_v1';
+
+// Recupera todo o cache persistente aprendido pelo Gemini
+function getPersistedBotanicalCache(): Record<string, PlantBotanicalPreset> {
+  try {
+    const raw = localStorage.getItem(BOTANICAL_CACHE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw);
+  } catch (e) {
+    console.warn('Erro ao ler acervo persistente botânico:', e);
+    return {};
+  }
+}
+
+// Salva uma nova espécie no acervo persistente do LocalStorage
+function savePersistedBotanicalPreset(key: string, preset: PlantBotanicalPreset): void {
+  try {
+    const normKey = normalizeText(key);
+    if (!normKey) return;
+    const current = getPersistedBotanicalCache();
+    current[normKey] = preset;
+    localStorage.setItem(BOTANICAL_CACHE_KEY, JSON.stringify(current));
+  } catch (e) {
+    console.warn('Erro ao salvar no acervo persistente botânico:', e);
+  }
+}
+
+// Combina a base nativa fixa com as espécies aprendidas e salvas no localStorage
+function getAllBotanicalPresets(): Record<string, PlantBotanicalPreset> {
+  const persisted = getPersistedBotanicalCache();
+  return { ...BOTANICAL_DATABASE, ...persisted };
+}
+
 // Normalizador de texto para comparação segura
 function normalizeText(text: string): string {
   return text
@@ -701,18 +735,20 @@ function normalizeText(text: string): string {
     .trim();
 }
 
-// Localizador na base interna
+// Localizador na base interna combinada (Nativa + LocalStorage)
 function findLocalPreset(query: string): PlantBotanicalPreset | undefined {
   const norm = normalizeText(query);
   if (!norm) return undefined;
 
+  const allPresets = getAllBotanicalPresets();
+
   // Busca exata na chave
-  if (BOTANICAL_DATABASE[norm]) {
-    return BOTANICAL_DATABASE[norm];
+  if (allPresets[norm]) {
+    return allPresets[norm];
   }
 
   // Busca por nomes parciais, científicos ou aliases
-  for (const [key, preset] of Object.entries(BOTANICAL_DATABASE)) {
+  for (const [key, preset] of Object.entries(allPresets)) {
     if (norm.includes(key) || key.includes(norm)) {
       return preset;
     }
@@ -730,7 +766,7 @@ function findLocalPreset(query: string): PlantBotanicalPreset | undefined {
   return undefined;
 }
 
-// Caches em memória
+// Caches em memória (L1)
 const searchCache = new Map<string, BotanicalSearchResult[]>();
 const detailsCache = new Map<string | number, PlantClassificationDetails>();
 
@@ -755,8 +791,9 @@ export const plantClassificationService = {
 
     const results: BotanicalSearchResult[] = [];
 
-    // 1a. Procura correspondências na base local
-    for (const [key, preset] of Object.entries(BOTANICAL_DATABASE)) {
+    // 1a. Procura correspondências na base local (Nativa + LocalStorage Aprendido)
+    const allPresets = getAllBotanicalPresets();
+    for (const [key, preset] of Object.entries(allPresets)) {
       const matchScore =
         (normQuery.length >= 3 && key.includes(normQuery)) ||
         (normQuery.length >= 3 && normalizeText(preset.ptName).includes(normQuery)) ||
@@ -786,7 +823,7 @@ export const plantClassificationService = {
       }
     }
 
-    // Se encontrou na base local, retorna de imediato
+    // Se encontrou na base local ou no cache aprendido, retorna de imediato
     if (results.length > 0) {
       searchCache.set(normQuery, results);
       return results;
@@ -863,7 +900,7 @@ export const plantClassificationService = {
     const cached = detailsCache.get(speciesItem.id);
     if (cached) return cached;
 
-    // Etapa 1: Verifica se já existe na base local enriquecida
+    // Etapa 1: Verifica se já existe na base local enriquecida (Nativa ou LocalStorage)
     const localMatch =
       findLocalPreset(query) ||
       (speciesItem.scientific_name?.[0] ? findLocalPreset(speciesItem.scientific_name[0]) : undefined) ||
@@ -899,6 +936,36 @@ export const plantClassificationService = {
       try {
         const aiDetails = await this.classifyWithGemini(query, geminiKey);
         if (aiDetails) {
+          // 💾 Salva a classificação da IA no acervo persistente do LocalStorage para evitar chamadas futuras
+          const presetToSave: PlantBotanicalPreset = {
+            scientific: aiDetails.scientificName,
+            ptName: aiDetails.name,
+            family: aiDetails.family,
+            origin: aiDetails.origin,
+            suggestedCategory: aiDetails.suggestedCategory || inferCategory(aiDetails.name, aiDetails.family),
+            light: aiDetails.light,
+            watering: aiDetails.watering,
+            petFriendly: aiDetails.petFriendly,
+            wateringTip: aiDetails.wateringTip,
+            careInstructions: aiDetails.careInstructions,
+            cycle: aiDetails.cycle,
+            bloomingSeason: aiDetails.bloomingSeason,
+            pestsDiseases: aiDetails.pestsDiseases,
+            toxicity: aiDetails.toxicity,
+            aliases: [
+              normalizeText(query),
+              normalizeText(aiDetails.name),
+              normalizeText(aiDetails.scientificName),
+            ].filter((v, i, arr) => v && arr.indexOf(v) === i),
+          };
+
+          // Salva indexando pelo termo buscado, nome popular e nome científico
+          savePersistedBotanicalPreset(query, presetToSave);
+          savePersistedBotanicalPreset(aiDetails.name, presetToSave);
+          if (aiDetails.scientificName) {
+            savePersistedBotanicalPreset(aiDetails.scientificName, presetToSave);
+          }
+
           detailsCache.set(speciesItem.id, aiDetails);
           return aiDetails;
         }
@@ -1047,4 +1114,43 @@ Retorne APENAS um objeto JSON válido (sem blocos markdown adicionais, sem expli
       source: 'gemini',
     };
   },
+
+  // Retorna a contagem de espécies aprendidas e salvas no LocalStorage
+  getPersistedCount(): number {
+    const custom = getPersistedBotanicalCache();
+    return Object.keys(custom).length;
+  },
+
+  // Limpa o acervo personalizado salvo no LocalStorage
+  clearPersistedCache(): void {
+    try {
+      localStorage.removeItem(BOTANICAL_CACHE_KEY);
+      searchCache.clear();
+      detailsCache.clear();
+    } catch (e) {
+      console.warn('Erro ao limpar cache persistente:', e);
+    }
+  },
+
+  // Exporta o acervo aprendido em JSON
+  exportPersistedCache(): string {
+    return JSON.stringify(getPersistedBotanicalCache(), null, 2);
+  },
+
+  // Importa espécies para o acervo persistente
+  importPersistedCache(json: string): boolean {
+    try {
+      const data = JSON.parse(json);
+      if (typeof data !== 'object' || data === null || Array.isArray(data)) return false;
+      const current = getPersistedBotanicalCache();
+      const updated = { ...current, ...data };
+      localStorage.setItem(BOTANICAL_CACHE_KEY, JSON.stringify(updated));
+      searchCache.clear();
+      detailsCache.clear();
+      return true;
+    } catch {
+      return false;
+    }
+  },
 };
+

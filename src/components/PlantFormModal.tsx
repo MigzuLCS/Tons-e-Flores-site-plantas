@@ -166,7 +166,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
       if (details.source === 'local') {
         setApiSuccessNotice('🌿 Ficha botânica preenchida instantaneamente via Acervo Botânico!');
       } else if (details.source === 'gemini') {
-        setApiSuccessNotice('✨ Ficha botânica gerada e classificada com sucesso via Inteligência Artificial!');
+        setApiSuccessNotice('✨ Ficha botânica gerada com IA e salva no seu acervo local permanente!');
       } else {
         setApiSuccessNotice('📖 Ficha botânica preenchida com dados abertos da enciclopédia!');
       }
