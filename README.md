@@ -42,42 +42,6 @@ Uma aplicação web moderna, elegante e intuitiva desenvolvida para apresentaç�
 
 ---
 
-## 🚀 Como Executar o Projeto
-
-### Pré-requisitos
-- [Node.js](https://nodejs.org/) (versão 18 ou superior)
-- `npm` ou `yarn`
-
-### 1. Clonar o repositório e instalar dependências
-```bash
-git clone https://github.com/MigzuLCS/Tons-e-Flores-site-plantas.git
-cd Tons-e-Flores-site-plantas
-npm install
-```
-
-### 2. Configurar Variáveis de Ambiente (Opcional)
-Crie um arquivo `.env` na raiz do projeto:
-```env
-# Conexão com Supabase (Opcional - caso não fornecido, usa persistência local)
-VITE_SUPABASE_URL=sua_url_supabase
-VITE_SUPABASE_ANON_KEY=sua_chave_anon_supabase
-
-# Classificação Botânica com IA (Opcional - o acervo local e Wikipedia funcionam sem chave)
-VITE_GEMINI_API_KEY=sua_chave_gemini_gratuita
-```
-
-### 3. Iniciar o servidor de desenvolvimento
-```bash
-npm run dev
-```
-
-### 4. Gerar build de produção
-```bash
-npm run build
-```
-
----
-
 ## 📁 Estrutura de Pastas
 
 ```
