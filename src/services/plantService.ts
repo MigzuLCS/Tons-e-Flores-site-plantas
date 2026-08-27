@@ -77,23 +77,23 @@ function rowToPlant(row: any): Plant {
     name: row.name,
     scientificName: row.scientific_name,
     category: row.category,
-    price: Number(row.price),
-    potSize: row.pot_size,
-    location: row.location,
-    status: row.status,
-    light: row.light,
-    watering: row.watering,
-    petFriendly: row.pet_friendly,
-    wateringTip: row.watering_tip,
-    careInstructions: row.care_instructions,
+    price: Number(row.price || 0),
+    potSize: row.pot_size || '',
+    location: row.location || '',
+    status: row.status || 'disponivel',
+    light: row.light || 'sombra-difusa',
+    watering: row.watering || 'moderada',
+    petFriendly: Boolean(row.pet_friendly),
+    wateringTip: row.watering_tip || '',
+    careInstructions: row.care_instructions || '',
     family: row.family ?? undefined,
     origin: row.origin ?? undefined,
     cycle: row.cycle ?? undefined,
     bloomingSeason: row.blooming_season ?? undefined,
     pestsDiseases: row.pests_diseases ?? undefined,
     toxicity: row.toxicity ?? undefined,
-    imageUrl: row.image_url,
-    createdAt: row.created_at,
+    imageUrl: row.image_url || '',
+    createdAt: row.created_at || new Date().toISOString(),
     updatedAt: row.updated_at ?? undefined,
   };
 }
@@ -126,90 +126,126 @@ function plantToRow(plant: Plant) {
 
 // ─── Serviço ──────────────────────────────────────────────────────────────────
 async function getPlants(): Promise<Plant[]> {
-  const { data, error } = await supabase
-    .from('plants')
-    .select('*')
-    .order('id', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('plants')
+      .select('*')
+      .order('id', { ascending: true });
 
-  if (error) {
-    console.error('[plantService] Erro ao buscar plantas:', error.message);
+    if (error) {
+      console.error('[plantService] Erro ao buscar plantas no Supabase:', error.message);
+      return [];
+    }
+    return (data ?? []).map(rowToPlant);
+  } catch (err) {
+    console.error('[plantService] Exceção ao buscar plantas:', err);
     return [];
   }
-  return (data ?? []).map(rowToPlant);
 }
 
 async function getPlantById(id: string): Promise<Plant | null> {
-  const { data, error } = await supabase
-    .from('plants')
-    .select('*')
-    .eq('id', id)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('plants')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  if (error || !data) return null;
-  return rowToPlant(data);
+    if (error || !data) return null;
+    return rowToPlant(data);
+  } catch (err) {
+    console.error('[plantService] Exceção ao buscar planta por id:', err);
+    return null;
+  }
 }
 
 async function generateNextId(): Promise<string> {
-  const { data } = await supabase
-    .from('plants')
-    .select('id')
-    .order('id', { ascending: false })
-    .limit(1);
+  try {
+    const { data } = await supabase
+      .from('plants')
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
 
-  if (!data || data.length === 0) return 'TF-001';
+    if (!data || data.length === 0) return 'TF-001';
 
-  const match = data[0].id.match(/TF-(\d+)/);
-  const next = match ? parseInt(match[1], 10) + 1 : 1;
-  return `TF-${String(next).padStart(3, '0')}`;
+    const match = data[0].id.match(/TF-(\d+)/);
+    const next = match ? parseInt(match[1], 10) + 1 : 1;
+    return `TF-${String(next).padStart(3, '0')}`;
+  } catch {
+    return 'TF-001';
+  }
 }
 
 async function addPlant(plant: Plant): Promise<boolean> {
-  const { error } = await supabase
-    .from('plants')
-    .insert([plantToRow(plant)]);
+  try {
+    const { error } = await supabase
+      .from('plants')
+      .insert([plantToRow(plant)]);
 
-  if (error) {
-    console.error('[plantService] Erro ao adicionar planta:', error.message);
+    if (error) {
+      console.error('[plantService] Erro ao adicionar planta:', error.message);
+      alert('Erro ao salvar no Supabase: ' + error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[plantService] Exceção ao adicionar planta:', err);
     return false;
   }
-  return true;
 }
 
 async function updatePlant(plant: Plant): Promise<boolean> {
-  const { error } = await supabase
-    .from('plants')
-    .update({ ...plantToRow(plant), updated_at: new Date().toISOString() })
-    .eq('id', plant.id);
+  try {
+    const { error } = await supabase
+      .from('plants')
+      .update({ ...plantToRow(plant), updated_at: new Date().toISOString() })
+      .eq('id', plant.id);
 
-  if (error) {
-    console.error('[plantService] Erro ao atualizar planta:', error.message);
+    if (error) {
+      console.error('[plantService] Erro ao atualizar planta:', error.message);
+      alert('Erro ao atualizar no Supabase: ' + error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[plantService] Exceção ao atualizar planta:', err);
     return false;
   }
-  return true;
 }
 
 async function deletePlant(id: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('plants')
-    .delete()
-    .eq('id', id);
+  try {
+    const { error } = await supabase
+      .from('plants')
+      .delete()
+      .eq('id', id);
 
-  if (error) {
-    console.error('[plantService] Erro ao excluir planta:', error.message);
+    if (error) {
+      console.error('[plantService] Erro ao excluir planta:', error.message);
+      alert('Erro ao excluir no Supabase: ' + error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('[plantService] Exceção ao excluir planta:', err);
     return false;
   }
-  return true;
 }
 
 async function exportBackup(): Promise<void> {
-  const plants = await getPlants();
-  const blob = new Blob([JSON.stringify(plants, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `tons-e-flores-backup-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    const plants = await getPlants();
+    const blob = new Blob([JSON.stringify(plants, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tons-e-flores-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('[plantService] Erro ao exportar backup:', err);
+  }
 }
 
 async function importBackup(jsonContent: string): Promise<boolean> {
@@ -224,6 +260,7 @@ async function importBackup(jsonContent: string): Promise<boolean> {
 
     if (error) {
       console.error('[plantService] Erro ao importar backup:', error.message);
+      alert('Erro ao importar backup no Supabase: ' + error.message);
       return false;
     }
     return true;
@@ -234,14 +271,22 @@ async function importBackup(jsonContent: string): Promise<boolean> {
 }
 
 async function resetToInitial(): Promise<void> {
-  // Remove todas as plantas existentes
-  await supabase.from('plants').delete().neq('id', '');
+  try {
+    // Remove todas as plantas existentes
+    await supabase.from('plants').delete().neq('id', '');
 
-  // Insere as plantas de exemplo
-  const rows = INITIAL_PLANTS.map(p => ({
-    ...plantToRow({ ...p, createdAt: new Date().toISOString() }),
-  }));
-  await supabase.from('plants').insert(rows);
+    // Insere as plantas de exemplo
+    const rows = INITIAL_PLANTS.map(p => ({
+      ...plantToRow({ ...p, createdAt: new Date().toISOString() }),
+    }));
+    const { error } = await supabase.from('plants').insert(rows);
+    if (error) {
+      console.error('[plantService] Erro ao resetar dados:', error.message);
+      alert('Erro ao resetar dados no Supabase: ' + error.message);
+    }
+  } catch (err) {
+    console.error('[plantService] Exceção ao resetar dados:', err);
+  }
 }
 
 export const plantService = {
