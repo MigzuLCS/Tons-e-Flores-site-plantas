@@ -53,8 +53,9 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
       setSearchResults([]);
       setApiError('');
     } else {
-      setFormData({
-        id: plantService.generateNextId(),
+      // Busca o próximo ID de forma assíncrona
+      const defaultData: Partial<Plant> = {
+        id: 'TF-???', // placeholder enquanto busca
         name: '',
         scientificName: '',
         category: cats[0] || 'Folhagens',
@@ -74,6 +75,10 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         bloomingSeason: '',
         pestsDiseases: '',
         toxicity: '',
+      };
+      setFormData(defaultData);
+      plantService.generateNextId().then(nextId => {
+        setFormData(prev => ({ ...prev, id: nextId }));
       });
       setUploadedFileName('');
       setSearchQuery('');

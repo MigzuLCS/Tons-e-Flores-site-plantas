@@ -341,7 +341,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-200/70">
-              {filteredPlants.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-10 text-stone-400 text-xs">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                      <span>Carregando do banco de dados...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredPlants.length > 0 ? (
                 filteredPlants.map((plant) => (
                   <tr key={plant.id} className="hover:bg-stone-50/80 transition-colors">
                     
