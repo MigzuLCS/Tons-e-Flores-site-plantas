@@ -1,5 +1,6 @@
 import type { LightRequirement, WateringFrequency } from '../types/plant';
 import { configService } from './configService';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 
 export interface PlantBotanicalPreset {
   scientific: string;
@@ -766,9 +767,117 @@ function findLocalPreset(query: string): PlantBotanicalPreset | undefined {
   return undefined;
 }
 
+// Sincronização em Nuvem (Supabase) para compartilhamento global entre todos os usuários
+let hasSyncedWithCloud = false;
+
+async function syncWithCloud(): Promise<void> {
+  if (!isSupabaseConfigured || hasSyncedWithCloud) return;
+  hasSyncedWithCloud = true;
+  try {
+    // 1. Tenta carregar da tabela dedicada botanical_presets
+    const { data: presets, error: presetsError } = await supabase
+      .from('botanical_presets')
+      .select('*');
+
+    if (!presetsError && presets && presets.length > 0) {
+      for (const row of presets) {
+        const preset: PlantBotanicalPreset = {
+          scientific: row.scientific || '',
+          ptName: row.pt_name || row.scientific || '',
+          family: row.family || '',
+          origin: row.origin || '',
+          suggestedCategory: row.suggested_category || 'Folhagens',
+          light: row.light || 'meia-sombra',
+          watering: row.watering || 'moderada',
+          petFriendly: Boolean(row.pet_friendly),
+          wateringTip: row.watering_tip || '',
+          careInstructions: row.care_instructions || '',
+          cycle: row.cycle || 'Perene',
+          bloomingSeason: row.blooming_season || 'Primavera / Verão',
+          pestsDiseases: row.pests_diseases || '',
+          toxicity: row.toxicity || '',
+          imageUrl: row.image_url || undefined,
+          aliases: Array.isArray(row.aliases) ? row.aliases : [],
+        };
+        savePersistedBotanicalPreset(row.id || preset.ptName, preset);
+        if (preset.ptName) savePersistedBotanicalPreset(preset.ptName, preset);
+        if (preset.scientific) savePersistedBotanicalPreset(preset.scientific, preset);
+      }
+    }
+
+    // 2. Carrega espécies já cadastradas na loja (tabela plants)
+    const { data: storePlants, error: plantsError } = await supabase
+      .from('plants')
+      .select('*');
+
+    if (!plantsError && storePlants && storePlants.length > 0) {
+      for (const p of storePlants) {
+        if (!p.name) continue;
+        const preset: PlantBotanicalPreset = {
+          scientific: p.scientific_name || p.name,
+          ptName: p.name,
+          family: p.family || '',
+          origin: p.origin || '',
+          suggestedCategory: p.category || 'Folhagens',
+          light: p.light || 'meia-sombra',
+          watering: p.watering || 'moderada',
+          petFriendly: Boolean(p.pet_friendly),
+          wateringTip: p.watering_tip || '',
+          careInstructions: p.care_instructions || '',
+          cycle: p.cycle || 'Perene',
+          bloomingSeason: p.blooming_season || 'Primavera',
+          pestsDiseases: p.pests_diseases || '',
+          toxicity: p.toxicity || '',
+          imageUrl: p.image_url || undefined,
+          aliases: [normalizeText(p.name), normalizeText(p.scientific_name || '')].filter(Boolean),
+        };
+        savePersistedBotanicalPreset(p.name, preset);
+        if (p.scientific_name) savePersistedBotanicalPreset(p.scientific_name, preset);
+      }
+    }
+  } catch (e) {
+    console.warn('[plantClassificationService] Erro ao sincronizar com Supabase:', e);
+  }
+}
+
+// Salva uma classificação aprendida pelo Gemini no Supabase para compartilhar com todos os usuários
+async function saveToCloudPreset(id: string, preset: PlantBotanicalPreset): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  try {
+    await supabase.from('botanical_presets').upsert({
+      id: normalizeText(id),
+      scientific: preset.scientific,
+      pt_name: preset.ptName,
+      family: preset.family,
+      origin: preset.origin,
+      suggested_category: preset.suggestedCategory,
+      light: preset.light,
+      watering: preset.watering,
+      pet_friendly: preset.petFriendly,
+      watering_tip: preset.wateringTip,
+      care_instructions: preset.careInstructions,
+      cycle: preset.cycle,
+      blooming_season: preset.bloomingSeason,
+      pests_diseases: preset.pestsDiseases,
+      toxicity: preset.toxicity,
+      aliases: preset.aliases || [],
+      image_url: preset.imageUrl || null,
+      source: 'gemini',
+    }, { onConflict: 'id' });
+  } catch (e) {
+    // Falha silenciosa caso a tabela ainda não exista no Supabase
+    console.warn('[plantClassificationService] Aviso: não foi possível salvar em botanical_presets no Supabase:', e);
+  }
+}
+
 // Caches em memória (L1)
 const searchCache = new Map<string, BotanicalSearchResult[]>();
 const detailsCache = new Map<string | number, PlantClassificationDetails>();
+
+// Dispara sincronização inicial em background
+if (typeof window !== 'undefined') {
+  syncWithCloud();
+}
 
 export const plantClassificationService = {
   // Retorna a chave Gemini se configurada no .env ou localStorage
@@ -959,12 +1068,15 @@ export const plantClassificationService = {
             ].filter((v, i, arr) => v && arr.indexOf(v) === i),
           };
 
-          // Salva indexando pelo termo buscado, nome popular e nome científico
+          // Salva indexando pelo termo buscado, nome popular e nome científico no LocalStorage
           savePersistedBotanicalPreset(query, presetToSave);
           savePersistedBotanicalPreset(aiDetails.name, presetToSave);
           if (aiDetails.scientificName) {
             savePersistedBotanicalPreset(aiDetails.scientificName, presetToSave);
           }
+
+          // ☁️ Salva no Supabase para compartilhar com todos os usuários e dispositivos
+          saveToCloudPreset(aiDetails.name, presetToSave);
 
           detailsCache.set(speciesItem.id, aiDetails);
           return aiDetails;

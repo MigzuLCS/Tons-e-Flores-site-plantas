@@ -13,9 +13,9 @@ O sistema atual conta com uma base nativa estática (`BOTANICAL_DATABASE`) e int
 
 ---
 
-## 🏛️ Arquitetura de Cache em Camadas (Multi-Tier Caching)
+## 🏛️ Arquitetura de Cache em Camadas (Multi-Tier & Cloud Sync)
 
-O motor de classificação evolui para um pipeline de 4 níveis hierárquicos:
+O motor de classificação evolui para um pipeline híbrido com sincronização em nuvem:
 
 ```mermaid
 flowchart TD
@@ -27,13 +27,13 @@ flowchart TD
     C -- Não --> D{2. Base Nativa Fixa?}
     D -- Sim --> R
     
-    D -- Não --> E{3. Cache L2 - Acervo Persistente LocalStorage?}
+    D -- Não --> E{3. Cache L2 - LocalStorage / Supabase?}
     E -- Sim --> CacheHit[Carrega do LocalStorage & Atualiza L1]
     CacheHit --> R
     
     E -- Não --> F{4. Chave Gemini Ativa?}
     F -- Sim --> G[Chamada à API Google Gemini]
-    G -- Sucesso --> H[Grava no LocalStorage L2 & Memória L1]
+    G -- Sucesso --> H[Grava no LocalStorage L2 & Supabase Nuvem]
     H --> R
     G -- Falha / Sem Cota --> I[Wikipedia / Fallback Local]
     F -- Não --> I
@@ -48,16 +48,21 @@ flowchart TD
 - Mantido via estruturas `Map<string, BotanicalSearchResult[]>` e `Map<string, PlantClassificationDetails>`.
 - Garante fluidez imediata na digitação do formulário sem operações síncronas de I/O em disco.
 
-### 2. Nível L2: Acervo Persistente (`localStorage`)
+### 2. Nível L2: Acervo Persistente Local (`localStorage`)
 - Chave de armazenamento: `tons_botanical_custom_cache_v1`.
 - Armazena dicionário de espécies classificadas pela IA, indexadas por nomes populares normalizados, nomes científicos e sinônimos (*aliases*).
-- **Auto-aprendizado (Self-Enriching Database):** Toda resposta bem-sucedida do Gemini é imediatamente serializada e salva.
+- Garante que a aplicação funcione mesmo 100% offline.
 
-### 3. Nível L3: Base Nativa Estática (`BOTANICAL_DATABASE`)
+### 3. Nível L3: Sincronização em Nuvem Multi-Usuário (Supabase)
+- **Tabela `botanical_presets` + Tabela `plants`:** Toda planta classificada pelo Gemini ou cadastrada no estoque é salva no Supabase.
+- **Compartilhamento Universal:** Quando qualquer administrador consulta o Gemini uma vez, a ficha fica imediatamente disponível para **TODOS os usuários e dispositivos** da loja.
+
+### 4. Nível L4: Base Nativa Estática (`BOTANICAL_DATABASE`)
 - Conjunto pré-compilado de alta precisão para as espécies mais vendidas no Brasil (Costela de Adão, Jiboia, Zamioculca, etc.).
 
-### 4. Nível L4: Provedor Generativo Externo (Google Gemini Flash)
-- Ativado apenas para termos inéditos em L1, L2 e L3.
+### 5. Nível L5: Provedor Generativo Externo (Google Gemini Flash)
+- Ativado apenas para termos inéditos nas camadas anteriores.
+- Utiliza saída estruturada com JSON Schema para alimentar diretamente o padrão do acervo.
 - Utiliza saída estruturada com JSON Schema para alimentar diretamente o padrão do acervo.
 
 ---
