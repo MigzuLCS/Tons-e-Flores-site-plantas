@@ -402,7 +402,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           plant.status === 'disponivel'
                             ? 'bg-brand-olive-light border-brand-olive-border text-brand-olive-text'
                             : plant.status === 'reservada'
-                            ? 'bg-amber-50 border-amber-300 text-amber-900'
+                            ? 'bg-amber-500/15 border-amber-400/50 text-amber-900 dark:text-amber-300'
                             : 'bg-brand-nude-light border-brand-nude-border text-brand-nude-text'
                         }`}
                       >

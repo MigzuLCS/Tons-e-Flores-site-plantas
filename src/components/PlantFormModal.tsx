@@ -3,7 +3,7 @@ import { X, Save, Sparkles, Image as ImageIcon, MapPin, Upload, Search, Loader2,
 import type { Plant, LightRequirement, WateringFrequency, PlantStatus } from '../types/plant';
 import { plantService } from '../services/plantService';
 import { configService } from '../services/configService';
-import { perenualService } from '../services/perenualService';
+import { plantClassificationService, type BotanicalSearchResult } from '../services/plantClassificationService';
 
 interface PlantFormModalProps {
   plantToEdit?: Plant | null;
@@ -33,11 +33,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
 
-  // Perenual API Search State
+  // Botanical Classification Search State (100% Gratuito / Híbrido)
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<BotanicalSearchResult[]>([]);
   const [apiError, setApiError] = useState('');
+  const [apiSuccessNotice, setApiSuccessNotice] = useState('');
   const [showResultsDropdown, setShowResultsDropdown] = useState(false);
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
       setSearchQuery('');
       setSearchResults([]);
       setApiError('');
+      setApiSuccessNotice('');
     } else {
       // Busca o próximo ID de forma assíncrona
       const defaultData: Partial<Plant> = {
@@ -84,72 +86,89 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
       setSearchQuery('');
       setSearchResults([]);
       setApiError('');
+      setApiSuccessNotice('');
     }
   }, [plantToEdit, isOpen]);
 
   if (!isOpen) return null;
 
   // Busca espécies permitindo tanto Nome Popular (ex: Costela de Adão) quanto Nome Científico (ex: Monstera deliciosa)
-  const handleSearchPerenual = async () => {
-    const apiKey = perenualService.getApiKey();
-    if (!apiKey) {
-      setApiError('Configuração Necessária: Defina VITE_PERENUAL_API_KEY no arquivo .env ou no painel de segredos do host.');
-      return;
-    }
+  const handleSearchBotanical = async () => {
     if (!searchQuery.trim()) {
-      setApiError('Digite o nome popular ou científico (ex: Costela de Adão, Monstera, Jiboia, Zamioculca).');
+      setApiError('Digite o nome popular ou científico (ex: Costela de Adão, Jiboia, Zamioculca, Monstera).');
       return;
     }
 
     setIsSearching(true);
     setApiError('');
+    setApiSuccessNotice('');
     setSearchResults([]);
     setShowResultsDropdown(false);
 
     try {
-      const results = await perenualService.searchSpecies(searchQuery);
+      const results = await plantClassificationService.searchSpecies(searchQuery);
       if (results && results.length > 0) {
         setSearchResults(results.slice(0, 6));
         setShowResultsDropdown(true);
       } else {
-        setApiError('Nenhuma planta encontrada. Tente buscar pelo nome científico ou outro sinônimo.');
+        setApiError('Nenhuma espécie correspondente encontrada. Você pode preencher manualmente abaixo.');
       }
     } catch (err: any) {
-      setApiError(err.message || 'Erro ao conectar com a base de dados botânica.');
+      setApiError(err.message || 'Erro ao consultar a base botânica.');
     } finally {
       setIsSearching(false);
     }
   };
 
   // Ao selecionar uma espécie, preenche Nome Popular, Nome Científico e toda a ficha botânica
-  const handleSelectSpecies = async (species: any) => {
+  const handleSelectSpecies = async (species: BotanicalSearchResult) => {
     setIsSearching(true);
     setShowResultsDropdown(false);
     setApiError('');
+    setApiSuccessNotice('');
 
     try {
-      const details = await perenualService.getSpeciesDetails(species, searchQuery);
+      const details = await plantClassificationService.getSpeciesDetails(species, searchQuery);
 
-      setFormData(prev => ({
-        ...prev,
-        name: details.name || prev.name,
-        scientificName: details.scientificName || prev.scientificName,
-        light: details.light,
-        watering: details.watering,
-        petFriendly: details.petFriendly,
-        imageUrl: details.imageUrl || prev.imageUrl,
-        wateringTip: details.wateringTip || prev.wateringTip,
-        careInstructions: details.careInstructions || prev.careInstructions,
-        family: details.family || '',
-        origin: details.origin || '',
-        cycle: details.cycle || '',
-        bloomingSeason: details.bloomingSeason || '',
-        pestsDiseases: details.pestsDiseases || '',
-        toxicity: details.toxicity || '',
-      }));
+      setFormData(prev => {
+        let matchedCategory = prev.category;
+        if (details.suggestedCategory) {
+          const found = categories.find(
+            c => c.toLowerCase() === details.suggestedCategory?.toLowerCase()
+          );
+          if (found) {
+            matchedCategory = found;
+          } else if (categories.length > 0) {
+            matchedCategory = details.suggestedCategory;
+          }
+        }
 
-      if (details.fromFallback) {
-        setApiError('Nota: Detalhes básicos preenchidos via acervo botânico (limite de requisições ou dados parciais da API).');
+        return {
+          ...prev,
+          name: details.name || prev.name,
+          scientificName: details.scientificName || prev.scientificName,
+          category: matchedCategory || prev.category || categories[0] || 'Folhagens',
+          light: details.light,
+          watering: details.watering,
+          petFriendly: details.petFriendly,
+          imageUrl: details.imageUrl || prev.imageUrl,
+          wateringTip: details.wateringTip || prev.wateringTip,
+          careInstructions: details.careInstructions || prev.careInstructions,
+          family: details.family || '',
+          origin: details.origin || '',
+          cycle: details.cycle || '',
+          bloomingSeason: details.bloomingSeason || '',
+          pestsDiseases: details.pestsDiseases || '',
+          toxicity: details.toxicity || '',
+        };
+      });
+
+      if (details.source === 'local') {
+        setApiSuccessNotice('🌿 Ficha botânica preenchida instantaneamente via Acervo Botânico!');
+      } else if (details.source === 'gemini') {
+        setApiSuccessNotice('✨ Ficha botânica gerada e classificada com sucesso via Inteligência Artificial!');
+      } else {
+        setApiSuccessNotice('📖 Ficha botânica preenchida com dados abertos da enciclopédia!');
       }
 
     } catch (err: any) {
@@ -251,10 +270,10 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
             <div className="bg-brand-surface-subtle border border-brand-border rounded-2xl p-4 space-y-3">
               <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-olive">
                 <Sparkles className="w-4 h-4 text-brand-olive" />
-                Classificação Botânica Automática
+                Classificação Botânica Inteligente & Gratuita
               </div>
               <p className="text-xs text-brand-text-muted">
-                Pesquise pelo <strong>Nome Popular</strong> (ex: <em>Costela de Adão</em>, <em>Espada de São Jorge</em>, <em>Jiboia</em>) ou pelo <strong>Nome Científico</strong> (ex: <em>Monstera deliciosa</em>) para preencher a ficha completa.
+                Pesquise pelo <strong>Nome Popular</strong> (ex: <em>Costela de Adão</em>, <em>Espada de São Jorge</em>, <em>Jiboia</em>, <em>Zamioculca</em>) ou pelo <strong>Nome Científico</strong> (ex: <em>Monstera deliciosa</em>) para preencher a ficha completa instantaneamente.
               </p>
               <div className="relative flex gap-2">
                 <input
@@ -266,13 +285,13 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      handleSearchPerenual();
+                      handleSearchBotanical();
                     }
                   }}
                 />
                 <button
                   type="button"
-                  onClick={handleSearchPerenual}
+                  onClick={handleSearchBotanical}
                   disabled={isSearching}
                   className="px-4 py-2 bg-brand-olive hover:bg-brand-olive-hover disabled:bg-brand-border text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs"
                 >
@@ -283,7 +302,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 {/* Dropdown de Resultados de Busca */}
                 {showResultsDropdown && searchResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-brand-surface border border-brand-border rounded-xl shadow-lg z-30 max-h-56 overflow-y-auto divide-y divide-brand-border animate-in fade-in slide-in-from-top-1">
-                    {searchResults.map((species: any) => (
+                    {searchResults.map((species: BotanicalSearchResult) => (
                       <button
                         key={species.id}
                         type="button"
@@ -298,18 +317,21 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                             {species.scientific_name ? species.scientific_name.join(', ') : ''}
                           </div>
                         </div>
-                        {species.default_image && (
-                          <img
-                            src={species.default_image.thumbnail || species.default_image.original_url}
-                            alt=""
-                            className="w-8 h-8 rounded-lg object-cover border border-brand-border"
-                          />
-                        )}
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-olive-subtle text-brand-olive">
+                          {species.source === 'local' ? '🌿 Acervo' : species.source === 'gemini' ? '✨ IA' : '📖 Wiki'}
+                        </span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
+
+              {apiSuccessNotice && (
+                <div className="text-xs text-brand-olive flex items-center gap-1.5 mt-1 font-medium bg-brand-olive-subtle p-2.5 rounded-xl border border-brand-olive/20">
+                  <Sparkles className="w-3.5 h-3.5 text-brand-olive" />
+                  {apiSuccessNotice}
+                </div>
+              )}
 
               {apiError && (
                 <div className="text-xs text-brand-nude-text flex items-center gap-1.5 mt-1 font-medium bg-brand-nude-light p-2 rounded-xl border border-brand-nude-border">
@@ -533,10 +555,10 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
             </div>
           </div>
 
-          {/* NOVO BLOCO 3b: Classificação Botânica Detalhada (Preenchido via API ou manualmente) */}
+          {/* BLOCO 3b: Classificação Botânica Detalhada */}
           <div className="space-y-4">
             <h3 className="font-bold text-xs uppercase tracking-wider text-brand-olive border-b border-brand-border pb-1">
-              3b. Ficha Botânica Auxiliar (Perenual API)
+              3b. Ficha Botânica Detalhada (Classificação Inteligente)
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

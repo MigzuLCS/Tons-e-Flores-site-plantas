@@ -20,7 +20,7 @@ export interface Plant {
   wateringTip: string;
   careInstructions: string;
   
-  // Informações adicionais de classificação automática (Perenual API)
+  // Informações adicionais de classificação botânica detalhada (Acervo / IA / Enciclopédia)
   family?: string;
   origin?: string;
   cycle?: string;

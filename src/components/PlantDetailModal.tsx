@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { X, MapPin, Store, MessageCircle, QrCode, BookOpen, Check, Copy } from 'lucide-react';
+import { X, MapPin, Store, MessageCircle, QrCode, BookOpen, Check, Copy, Sun, CloudSun, Cloud, Droplets, Heart, AlertTriangle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Plant } from '../types/plant';
-import { CareBadge } from './CareBadge';
 
 interface PlantDetailModalProps {
   plant: Plant | null;
@@ -78,12 +77,12 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
               <span>{plant.location}</span>
             </div>
             <div className="absolute top-3 right-3">
-              <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-xs ${
+              <span className={`text-xs font-bold px-3 py-1 rounded-full shadow-xs border ${
                 plant.status === 'disponivel' 
-                  ? 'bg-brand-olive text-white' 
+                  ? 'bg-brand-olive text-white border-brand-olive/50' 
                   : plant.status === 'reservada' 
-                  ? 'bg-amber-600 text-white' 
-                  : 'bg-brand-nude text-white'
+                  ? 'bg-amber-500 text-white border-amber-400/40' 
+                  : 'bg-brand-nude text-white border-brand-nude-border/50'
               }`}>
                 {plant.status === 'disponivel' ? 'Disponível na Loja' : plant.status === 'reservada' ? 'Reservada' : 'Vendida'}
               </span>
@@ -109,35 +108,53 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
               </p>
             </div>
 
-            {/* Badges de Cuidados Básicos (Cards Coloridos) */}
+            {/* Badges de Cuidados Básicos (Cards de Cuidados) */}
             <div className="grid grid-cols-3 gap-2 text-center">
-              {/* Iluminação — cor do container muda com o valor */}
-              <div className={`p-2.5 rounded-2xl flex flex-col items-center justify-center border ${
-                plant.light === 'sol-pleno'
-                  ? 'bg-amber-50 border-amber-200/70'
-                  : plant.light === 'meia-sombra'
-                  ? 'bg-orange-50 border-orange-200/70'
-                  : 'bg-brand-surface-subtle border-brand-border'
-              }`}>
-                <CareBadge type="light" value={plant.light} />
+              {/* Iluminação */}
+              <div className="p-3 rounded-2xl flex flex-col items-center justify-center bg-brand-surface-subtle border border-brand-border space-y-1">
+                <div className="w-8 h-8 rounded-xl bg-brand-surface border border-brand-border/60 flex items-center justify-center">
+                  {plant.light === 'sol-pleno' && <Sun className="w-4 h-4 text-amber-500/90" />}
+                  {plant.light === 'meia-sombra' && <CloudSun className="w-4 h-4 text-orange-400/90" />}
+                  {(plant.light === 'sombra-difusa' || !plant.light) && <Cloud className="w-4 h-4 text-brand-text-muted" />}
+                </div>
+                <span className="text-xs font-semibold text-brand-text leading-tight mt-0.5">
+                  {plant.light === 'sol-pleno' ? 'Sol Pleno' : plant.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra'}
+                </span>
+                <span className="text-[10px] text-brand-text-muted">Luz Solar</span>
               </div>
-              {/* Rega — cor do container muda com o valor */}
-              <div className={`p-2.5 rounded-2xl flex flex-col items-center justify-center border ${
-                plant.watering === 'baixa'
-                  ? 'bg-blue-50 border-blue-200/70'
-                  : plant.watering === 'moderada'
-                  ? 'bg-sky-50 border-sky-200/70'
-                  : 'bg-indigo-50 border-indigo-200/70'
-              }`}>
-                <CareBadge type="watering" value={plant.watering} />
+
+              {/* Rega */}
+              <div className="p-3 rounded-2xl flex flex-col items-center justify-center bg-brand-surface-subtle border border-brand-border space-y-1">
+                <div className="w-8 h-8 rounded-xl bg-brand-surface border border-brand-border/60 flex items-center justify-center">
+                  <Droplets className="w-4 h-4 text-sky-400" />
+                </div>
+                <span className="text-xs font-semibold text-brand-text leading-tight mt-0.5">
+                  {plant.watering === 'baixa' ? 'Pouca' : plant.watering === 'moderada' ? 'Moderada' : 'Frequente'}
+                </span>
+                <span className="text-[10px] text-brand-text-muted">Rega</span>
               </div>
-              {/* Pet Friendly — cor do container muda com o valor */}
-              <div className={`p-2.5 rounded-2xl flex flex-col items-center justify-center border ${
-                plant.petFriendly
-                  ? 'bg-brand-nude-light border-brand-nude-border'
-                  : 'bg-brand-surface-subtle border-brand-border'
+
+              {/* Pet Friendly */}
+              <div className={`p-3 rounded-2xl flex flex-col items-center justify-center border space-y-1 ${
+                plant.petFriendly 
+                  ? 'bg-brand-nude-light border-brand-nude-border text-brand-nude-text' 
+                  : 'bg-brand-surface-subtle border-brand-border text-brand-text'
               }`}>
-                <CareBadge type="pets" value={plant.petFriendly} />
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+                  plant.petFriendly 
+                    ? 'bg-brand-nude/20 text-brand-nude' 
+                    : 'bg-brand-surface border border-brand-border/60 text-amber-500'
+                }`}>
+                  {plant.petFriendly ? (
+                    <Heart className="w-4 h-4 fill-brand-nude text-brand-nude" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                  )}
+                </div>
+                <span className="text-xs font-semibold leading-tight mt-0.5">
+                  {plant.petFriendly ? 'Pet Friendly' : 'Tóxica a Pets'}
+                </span>
+                <span className="text-[10px] opacity-75">Convivência</span>
               </div>
             </div>
 
@@ -150,21 +167,25 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
 
               <div className="text-xs text-brand-text space-y-2.5 leading-relaxed">
                 {plant.wateringTip && (
-                  <p className="bg-blue-50/50 dark:bg-blue-950/30 p-2.5 rounded-xl border border-blue-100 dark:border-blue-900/50">
-                    <strong className="text-blue-900 dark:text-blue-200 block mb-0.5">💧 Como Regar:</strong>
-                    {plant.wateringTip}
+                  <p className="bg-brand-surface-subtle p-3 rounded-xl border border-brand-border text-brand-text">
+                    <strong className="text-brand-text font-bold block mb-1 flex items-center gap-1.5">
+                      <span>💧</span> Como Regar:
+                    </strong>
+                    <span className="text-brand-text-muted leading-relaxed block">{plant.wateringTip}</span>
                   </p>
                 )}
                 {plant.careInstructions && (
-                  <p className="bg-brand-surface-subtle p-2.5 rounded-xl border border-brand-border">
-                    <strong className="text-brand-text block mb-0.5">✨ Dicas de Cuidado:</strong>
-                    {plant.careInstructions}
+                  <p className="bg-brand-surface-subtle p-3 rounded-xl border border-brand-border text-brand-text">
+                    <strong className="text-brand-text font-bold block mb-1 flex items-center gap-1.5">
+                      <span>✨</span> Dicas de Cuidado:
+                    </strong>
+                    <span className="text-brand-text-muted leading-relaxed block">{plant.careInstructions}</span>
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Ficha Botânica Detalhada (Perenual API) */}
+            {/* Ficha Botânica Detalhada */}
             {(plant.family || plant.origin || plant.cycle || plant.bloomingSeason || plant.pestsDiseases || plant.toxicity) && (
               <div className="bg-brand-surface p-4.5 rounded-2xl border border-brand-border shadow-xs space-y-2.5">
                 <h3 className="font-bold text-xs uppercase tracking-wide text-brand-text flex items-center gap-1.5 border-b border-brand-border pb-1.5">

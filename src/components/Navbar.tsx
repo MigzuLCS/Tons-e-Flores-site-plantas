@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
-      className={`no-print bg-brand-surface/95 backdrop-blur-md text-brand-text sticky top-0 z-40 shadow-xs border-b border-brand-border transition-transform duration-300 ease-in-out ${
+      className={`no-print bg-[#181514]/95 backdrop-blur-md text-stone-100 sticky top-0 z-40 shadow-sm border-b border-[#2C2623] transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
@@ -77,19 +77,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => onSelectTab('showcase')}
             className="flex items-center space-x-2.5 cursor-pointer group shrink-0"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-brand-olive-light group-hover:bg-brand-olive group-hover:text-white rounded-xl sm:rounded-2xl flex items-center justify-center text-brand-olive border border-brand-olive-border shadow-xs transition-all shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#24201D] group-hover:bg-[#A3B596] group-hover:text-[#181514] rounded-xl sm:rounded-2xl flex items-center justify-center text-[#A3B596] border border-[#3A332F] shadow-xs transition-all shrink-0">
               <Flower2 className="w-5 h-5 sm:w-6 sm:h-6 transition-colors" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="font-bold text-base sm:text-lg leading-tight tracking-tight font-serif-title text-brand-text group-hover:text-brand-olive transition-colors">
+                <span className="font-bold text-base sm:text-lg leading-tight tracking-tight font-serif-title text-stone-100 group-hover:text-[#A3B596] transition-colors">
                   Tons & Flores
                 </span>
-                <span className="text-[10px] bg-brand-olive-light text-brand-olive-text border border-brand-olive-border px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] bg-[#27211E] text-[#B8CBB0] border border-[#3C332E] px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
                   {plantCount}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-brand-text-muted font-medium hidden xs:block tracking-wide">
+              <p className="text-[10px] sm:text-[11px] text-stone-400 font-medium hidden xs:block tracking-wide">
                 Boutique & Catálogo Digital
               </p>
             </div>
@@ -97,13 +97,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Abas de Navegação no Desktop (ou se for Admin no desktop) */}
           {isAdmin && (
-            <nav className="hidden md:flex items-center bg-brand-surface-subtle p-1 rounded-2xl border border-brand-border text-xs font-semibold gap-1">
+            <nav className="hidden md:flex items-center bg-[#221E1C] p-1 rounded-2xl border border-[#2F2926] text-xs font-semibold gap-1">
               <button
                 onClick={() => onSelectTab('showcase')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                   currentTab === 'showcase'
                     ? 'bg-brand-olive text-white shadow-xs font-bold'
-                    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-olive-light'
+                    : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                 }`}
               >
                 <Store className="w-3.5 h-3.5" />
@@ -115,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                   currentTab === 'admin'
                     ? 'bg-brand-olive text-white shadow-xs font-bold'
-                    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-olive-light'
+                    : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                 }`}
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
@@ -127,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                   currentTab === 'tags'
                     ? 'bg-brand-olive text-white shadow-xs font-bold'
-                    : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-olive-light'
+                    : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                 }`}
               >
                 <QrCode className="w-3.5 h-3.5" />
@@ -143,12 +143,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={handleToggleTheme}
               title={theme === 'dark' ? 'Mudar para Modo Claro (Oliva Suave)' : 'Mudar para Modo Escuro (Café & Terracota)'}
               aria-label="Alternar tema"
-              className="bg-brand-surface-subtle hover:bg-brand-olive-light text-brand-text-muted hover:text-brand-olive-text p-2 sm:p-2.5 rounded-xl border border-brand-border shadow-xs transition-all cursor-pointer flex items-center justify-center"
+              className="bg-[#221E1C] hover:bg-[#2C2522] text-stone-300 hover:text-white p-2 sm:p-2.5 rounded-xl border border-[#2F2926] shadow-xs transition-all cursor-pointer flex items-center justify-center"
             >
               {theme === 'dark' ? (
                 <Sun className="w-4 h-4 text-amber-300 animate-in spin-in-45 duration-300" />
               ) : (
-                <Moon className="w-4 h-4 text-brand-text-muted hover:text-brand-olive animate-in -spin-in-45 duration-300" />
+                <Moon className="w-4 h-4 text-stone-300 hover:text-[#A3B596] animate-in -spin-in-45 duration-300" />
               )}
             </button>
 
@@ -165,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   onClick={onLogout}
                   title="Sair do modo administrador"
-                  className="bg-brand-surface-subtle hover:bg-brand-nude-light text-brand-text-muted hover:text-brand-nude-text p-1.5 sm:p-2 rounded-xl border border-brand-border text-xs transition-colors cursor-pointer flex items-center gap-1"
+                  className="bg-[#221E1C] hover:bg-[#2C2522] text-stone-400 hover:text-stone-200 p-1.5 sm:p-2 rounded-xl border border-[#2F2926] text-xs transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Sair</span>
@@ -174,9 +174,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             ) : (
               <button
                 onClick={onOpenLoginModal}
-                className="bg-brand-surface-subtle hover:bg-brand-olive-light text-brand-text hover:text-brand-olive-text text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-brand-border shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="bg-[#221E1C] hover:bg-[#2C2522] text-stone-200 hover:text-white text-[11px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-[#2F2926] shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-olive" />
+                <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#A3B596]" />
                 <span>Área do Lojista</span>
               </button>
             )}
@@ -186,14 +186,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Linha 2 apenas quando o Admin estiver ativo no mobile: Abas em scroll horizontal limpo */}
         {isAdmin && (
-          <div className="flex md:hidden items-center justify-center pt-2 mt-1.5 border-t border-brand-border">
-            <nav className="flex items-center overflow-x-auto no-scrollbar bg-brand-surface-subtle p-1 rounded-xl border border-brand-border text-[11px] font-semibold gap-1 max-w-full">
+          <div className="flex md:hidden items-center justify-center pt-2 mt-1.5 border-t border-[#2C2623]">
+            <nav className="flex items-center overflow-x-auto no-scrollbar bg-[#221E1C] p-1 rounded-xl border border-[#2F2926] text-[11px] font-semibold gap-1 max-w-full">
               <button
                 onClick={() => onSelectTab('showcase')}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                   currentTab === 'showcase'
                     ? 'bg-brand-olive text-white shadow-xs font-bold'
-                    : 'text-brand-text-muted hover:text-brand-text'
+                    : 'text-stone-400 hover:text-stone-100'
                 }`}
               >
                 <Store className="w-3 h-3" />
@@ -205,7 +205,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                   currentTab === 'admin'
                     ? 'bg-brand-olive text-white shadow-xs font-bold'
-                    : 'text-brand-text-muted hover:text-brand-text'
+                    : 'text-stone-400 hover:text-stone-100'
                 }`}
               >
                 <LayoutGrid className="w-3 h-3" />
@@ -217,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                   currentTab === 'tags'
                     ? 'bg-brand-olive text-white shadow-xs font-bold'
-                    : 'text-brand-text-muted hover:text-brand-text'
+                    : 'text-stone-400 hover:text-stone-100'
                 }`}
               >
                 <QrCode className="w-3 h-3" />
@@ -226,7 +226,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
           </div>
         )}
-
       </div>
     </header>
   );

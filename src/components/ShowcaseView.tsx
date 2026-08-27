@@ -154,9 +154,9 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
     <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in duration-300">
       
       {/* Banner Principal / Hero */}
-      <div className="relative bg-brand-surface rounded-3xl p-6 sm:p-10 text-brand-text overflow-hidden shadow-xs border border-brand-border">
+      <div className="relative bg-brand-olive-light/60 dark:bg-brand-surface rounded-3xl p-6 sm:p-10 text-brand-text overflow-hidden shadow-xs border border-brand-olive-border/70 dark:border-brand-border">
         <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-brand-olive-light rounded-full text-xs font-semibold text-brand-olive-text border border-brand-olive-border shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-brand-surface/90 dark:bg-brand-surface-subtle rounded-full text-xs font-semibold text-brand-olive-text border border-brand-olive-border shadow-xs">
             <Flower2 className="w-3.5 h-3.5 text-brand-olive" />
             Tons & Flores • Boutique de Plantas
           </div>
@@ -169,7 +169,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
         </div>
 
         {/* Efeito decorativo botanical */}
-        <div className="absolute -right-8 -bottom-10 opacity-10 pointer-events-none text-brand-olive">
+        <div className="absolute -right-8 -bottom-10 opacity-15 dark:opacity-10 pointer-events-none text-brand-olive">
           <Sprout className="w-72 h-72" />
         </div>
       </div>

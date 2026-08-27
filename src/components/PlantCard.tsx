@@ -30,17 +30,17 @@ export const PlantCard: React.FC<PlantCardProps> = ({ plant, onSelect }) => {
 
           <div className="absolute top-3 right-3">
             {plant.status === 'disponivel' && (
-              <span className="bg-brand-olive-light/95 backdrop-blur-md text-brand-olive-text text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-olive-border">
+              <span className="bg-brand-olive-light/95 dark:bg-brand-olive text-brand-olive-text dark:text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-olive-border dark:border-brand-olive/40 backdrop-blur-md">
                 Disponível
               </span>
             )}
             {plant.status === 'reservada' && (
-              <span className="bg-amber-50/95 dark:bg-amber-950/40 backdrop-blur-md text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+              <span className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-amber-400/40 backdrop-blur-md">
                 Reservada
               </span>
             )}
             {plant.status === 'vendida' && (
-              <span className="bg-brand-nude-light/95 backdrop-blur-md text-brand-nude-text border border-brand-nude-border text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+              <span className="bg-brand-nude text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-nude-hover/40 backdrop-blur-md">
                 Vendida
               </span>
             )}

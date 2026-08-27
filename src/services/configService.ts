@@ -3,6 +3,7 @@
 
 const CATEGORIES_KEY = 'tonseflores_categories';
 const API_KEY_KEY = 'tonseflores_perenual_apikey';
+const GEMINI_API_KEY_KEY = 'tonseflores_gemini_apikey';
 
 const DEFAULT_CATEGORIES = [
   'Folhagens',
@@ -48,13 +49,22 @@ export const configService = {
     return [...DEFAULT_CATEGORIES];
   },
 
-  // ── Perenual API Key ────────────────────────────────────────
+  // ── Chaves de API de Classificação Botânica & IA ──────────
+  getGeminiApiKey(): string {
+    return localStorage.getItem(GEMINI_API_KEY_KEY) || localStorage.getItem(API_KEY_KEY) || '';
+  },
+
+  setGeminiApiKey(key: string): void {
+    localStorage.setItem(GEMINI_API_KEY_KEY, key.trim());
+  },
+
+  // Compatibilidade legada
   getApiKey(): string {
-    return localStorage.getItem(API_KEY_KEY) || '';
+    return this.getGeminiApiKey();
   },
 
   setApiKey(key: string): void {
-    localStorage.setItem(API_KEY_KEY, key.trim());
+    this.setGeminiApiKey(key);
   }
 };
 
