@@ -105,10 +105,6 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           </button>
         </form>
 
-        <div className="bg-brand-surface-subtle p-2.5 rounded-xl border border-brand-border text-center text-[11px] text-brand-text-muted">
-          🔑 Senha padrão inicial: <strong className="text-brand-olive font-mono">1234</strong>
-        </div>
-
       </div>
     </div>
   );
