@@ -1,8 +1,10 @@
-// supabaseClient.ts
-// Este arquivo é um stub. A integração com Supabase será configurada futuramente.
-// Por enquanto, o app usa localStorage via plantService.ts.
-//
-// Para ativar o Supabase, siga o guia em: supabase_guide.md
-// e defina as variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no .env
+import { createClient } from '@supabase/supabase-js';
 
-export const supabase = null;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('[Supabase] VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não definidos no .env');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

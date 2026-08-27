@@ -12,6 +12,7 @@ import type { Plant, PlantStatus } from './types/plant';
 
 export function App() {
   const [plants, setPlants] = useState<Plant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState<AppTab>('showcase');
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -20,10 +21,15 @@ export function App() {
   const [plantToEdit, setPlantToEdit] = useState<Plant | null>(null);
   const [selectedPlantForTag, setSelectedPlantForTag] = useState<string | null>(null);
 
-  // Carregar plantas e status de autenticação
-  const loadPlants = () => {
-    const loaded = plantService.getPlants();
-    setPlants(loaded);
+  // Carregar plantas do Supabase
+  const loadPlants = async () => {
+    setIsLoading(true);
+    try {
+      const loaded = await plantService.getPlants();
+      setPlants(loaded);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -31,11 +37,11 @@ export function App() {
     setIsAdmin(authService.isAuthenticated());
 
     // Verificação de URL Hash (Ex: ao escanear o QR Code que leva a #p-TF-001)
-    const checkHash = () => {
+    const checkHash = async () => {
       const hash = window.location.hash;
       if (hash.startsWith('#p-')) {
         const plantId = hash.replace('#p-', '');
-        const found = plantService.getPlantById(plantId);
+        const found = await plantService.getPlantById(plantId);
         if (found) {
           setSelectedPlant(found);
         }
@@ -48,24 +54,24 @@ export function App() {
   }, []);
 
   // Handlers
-  const handleSavePlant = (plant: Plant) => {
+  const handleSavePlant = async (plant: Plant) => {
     if (plantToEdit) {
-      plantService.updatePlant(plant);
+      await plantService.updatePlant(plant);
     } else {
-      plantService.addPlant(plant);
+      await plantService.addPlant(plant);
     }
-    loadPlants();
+    await loadPlants();
     setPlantToEdit(null);
   };
 
-  const handleDeletePlant = (id: string) => {
-    plantService.deletePlant(id);
-    loadPlants();
+  const handleDeletePlant = async (id: string) => {
+    await plantService.deletePlant(id);
+    await loadPlants();
   };
 
-  const handleStatusChange = (plant: Plant, newStatus: PlantStatus) => {
-    plantService.updatePlant({ ...plant, status: newStatus });
-    loadPlants();
+  const handleStatusChange = async (plant: Plant, newStatus: PlantStatus) => {
+    await plantService.updatePlant({ ...plant, status: newStatus });
+    await loadPlants();
   };
 
   const handleSelectForTag = (plant: Plant) => {
@@ -115,15 +121,23 @@ export function App() {
       {/* Conteúdo da Aba Ativa */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         {currentTab === 'showcase' && (
-          <ShowcaseView 
-            plants={plants} 
-            onSelectPlant={(plant) => setSelectedPlant(plant)} 
-          />
+          isLoading ? (
+            <div className="flex items-center justify-center py-32 text-stone-400 gap-3">
+              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium">Carregando catálogo...</span>
+            </div>
+          ) : (
+            <ShowcaseView 
+              plants={plants} 
+              onSelectPlant={(plant) => setSelectedPlant(plant)} 
+            />
+          )
         )}
 
         {currentTab === 'admin' && isAdmin && (
           <AdminPanel 
             plants={plants}
+            isLoading={isLoading}
             onOpenAddModal={() => {
               setPlantToEdit(null);
               setIsFormModalOpen(true);

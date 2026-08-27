@@ -27,6 +27,7 @@ import { perenualService } from '../services/perenualService';
 
 interface AdminPanelProps {
   plants: Plant[];
+  isLoading?: boolean;
   onOpenAddModal: () => void;
   onOpenEditModal: (plant: Plant) => void;
   onViewPlant: (plant: Plant) => void;
@@ -38,6 +39,7 @@ interface AdminPanelProps {
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   plants,
+  isLoading = false,
   onOpenAddModal,
   onOpenEditModal,
   onViewPlant,
@@ -103,9 +105,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const content = event.target?.result as string;
-      if (plantService.importBackup(content)) {
+      const ok = await plantService.importBackup(content);
+      if (ok) {
         alert('Backup importado com sucesso!');
         onRefresh();
       } else {
@@ -115,9 +118,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     reader.readAsText(file);
   };
 
-  const handleResetData = () => {
+  const handleResetData = async () => {
     if (confirm('Tem certeza que deseja restaurar as plantas de exemplo? Seus cadastros atuais serão redefinidos.')) {
-      plantService.resetToInitial();
+      await plantService.resetToInitial();
       onRefresh();
     }
   };
