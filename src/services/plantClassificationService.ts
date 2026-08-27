@@ -994,27 +994,36 @@ Retorne APENAS um objeto JSON válido (sem blocos markdown adicionais, sem expli
   "toxicity": "Descrição clara se é tóxica para cães e gatos e por quê"
 }`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          responseMimeType: 'application/json',
-        },
-      }),
-    });
+    const models = ['gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+    let text = '';
 
-    if (!response.ok) {
-      throw new Error(`Gemini API error status: ${response.status}`);
+    for (const model of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.2,
+              responseMimeType: 'application/json',
+            },
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (text) break;
+        }
+      } catch (err) {
+        console.warn(`Gemini model ${model} failed, trying next:`, err);
+      }
     }
 
-    const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) return null;
 
     const parsed = JSON.parse(text);
