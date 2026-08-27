@@ -163,21 +163,21 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       `}</style>
 
       {/* Barra de Controle de Impressão */}
-      <div className="no-print bg-white p-6 rounded-3xl border border-stone-200 shadow-sm space-y-4">
+      <div className="no-print bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-olive">
                 Impressora Térmica & Etiquetas
               </span>
-              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-brand-olive-light text-brand-olive-text border border-brand-olive-border text-[10px] font-bold px-2 py-0.5 rounded-full">
                 Niimbot B1 (50mm x 30mm)
               </span>
             </div>
-            <h2 className="text-2xl font-bold font-serif-title text-stone-900 mt-0.5">
+            <h2 className="text-2xl font-bold font-serif-title text-brand-text mt-0.5">
               Gerador de Tags com QR Code
             </h2>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-brand-text-muted">
               Pronto para imprimir na sua <strong>Niimbot B1</strong> ou baixar as imagens em PNG para o aplicativo Bluetooth.
             </p>
           </div>
@@ -186,7 +186,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
             <button 
               onClick={handlePrint}
               disabled={plantsToPrint.length === 0}
-              className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-2xl shadow-md flex items-center justify-center gap-2 text-sm transition-all shrink-0 cursor-pointer"
+              className="bg-brand-olive hover:bg-brand-olive-hover disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-2xl shadow-xs flex items-center justify-center gap-2 text-sm transition-all shrink-0 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               Imprimir {plantsToPrint.length} Etiquetas
@@ -195,14 +195,14 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
         </div>
 
         {/* Configurações de Formato e Exibição */}
-        <div className="pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-4 text-xs">
+        <div className="pt-3 border-t border-brand-border flex flex-wrap items-center justify-between gap-4 text-xs">
           
           {/* Seletor de Modo de Impressão */}
-          <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl">
+          <div className="flex items-center gap-2 bg-brand-surface-subtle p-1 rounded-xl border border-brand-border">
             <button
               onClick={() => setPrintMode('niimbot')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                printMode === 'niimbot' ? 'bg-white shadow text-emerald-900' : 'text-stone-600 hover:text-stone-900'
+                printMode === 'niimbot' ? 'bg-white shadow-xs text-brand-olive font-bold' : 'text-brand-text-muted hover:text-brand-text'
               }`}
             >
               🏷️ Térmica Niimbot (50x30mm)
@@ -210,7 +210,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
             <button
               onClick={() => setPrintMode('sheet_a4')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                printMode === 'sheet_a4' ? 'bg-white shadow text-emerald-900' : 'text-stone-600 hover:text-stone-900'
+                printMode === 'sheet_a4' ? 'bg-white shadow-xs text-brand-olive font-bold' : 'text-brand-text-muted hover:text-brand-text'
               }`}
             >
               📄 Grade Folha A4
@@ -218,54 +218,54 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <label className="flex items-center gap-1.5 font-medium text-stone-700 cursor-pointer">
+            <label className="flex items-center gap-1.5 font-medium text-brand-text cursor-pointer">
               <input 
                 type="checkbox" 
                 checked={showPrice} 
                 onChange={e => setShowPrice(e.target.checked)}
-                className="rounded text-emerald-600 focus:ring-emerald-500" 
+                className="rounded text-brand-olive focus:ring-brand-olive" 
               />
               Exibir Preço
             </label>
 
-            <label className="flex items-center gap-1.5 font-medium text-stone-700 cursor-pointer">
+            <label className="flex items-center gap-1.5 font-medium text-brand-text cursor-pointer">
               <input 
                 type="checkbox" 
                 checked={showCareIcons} 
                 onChange={e => setShowCareIcons(e.target.checked)}
-                className="rounded text-emerald-600 focus:ring-emerald-500" 
+                className="rounded text-brand-olive focus:ring-brand-olive" 
               />
               Exibir Cuidados
             </label>
 
             <button 
               onClick={toggleSelectAll}
-              className="flex items-center gap-1.5 font-bold text-stone-700 hover:text-emerald-800 cursor-pointer ml-2"
+              className="flex items-center gap-1.5 font-bold text-brand-text hover:text-brand-olive cursor-pointer ml-2"
             >
               {selectedIds.length === plants.filter(p => p.status !== 'vendida').length ? (
-                <CheckSquare className="w-4 h-4 text-emerald-700" />
+                <CheckSquare className="w-4 h-4 text-brand-olive" />
               ) : (
-                <Square className="w-4 h-4 text-stone-400" />
+                <Square className="w-4 h-4 text-brand-text-muted" />
               )}
               {selectedIds.length === plants.filter(p => p.status !== 'vendida').length ? 'Desmarcar Todas' : 'Selecionar Todas'}
             </button>
           </div>
 
-          <div className="text-stone-500 text-xs">
+          <div className="text-brand-text-muted text-xs">
             <strong>{plantsToPrint.length}</strong> etiquetas selecionadas
           </div>
         </div>
 
         {/* Seleção rápida por chips */}
-        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-stone-50 rounded-xl border border-stone-200">
+        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-brand-surface-subtle rounded-xl border border-brand-border">
           {plants.filter(p => p.status !== 'vendida').map(plant => (
             <button
               key={plant.id}
               onClick={() => toggleSelectPlant(plant.id)}
               className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all cursor-pointer ${
                 selectedIds.includes(plant.id)
-                  ? 'bg-emerald-100 border-emerald-300 text-emerald-900 font-bold'
-                  : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-100'
+                  ? 'bg-brand-olive-light border-brand-olive-border text-brand-olive-text font-bold shadow-xs'
+                  : 'bg-white border-brand-border text-brand-text hover:bg-brand-olive-light'
               }`}
             >
               #{plant.id} - {plant.name}
@@ -275,7 +275,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       </div>
 
       {/* Visualização e Área de Impressão */}
-      <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-sm border border-stone-200 max-w-4xl mx-auto">
+      <div className="bg-brand-surface p-6 sm:p-10 rounded-3xl shadow-sm border border-brand-border max-w-4xl mx-auto">
         
         {plantsToPrint.length > 0 ? (
           <div className={printMode === 'niimbot' ? 'space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'}>
@@ -341,7 +341,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                     <button 
                       onClick={() => downloadTagImage(plant)}
                       title="Baixar imagem PNG 50x30mm para o app Niimbot"
-                      className="no-print absolute -top-3 -right-3 bg-stone-900 hover:bg-emerald-700 text-white p-1.5 rounded-full shadow transition-all cursor-pointer opacity-80 group-hover:opacity-100"
+                      className="no-print absolute -top-3 -right-3 bg-brand-green-950 hover:bg-brand-rose-600 text-white p-1.5 rounded-full shadow-md transition-all cursor-pointer opacity-80 group-hover:opacity-100"
                     >
                       <Download className="w-3.5 h-3.5" />
                     </button>
@@ -354,19 +354,19 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
               return (
                 <div 
                   key={plant.id}
-                  className="border-2 border-dashed border-stone-300 p-4 rounded-2xl flex flex-col items-center justify-between text-center bg-white space-y-2.5 relative break-inside-avoid hover:border-emerald-400 transition-colors"
+                  className="border-2 border-dashed border-brand-border p-4 rounded-2xl flex flex-col items-center justify-between text-center bg-white space-y-2.5 relative break-inside-avoid hover:border-brand-olive/50 transition-colors shadow-xs"
                 >
-                  <div className="w-full flex items-center justify-between text-[11px] font-bold text-emerald-800 border-b border-stone-100 pb-1.5">
+                  <div className="w-full flex items-center justify-between text-[11px] font-bold text-brand-olive border-b border-brand-border pb-1.5">
                     <div className="flex items-center gap-1 uppercase tracking-wide">
-                      <Flower2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <Flower2 className="w-3.5 h-3.5 text-brand-olive" />
                       Tons & Flores
                     </div>
-                    <span className="font-mono text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded text-[10px]">
+                    <span className="font-mono text-brand-text-muted bg-brand-surface-subtle border border-brand-border px-1.5 py-0.5 rounded text-[10px]">
                       #{plant.id}
                     </span>
                   </div>
 
-                  <div className="p-1.5 bg-white border border-stone-200 rounded-xl shadow-xs">
+                  <div className="p-1.5 bg-white border border-brand-border rounded-xl shadow-xs">
                     <QRCodeSVG 
                       id={`qr-svg-${plant.id}`}
                       value={plantUrl} 
@@ -377,31 +377,31 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   </div>
 
                   <div className="w-full space-y-0.5">
-                    <div className="font-bold text-sm text-stone-900 leading-tight font-serif-title">
+                    <div className="font-bold text-sm text-brand-text leading-tight font-serif-title">
                       {plant.name}
                     </div>
-                    <div className="text-[10px] text-stone-500 italic truncate max-w-full">
+                    <div className="text-[10px] text-brand-text-muted italic truncate max-w-full">
                       {plant.scientificName} • {plant.potSize}
                     </div>
                   </div>
 
                   {showCareIcons && (
-                    <div className="flex items-center justify-center gap-2 text-[10px] text-stone-600 pt-0.5">
-                      <span className="flex items-center gap-0.5 font-medium bg-amber-50 text-amber-900 px-1.5 py-0.5 rounded">
+                    <div className="flex items-center justify-center gap-2 text-[10px] text-brand-text pt-0.5">
+                      <span className="flex items-center gap-0.5 font-medium bg-amber-50 text-amber-900 px-1.5 py-0.5 rounded border border-amber-200">
                         <Sun className="w-3 h-3 text-amber-500" />
                         {plant.light === 'sol-pleno' ? 'Sol' : plant.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra'}
                       </span>
-                      <span className="flex items-center gap-0.5 font-medium bg-blue-50 text-blue-900 px-1.5 py-0.5 rounded">
+                      <span className="flex items-center gap-0.5 font-medium bg-blue-50 text-blue-900 px-1.5 py-0.5 rounded border border-blue-200">
                         <Droplets className="w-3 h-3 text-blue-500" />
                         {plant.watering === 'baixa' ? 'Pouca' : plant.watering === 'moderada' ? 'Moderada' : 'Frequente'}
                       </span>
                     </div>
                   )}
 
-                  <div className="w-full pt-1.5 border-t border-stone-200 flex items-center justify-between text-xs">
-                    <span className="text-[9px] text-stone-400 font-medium">Escaneie o QR Code</span>
+                  <div className="w-full pt-1.5 border-t border-brand-border flex items-center justify-between text-xs">
+                    <span className="text-[9px] text-brand-text-light font-medium">Escaneie o QR Code</span>
                     {showPrice && (
-                      <span className="font-extrabold text-emerald-800 text-sm">
+                      <span className="font-extrabold text-brand-text text-sm">
                         R$ {plant.price.toFixed(2).replace('.', ',')}
                       </span>
                     )}

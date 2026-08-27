@@ -8,6 +8,7 @@ import { PlantFormModal } from './components/PlantFormModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { plantService } from './services/plantService';
 import { authService } from './services/authService';
+import { themeService } from './services/configService';
 import type { Plant, PlantStatus } from './types/plant';
 
 export function App() {
@@ -33,6 +34,7 @@ export function App() {
   };
 
   useEffect(() => {
+    themeService.initTheme();
     loadPlants();
     setIsAdmin(authService.isAuthenticated());
 
@@ -91,7 +93,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col selection:bg-brand-nude-light selection:text-brand-nude-text">
       
       {/* Barra de Navegação Superior */}
       <Navbar 
@@ -122,9 +124,9 @@ export function App() {
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         {currentTab === 'showcase' && (
           isLoading ? (
-            <div className="flex items-center justify-center py-32 text-stone-400 gap-3">
-              <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm font-medium">Carregando catálogo...</span>
+            <div className="flex items-center justify-center py-32 text-brand-text-muted gap-3">
+              <div className="w-6 h-6 border-2 border-brand-olive border-t-brand-nude rounded-full animate-spin" />
+              <span className="text-sm font-medium text-brand-text">Carregando catálogo Tons & Flores...</span>
             </div>
           ) : (
             <ShowcaseView 
@@ -163,26 +165,31 @@ export function App() {
       </main>
 
       {/* Rodapé da Loja (Não aparece na impressão) */}
-      <footer className="no-print bg-stone-900 text-stone-400 border-t border-stone-800 py-8 px-6 text-center text-xs space-y-2">
-        <div className="flex items-center justify-center gap-2 font-serif-title font-bold text-stone-200 text-sm">
-          <span>Tons & Flores</span>
+      <footer className="no-print bg-brand-surface text-brand-text-muted border-t border-brand-border py-8 px-6 text-center text-xs space-y-2.5">
+        <div className="flex items-center justify-center gap-2 font-serif-title font-bold text-brand-text text-base">
+          <span className="tracking-wide">Tons & Flores</span>
+          <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-brand-olive-light text-brand-olive-text border border-brand-olive-border font-semibold">
+            Boutique de Plantas
+          </span>
         </div>
-        <p>Sistema de Gestão & Catálogo Digital de Plantas com QR Code.</p>
-        <div className="flex items-center justify-center gap-4 pt-1">
-          <p className="text-stone-500 text-[11px]">
-            Desenvolvido sob medida para a Tons & Flores
+        <p className="text-brand-text-muted text-xs max-w-md mx-auto">
+          Catálogo Botânico & Gestão de Plantas com Identificação por QR Code.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <p className="text-brand-text-muted text-[11px]">
+            © {new Date().getFullYear()} Tons & Flores Boutique
           </p>
-          <span className="text-stone-700">•</span>
+          <span className="text-brand-border">•</span>
           {!isAdmin ? (
             <button 
               onClick={() => setIsLoginModalOpen(true)}
-              className="text-stone-400 hover:text-emerald-400 text-[11px] underline cursor-pointer"
+              className="text-brand-olive hover:text-brand-olive-hover text-[11px] font-medium underline cursor-pointer"
             >
-              Acesso do Administrador
+              Área do Lojista
             </button>
           ) : (
-            <span className="text-emerald-400 font-bold text-[11px]">
-              👑 Modo Administrador Ativo
+            <span className="text-brand-olive-text font-bold text-[11px] flex items-center gap-1">
+              <span>🌿</span> Modo Administrador Ativo
             </span>
           )}
         </div>

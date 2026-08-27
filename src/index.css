@@ -1,9 +1,90 @@
 @import "tailwindcss";
 
+:root {
+  /* ── ☀️ TEMA CLARO: Opção 3A (Oliva Suave & Rosa Nude) ── */
+  --color-brand-bg: #F9F7F2;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-surface-subtle: #F6F5F0;
+  --color-brand-border: #E9E5DD;
+  --color-brand-border-subtle: #F0ECE4;
+
+  --color-brand-text: #3A3F3B;
+  --color-brand-text-muted: #727771;
+  --color-brand-text-light: #9B9E98;
+
+  --color-brand-olive: #85987A;
+  --color-brand-olive-hover: #748769;
+  --color-brand-olive-light: #F0F3ED;
+  --color-brand-olive-border: #CDD9C7;
+  --color-brand-olive-text: #4E6542;
+
+  --color-brand-nude: #D49589;
+  --color-brand-nude-hover: #C58376;
+  --color-brand-nude-light: #FAF1EE;
+  --color-brand-nude-border: #F3D6CF;
+  --color-brand-nude-text: #8F4E42;
+}
+
+html.dark, .dark {
+  /* ── 🌙 TEMA ESCURO: Opção Dark 3 (Café Espresso & Terracota Nude) ── */
+  --color-brand-bg: #181514;
+  --color-brand-surface: #221E1C;
+  --color-brand-surface-subtle: #2B2623;
+  --color-brand-border: #3C3530;
+  --color-brand-border-subtle: #2F2925;
+
+  --color-brand-text: #ECE5E0;
+  --color-brand-text-muted: #A39B95;
+  --color-brand-text-light: #6E6762;
+
+  --color-brand-olive: #A3B596;
+  --color-brand-olive-hover: #92A485;
+  --color-brand-olive-light: #273022;
+  --color-brand-olive-border: #3E4D36;
+  --color-brand-olive-text: #BCD0AE;
+
+  --color-brand-nude: #DE9B8B;
+  --color-brand-nude-hover: #CD8A7A;
+  --color-brand-nude-light: #33221E;
+  --color-brand-nude-border: #573730;
+  --color-brand-nude-text: #E8B3A6;
+}
+
+@theme {
+  --font-serif-title: 'Playfair Display', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Mapeamento dinâmico das variáveis para classes utilitárias */
+  --color-brand-bg: var(--color-brand-bg);
+  --color-brand-surface: var(--color-brand-surface);
+  --color-brand-surface-subtle: var(--color-brand-surface-subtle);
+  --color-brand-border: var(--color-brand-border);
+  --color-brand-border-subtle: var(--color-brand-border-subtle);
+
+  --color-brand-text: var(--color-brand-text);
+  --color-brand-text-muted: var(--color-brand-text-muted);
+  --color-brand-text-light: var(--color-brand-text-light);
+
+  --color-brand-olive: var(--color-brand-olive);
+  --color-brand-olive-hover: var(--color-brand-olive-hover);
+  --color-brand-olive-light: var(--color-brand-olive-light);
+  --color-brand-olive-border: var(--color-brand-olive-border);
+  --color-brand-olive-text: var(--color-brand-olive-text);
+
+  --color-brand-nude: var(--color-brand-nude);
+  --color-brand-nude-hover: var(--color-brand-nude-hover);
+  --color-brand-nude-light: var(--color-brand-nude-light);
+  --color-brand-nude-border: var(--color-brand-nude-border);
+  --color-brand-nude-text: var(--color-brand-nude-text);
+}
+
 @layer base {
   body {
-    @apply bg-stone-100 text-stone-800 antialiased;
+    background-color: var(--color-brand-bg);
+    color: var(--color-brand-text);
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 }
 

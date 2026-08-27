@@ -127,43 +127,44 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     <div className="max-w-6xl mx-auto space-y-6 pb-12 animate-in fade-in">
       
       {/* Cabeçalho do Painel */}
-      <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Painel Administrativo</span>
+            <span className="w-2.5 h-2.5 bg-brand-nude rounded-full animate-pulse"></span>
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-olive">Painel Administrativo Tons & Flores</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold font-serif-title text-stone-900 mt-1">
+          <h2 className="text-2xl sm:text-3xl font-bold font-serif-title text-brand-text mt-1">
             Gestão do Catálogo & Vasos
           </h2>
-          <p className="text-xs text-stone-500 mt-0.5">
+          <p className="text-xs text-brand-text-muted mt-0.5">
             Cadastre, edite, altere status e acompanhe o estoque e histórico de vendas
           </p>
         </div>
 
+        {/* Ações Rápidas */}
         <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={onOpenAddModal}
-            className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow flex items-center gap-2 transition-colors cursor-pointer"
+            className="bg-brand-nude hover:bg-brand-nude-hover text-white font-semibold px-4 py-2.5 rounded-2xl shadow-xs flex items-center gap-1.5 text-xs transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Cadastrar Nova Planta
+            Cadastrar Novo Vaso
           </button>
 
           <button 
             onClick={() => plantService.exportBackup()}
             title="Baixar cópia de segurança em JSON"
-            className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold px-3 py-2.5 rounded-xl text-xs border border-stone-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="bg-brand-surface-subtle hover:bg-brand-olive-light text-brand-text font-semibold px-3 py-2.5 rounded-2xl text-xs border border-brand-border flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-brand-olive" />
             Backup
           </button>
 
           <label 
             title="Restaurar backup de arquivo JSON"
-            className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold px-3 py-2.5 rounded-xl text-xs border border-stone-300 flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="bg-brand-surface-subtle hover:bg-brand-olive-light text-brand-text font-semibold px-3 py-2.5 rounded-2xl text-xs border border-brand-border flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Upload className="w-3.5 h-3.5 text-brand-olive" />
             Importar
             <input type="file" accept=".json" onChange={handleImportBackup} className="hidden" />
           </label>
@@ -172,49 +173,49 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       {/* Cards de Métricas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-stone-700">
-            <Sprout className="w-5 h-5 text-emerald-700" />
+        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-surface-subtle flex items-center justify-center text-brand-olive">
+            <Sprout className="w-5 h-5 text-brand-olive" />
           </div>
           <div>
-            <div className="text-[11px] font-semibold text-stone-500 uppercase">Em Estoque</div>
-            <div className="text-xl font-extrabold text-stone-900">{stats.available + stats.reserved}</div>
+            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Em Estoque</div>
+            <div className="text-xl font-extrabold text-brand-text">{stats.available + stats.reserved}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
-            <CheckCircle2 className="w-5 h-5" />
+        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-olive-light flex items-center justify-center text-brand-olive-text">
+            <CheckCircle2 className="w-5 h-5 text-brand-olive" />
           </div>
           <div>
-            <div className="text-[11px] font-semibold text-stone-500 uppercase">Disponíveis</div>
-            <div className="text-xl font-extrabold text-emerald-700">{stats.available}</div>
+            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Disponíveis</div>
+            <div className="text-xl font-extrabold text-brand-olive-text">{stats.available}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700">
+        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-700 dark:text-amber-200">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[11px] font-semibold text-stone-500 uppercase">Reservadas</div>
-            <div className="text-xl font-extrabold text-amber-700">{stats.reserved}</div>
+            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Reservadas</div>
+            <div className="text-xl font-extrabold text-amber-700 dark:text-amber-200">{stats.reserved}</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-700">
-            <Archive className="w-5 h-5" />
+        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand-nude-light flex items-center justify-center text-brand-nude-text">
+            <Archive className="w-5 h-5 text-brand-nude" />
           </div>
           <div>
-            <div className="text-[11px] font-semibold text-stone-500 uppercase">Total Vendidas</div>
-            <div className="text-xl font-extrabold text-purple-700">{stats.sold}</div>
+            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Total Vendidas</div>
+            <div className="text-xl font-extrabold text-brand-nude-text">{stats.sold}</div>
           </div>
         </div>
       </div>
 
       {/* Seletor de Seção do Painel (Ativas vs Histórico de Vendidas vs Config) */}
-      <div className="flex items-center justify-between border-b border-stone-200">
+      <div className="flex items-center justify-between border-b border-brand-border">
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -223,11 +224,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             }}
             className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               adminTab === 'ativas'
-                ? 'border-emerald-700 text-emerald-900'
-                : 'border-transparent text-stone-400 hover:text-stone-700'
+                ? 'border-brand-olive text-brand-text font-bold'
+                : 'border-transparent text-brand-text-muted hover:text-brand-text'
             }`}
           >
-            <Sprout className="w-4 h-4" />
+            <Sprout className="w-4 h-4 text-brand-olive" />
             <span>🌿 Vasos Ativos ({stats.available + stats.reserved})</span>
           </button>
 
@@ -238,11 +239,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             }}
             className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               adminTab === 'vendidas'
-                ? 'border-purple-700 text-purple-900'
-                : 'border-transparent text-stone-400 hover:text-stone-700'
+                ? 'border-brand-nude text-brand-text font-bold'
+                : 'border-transparent text-brand-text-muted hover:text-brand-text'
             }`}
           >
-            <Archive className="w-4 h-4" />
+            <Archive className="w-4 h-4 text-brand-nude" />
             <span>📦 Histórico ({stats.sold})</span>
           </button>
 
@@ -250,8 +251,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             onClick={() => setAdminTab('config')}
             className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
               adminTab === 'config'
-                ? 'border-stone-700 text-stone-900'
-                : 'border-transparent text-stone-400 hover:text-stone-700'
+                ? 'border-brand-olive text-brand-text font-bold'
+                : 'border-transparent text-brand-text-muted hover:text-brand-text'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -259,11 +260,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </button>
         </div>
 
-        <div className="hidden sm:block text-xs text-stone-500 pb-3">
+        <div className="hidden sm:block text-xs text-brand-text-muted pb-3">
           {adminTab === 'ativas' ? (
-            <span>Valor em estoque: <strong className="text-stone-900">R$ {stats.stockValue.toFixed(2).replace('.', ',')}</strong></span>
+            <span>Valor em estoque: <strong className="text-brand-text">R$ {stats.stockValue.toFixed(2).replace('.', ',')}</strong></span>
           ) : adminTab === 'vendidas' ? (
-            <span>Faturamento histórico: <strong className="text-purple-900">R$ {stats.soldTotalValue.toFixed(2).replace('.', ',')}</strong></span>
+            <span>Faturamento histórico: <strong className="text-brand-nude-text">R$ {stats.soldTotalValue.toFixed(2).replace('.', ',')}</strong></span>
           ) : null}
         </div>
       </div>
@@ -271,16 +272,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       {/* Barra de Busca e Filtros da Tabela — oculta na aba Config */}
       {adminTab !== 'config' && (
-      <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
 
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-stone-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-brand-text-light" />
           <input 
             type="text" 
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder={adminTab === 'ativas' ? "Buscar vasos ativos..." : "Buscar no histórico de vendidas..."} 
-            className="w-full pl-10 pr-4 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
+            className="w-full pl-10 pr-4 py-2 text-xs bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive font-medium text-brand-text"
           />
         </div>
 
@@ -289,7 +290,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <select 
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-700 cursor-pointer"
+              className="px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl font-medium text-brand-text cursor-pointer"
             >
               <option value="all">Todos os Status Ativos</option>
               <option value="disponivel">Apenas Disponíveis</option>
@@ -300,20 +301,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <select 
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-700 cursor-pointer"
+            className="px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl font-medium text-brand-text cursor-pointer"
           >
             <option value="all">Todas as Categorias</option>
-            <option value="Folhagens">Folhagens</option>
-            <option value="Pendentes">Pendentes</option>
-            <option value="Suculentas & Cactos">Suculentas & Cactos</option>
-            <option value="Flores">Flores</option>
-            <option value="Arbustos & Árvores">Arbustos & Árvores</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
           </select>
 
           <button 
             onClick={handleResetData}
             title="Redefinir catálogo inicial"
-            className="p-2 text-stone-400 hover:text-stone-700 rounded-lg hover:bg-stone-100 cursor-pointer"
+            className="p-2 text-brand-text-muted hover:text-brand-text rounded-lg hover:bg-brand-surface-subtle cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -323,11 +322,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       {/* Tabela de Plantas — oculta na aba Config */}
       {adminTab !== 'config' && (
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
+      <div className="bg-brand-surface rounded-3xl border border-brand-border shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
 
-          <table className="w-full text-left text-xs text-stone-700">
-            <thead className="bg-stone-50 border-b border-stone-200 font-bold uppercase tracking-wider text-stone-500 text-[10px]">
+          <table className="w-full text-left text-xs text-brand-text">
+            <thead className="bg-brand-surface-subtle border-b border-brand-border font-bold uppercase tracking-wider text-brand-text-muted text-[10px]">
               <tr>
                 <th className="px-4 py-3.5">Tag</th>
                 <th className="px-4 py-3.5">Foto & Planta</th>
@@ -338,23 +337,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <th className="px-4 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-200/70">
+            <tbody className="divide-y divide-brand-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-10 text-stone-400 text-xs">
+                  <td colSpan={7} className="text-center py-10 text-brand-text-muted text-xs">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-brand-olive border-t-brand-nude rounded-full animate-spin" />
                       <span>Carregando do banco de dados...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredPlants.length > 0 ? (
                 filteredPlants.map((plant) => (
-                  <tr key={plant.id} className="hover:bg-stone-50/80 transition-colors">
+                  <tr key={plant.id} className="hover:bg-brand-surface-subtle/60 transition-colors">
                     
                     {/* Código / Tag */}
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="font-mono font-bold text-xs bg-stone-100 text-stone-800 px-2 py-1 rounded border border-stone-200">
+                      <span className="font-mono font-bold text-xs bg-brand-surface-subtle text-brand-text px-2 py-1 rounded border border-brand-border">
                         #{plant.id}
                       </span>
                     </td>
@@ -365,32 +364,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <img 
                           src={plant.imageUrl} 
                           alt={plant.name} 
-                          className="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0" 
+                          className="w-10 h-10 rounded-lg object-cover border border-brand-border shrink-0" 
                         />
                         <div>
-                          <div className="font-bold text-stone-900 text-xs">{plant.name}</div>
-                          <div className="text-[11px] text-stone-500 italic">{plant.scientificName} • {plant.potSize}</div>
+                          <div className="font-bold text-brand-text text-xs">{plant.name}</div>
+                          <div className="text-[11px] text-brand-text-muted italic">{plant.scientificName} • {plant.potSize}</div>
                         </div>
                       </div>
                     </td>
 
                     {/* Categoria */}
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+                      <span className="text-[11px] font-bold text-brand-olive-text bg-brand-olive-light px-2 py-0.5 rounded-full border border-brand-olive-border">
                         {plant.category}
                       </span>
                     </td>
 
                     {/* Localização */}
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 text-stone-600 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <div className="flex items-center gap-1.5 text-brand-text font-medium">
+                        <MapPin className="w-3.5 h-3.5 text-brand-olive shrink-0" />
                         <span>{plant.location}</span>
                       </div>
                     </td>
 
                     {/* Preço */}
-                    <td className="px-4 py-3 whitespace-nowrap font-bold text-stone-900">
+                    <td className="px-4 py-3 whitespace-nowrap font-bold text-brand-text">
                       R$ {plant.price.toFixed(2).replace('.', ',')}
                     </td>
 
@@ -401,15 +400,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         onChange={(e) => onStatusChange(plant, e.target.value as PlantStatus)}
                         className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border focus:outline-none cursor-pointer ${
                           plant.status === 'disponivel'
-                            ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                            ? 'bg-brand-olive-light border-brand-olive-border text-brand-olive-text'
                             : plant.status === 'reservada'
-                            ? 'bg-amber-50 border-amber-300 text-amber-800'
-                            : 'bg-purple-50 border-purple-300 text-purple-800'
+                            ? 'bg-amber-50 border-amber-300 text-amber-900'
+                            : 'bg-brand-nude-light border-brand-nude-border text-brand-nude-text'
                         }`}
                       >
                         <option value="disponivel">🟢 Disponível</option>
                         <option value="reservada">🟡 Reservada</option>
-                        <option value="vendida">🟣 Vendida</option>
+                        <option value="vendida">⚪ Vendida</option>
                       </select>
                     </td>
 
@@ -418,7 +417,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <button 
                         onClick={() => onViewPlant(plant)}
                         title="Ver ficha mobile"
-                        className="p-1.5 text-stone-500 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-brand-text-muted hover:text-brand-text hover:bg-brand-surface-subtle rounded-lg transition-colors cursor-pointer"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -427,7 +426,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <button 
                           onClick={() => onSelectForTag(plant)}
                           title="Gerar Etiqueta QR"
-                          className="p-1.5 text-stone-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-brand-text-muted hover:text-brand-olive hover:bg-brand-olive-light rounded-lg transition-colors cursor-pointer"
                         >
                           <QrCode className="w-4 h-4" />
                         </button>
@@ -435,7 +434,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <button 
                           onClick={() => onStatusChange(plant, 'disponivel')}
                           title="Reativar e colocar em estoque"
-                          className="p-1.5 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-brand-olive hover:text-brand-olive-hover hover:bg-brand-olive-light rounded-lg transition-colors cursor-pointer"
                         >
                           <RefreshCw className="w-4 h-4" />
                         </button>
@@ -444,7 +443,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <button 
                         onClick={() => onOpenEditModal(plant)}
                         title="Editar planta"
-                        className="p-1.5 text-stone-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-brand-text-muted hover:text-brand-olive hover:bg-brand-olive-light rounded-lg transition-colors cursor-pointer"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
@@ -456,7 +455,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           }
                         }}
                         title="Excluir planta permanentemente"
-                        className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-brand-text-muted hover:text-brand-nude-text hover:bg-brand-nude-light rounded-lg transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -466,7 +465,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-stone-400 text-xs">
+                  <td colSpan={7} className="text-center py-8 text-brand-text-muted text-xs">
                     {adminTab === 'ativas' 
                       ? 'Nenhum vaso ativo encontrado para os filtros selecionados.' 
                       : 'Nenhuma planta vendida no histórico ainda.'}
@@ -478,7 +477,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
 
         {/* Rodapé da Tabela */}
-        <div className="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-xs text-stone-500">
+        <div className="p-4 bg-brand-surface-subtle border-t border-brand-border flex items-center justify-between text-xs text-brand-text-muted">
           <span>Mostrando <strong>{filteredPlants.length}</strong> registros</span>
           <span>
             {adminTab === 'ativas' 
@@ -494,24 +493,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         <div className="space-y-6 animate-in fade-in">
 
           {/* Categorias */}
-          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 space-y-4">
+          <div className="bg-brand-surface rounded-3xl border border-brand-border shadow-xs p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <Tag className="w-5 h-5 text-emerald-700" />
-              <h3 className="text-base font-bold text-stone-900">Categorias de Plantas</h3>
+              <Tag className="w-5 h-5 text-brand-olive" />
+              <h3 className="text-base font-bold text-brand-text">Categorias de Plantas</h3>
             </div>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-brand-text-muted">
               As categorias aparecem no formulário de cadastro e nos filtros da vitrine. Adicione novas ou remova as que não usa.
             </p>
 
             {/* Lista de categorias */}
             <div className="flex flex-wrap gap-2">
               {categories.map(cat => (
-                <div key={cat} className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-emerald-900">
+                <div key={cat} className="flex items-center gap-1.5 bg-brand-olive-light border border-brand-olive-border rounded-xl px-3 py-1.5 text-xs font-semibold text-brand-olive-text">
                   <span>{cat}</span>
                   <button
                     onClick={() => setCategories(configService.removeCategory(cat))}
                     title="Remover categoria"
-                    className="text-emerald-500 hover:text-rose-600 cursor-pointer transition-colors"
+                    className="text-brand-olive hover:text-brand-nude-text cursor-pointer transition-colors"
                   >
                     <XIcon className="w-3 h-3" />
                   </button>
@@ -526,7 +525,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 value={newCatName}
                 onChange={e => setNewCatName(e.target.value)}
                 placeholder="Ex: Bromeliáceas, Aquáticas, Carnívoras..."
-                className="flex-1 px-3 py-2 text-xs bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 px-3 py-2 text-xs bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive text-brand-text"
                 onKeyDown={e => {
                   if (e.key === 'Enter' && newCatName.trim()) {
                     setCategories(configService.addCategory(newCatName));
@@ -541,7 +540,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     setNewCatName('');
                   }
                 }}
-                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 bg-brand-olive hover:bg-brand-olive-hover text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Adicionar
@@ -549,18 +548,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <button
                 onClick={() => setCategories(configService.resetCategories())}
                 title="Restaurar categorias padrão"
-                className="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-semibold rounded-xl cursor-pointer border border-stone-300 flex items-center gap-1"
+                className="px-3 py-2 bg-brand-surface-subtle hover:bg-brand-border text-brand-text text-xs font-semibold rounded-xl cursor-pointer border border-brand-border flex items-center gap-1"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Restaurar padrão
               </button>
             </div>
-          </div>
-
-          {/* Senha de Acesso (futura expansão) */}
-          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 text-xs text-amber-900 space-y-1">
-            <p className="font-bold flex items-center gap-1.5">🔑 Alteração de Senha — Em Breve</p>
-            <p className="text-amber-700">A troca de senha de administrador estará disponível em uma próxima atualização.</p>
           </div>
 
         </div>

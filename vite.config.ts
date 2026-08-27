@@ -8,5 +8,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    host: true, // Permite acesso pelo celular no mesmo Wi-Fi
+    port: 5173,
+  },
 })
 

@@ -57,3 +57,45 @@ export const configService = {
     localStorage.setItem(API_KEY_KEY, key.trim());
   }
 };
+
+export type Theme = 'light' | 'dark';
+const THEME_KEY = 'tonseflores_theme';
+
+export const themeService = {
+  getTheme(): Theme {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'dark' || saved === 'light') {
+        return saved;
+      }
+    } catch {}
+    return 'light';
+  },
+
+  setTheme(theme: Theme): void {
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+      if (typeof document !== 'undefined') {
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    } catch {}
+  },
+
+  toggleTheme(): Theme {
+    const current = this.getTheme();
+    const next = current === 'dark' ? 'light' : 'dark';
+    this.setTheme(next);
+    return next;
+  },
+
+  initTheme(): Theme {
+    const theme = this.getTheme();
+    this.setTheme(theme);
+    return theme;
+  }
+};
+
