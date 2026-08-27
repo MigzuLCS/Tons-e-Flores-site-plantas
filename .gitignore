@@ -23,8 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment variables (todos os arquivos de ambiente)
 .env
+.env*
+.env.example
 .env.local
 .env.*.local
 
