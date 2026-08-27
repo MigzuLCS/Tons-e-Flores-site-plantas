@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Navbar, type AppTab } from './components/Navbar';
 import { ShowcaseView } from './components/ShowcaseView';
-import { AdminPanel } from './components/AdminPanel';
-import { TagsPrintView } from './components/TagsPrintView';
 import { PlantDetailModal } from './components/PlantDetailModal';
-import { PlantFormModal } from './components/PlantFormModal';
-import { AdminLoginModal } from './components/AdminLoginModal';
 import { plantService } from './services/plantService';
 import { authService } from './services/authService';
 import { themeService } from './services/configService';
 import type { Plant, PlantStatus } from './types/plant';
+
+// Carregamento sob demanda (Code-Splitting) para manter a vitrine inicial ultra-rápida
+const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
+const TagsPrintView = lazy(() => import('./components/TagsPrintView').then(m => ({ default: m.TagsPrintView })));
+const PlantFormModal = lazy(() => import('./components/PlantFormModal').then(m => ({ default: m.PlantFormModal })));
+const AdminLoginModal = lazy(() => import('./components/AdminLoginModal').then(m => ({ default: m.AdminLoginModal })));
 
 export function App() {
   const [plants, setPlants] = useState<Plant[]>([]);
@@ -137,30 +139,44 @@ export function App() {
         )}
 
         {currentTab === 'admin' && isAdmin && (
-          <AdminPanel 
-            plants={plants}
-            isLoading={isLoading}
-            onOpenAddModal={() => {
-              setPlantToEdit(null);
-              setIsFormModalOpen(true);
-            }}
-            onOpenEditModal={(plant) => {
-              setPlantToEdit(plant);
-              setIsFormModalOpen(true);
-            }}
-            onViewPlant={(plant) => setSelectedPlant(plant)}
-            onSelectForTag={handleSelectForTag}
-            onDeletePlant={handleDeletePlant}
-            onStatusChange={handleStatusChange}
-            onRefresh={loadPlants}
-          />
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-32 text-brand-text-muted gap-3">
+              <div className="w-6 h-6 border-2 border-brand-olive border-t-brand-nude rounded-full animate-spin" />
+              <span className="text-sm font-medium text-brand-text">Carregando painel administrativo...</span>
+            </div>
+          }>
+            <AdminPanel 
+              plants={plants}
+              isLoading={isLoading}
+              onOpenAddModal={() => {
+                setPlantToEdit(null);
+                setIsFormModalOpen(true);
+              }}
+              onOpenEditModal={(plant) => {
+                setPlantToEdit(plant);
+                setIsFormModalOpen(true);
+              }}
+              onViewPlant={(plant) => setSelectedPlant(plant)}
+              onSelectForTag={handleSelectForTag}
+              onDeletePlant={handleDeletePlant}
+              onStatusChange={handleStatusChange}
+              onRefresh={loadPlants}
+            />
+          </Suspense>
         )}
 
         {currentTab === 'tags' && isAdmin && (
-          <TagsPrintView 
-            plants={plants}
-            selectedPlantId={selectedPlantForTag}
-          />
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-32 text-brand-text-muted gap-3">
+              <div className="w-6 h-6 border-2 border-brand-olive border-t-brand-nude rounded-full animate-spin" />
+              <span className="text-sm font-medium text-brand-text">Carregando etiquetas...</span>
+            </div>
+          }>
+            <TagsPrintView 
+              plants={plants}
+              selectedPlantId={selectedPlantForTag}
+            />
+          </Suspense>
         )}
       </main>
 
@@ -207,22 +223,30 @@ export function App() {
       />
 
       {/* Modal de Cadastro / Edição */}
-      <PlantFormModal 
-        isOpen={isFormModalOpen}
-        plantToEdit={plantToEdit}
-        onClose={() => {
-          setIsFormModalOpen(false);
-          setPlantToEdit(null);
-        }}
-        onSave={handleSavePlant}
-      />
+      {isFormModalOpen && (
+        <Suspense fallback={null}>
+          <PlantFormModal 
+            isOpen={isFormModalOpen}
+            plantToEdit={plantToEdit}
+            onClose={() => {
+              setIsFormModalOpen(false);
+              setPlantToEdit(null);
+            }}
+            onSave={handleSavePlant}
+          />
+        </Suspense>
+      )}
 
       {/* Modal de Login do Administrador */}
-      <AdminLoginModal 
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={handleLoginSuccess}
-      />
+      {isLoginModalOpen && (
+        <Suspense fallback={null}>
+          <AdminLoginModal 
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+            onLoginSuccess={handleLoginSuccess}
+          />
+        </Suspense>
+      )}
 
     </div>
   );

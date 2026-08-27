@@ -20,7 +20,9 @@ Uma aplicação web moderna, elegante e intuitiva desenvolvida para apresentaç�
 - **Inteligência Artificial Opcional (Google Gemini Flash):** Fichas técnicas geradas sob medida em português brasileiro quando uma chave gratuita estiver configurada.
 - **Enciclopédia Aberta (Wikipedia / Wikimedia API):** Fallback público sem necessidade de chave de API ou cadastro.
 - **Dedução Inteligente de Categorias (`inferCategory`):** Auto-seleciona a categoria correta da loja ao escolher qualquer planta.
-- *Para detalhes da arquitetura, consulte o [Plano de Arquitetura Botânica](docs/PLANO_ARQUITETURA_BOTANICA.md).*
+- *Documentos de Arquitetura:*
+  - [Plano de Arquitetura Botânica](docs/PLANO_ARQUITETURA_BOTANICA.md)
+  - [Plano de Persistência & Cache do Acervo Gemini](docs/PLANO_PERSISTENCIA_ACERVO_GEMINI.md)
 
 ### 📦 3. Painel Administrativo & Gestão de Estoque
 - **Gestão Completa de Plantas (CRUD):** Cadastro com upload e compressão automática de fotos, edição, exclusão e visualização rápida.
@@ -46,7 +48,8 @@ Uma aplicação web moderna, elegante e intuitiva desenvolvida para apresentaç�
 
 ```
 ├── docs/                               # Documentação e planos de arquitetura
-│   └── PLANO_ARQUITETURA_BOTANICA.md  # Detalhes do motor botânico híbrido
+│   ├── PLANO_ARQUITETURA_BOTANICA.md   # Detalhes do motor botânico híbrido
+│   └── PLANO_PERSISTENCIA_ACERVO_GEMINI.md # Plano de cache e persistência com Gemini
 ├── src/
 │   ├── components/                     # Componentes da interface
 │   │   ├── AdminPanel.tsx              # Painel de administração e estoque

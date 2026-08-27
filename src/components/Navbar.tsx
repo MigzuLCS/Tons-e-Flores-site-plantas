@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Flower2, Store, LayoutGrid, QrCode, Plus, Lock, LogOut, Sun, Moon } from 'lucide-react';
 import { themeService, type Theme } from '../services/configService';
 
@@ -24,7 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   plantCount,
 }) => {
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
   const [theme, setTheme] = useState<Theme>(() => themeService.initTheme());
 
   const handleToggleTheme = () => {
@@ -39,19 +39,20 @@ export const Navbar: React.FC<NavbarProps> = ({
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const currentScrollY = window.scrollY;
+          const prevScrollY = lastScrollY.current;
 
           // Se estiver bem no topo da página, sempre mostra
           if (currentScrollY < 30) {
             setIsVisible(true);
-          } else if (currentScrollY > lastScrollY && currentScrollY > 80) {
+          } else if (currentScrollY > prevScrollY && currentScrollY > 80) {
             // Scrollando para baixo -> esconde o header
             setIsVisible(false);
-          } else if (currentScrollY < lastScrollY) {
+          } else if (currentScrollY < prevScrollY) {
             // Scrollando para cima -> mostra o header novamente
             setIsVisible(true);
           }
 
-          setLastScrollY(currentScrollY);
+          lastScrollY.current = currentScrollY;
           ticking = false;
         });
         ticking = true;
@@ -60,7 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   return (
     <header

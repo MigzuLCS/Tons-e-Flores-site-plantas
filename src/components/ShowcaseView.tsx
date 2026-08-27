@@ -416,12 +416,9 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
       </div>
 
       {/* Contagem de Resultados */}
-      <div className="flex items-center justify-between text-xs text-stone-500 px-1">
+      <div className="text-xs text-stone-500 px-1">
         <span>
           Exibindo <strong>{filteredAndSortedPlants.length}</strong> vasos na vitrine
-        </span>
-        <span className="text-stone-400">
-          (Disponíveis no topo • Reservadas ao final)
         </span>
       </div>
 

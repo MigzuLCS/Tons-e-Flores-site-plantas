@@ -8,7 +8,7 @@ interface PlantCardProps {
   onSelect: (plant: Plant) => void;
 }
 
-export const PlantCard: React.FC<PlantCardProps> = ({ plant, onSelect }) => {
+export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect }) => {
   return (
     <div 
       onClick={() => onSelect(plant)}
@@ -22,31 +22,32 @@ export const PlantCard: React.FC<PlantCardProps> = ({ plant, onSelect }) => {
             alt={plant.name} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
+            decoding="async"
           />
           
-          <div className="absolute top-3 left-3 bg-brand-surface/90 backdrop-blur-md text-brand-text text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg shadow-xs border border-brand-border">
+          <div className="absolute top-3 left-3 bg-brand-surface/95 text-brand-text text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg shadow-xs border border-brand-border">
             #{plant.id}
           </div>
 
           <div className="absolute top-3 right-3">
             {plant.status === 'disponivel' && (
-              <span className="bg-brand-olive-light/95 dark:bg-brand-olive text-brand-olive-text dark:text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-olive-border dark:border-brand-olive/40 backdrop-blur-md">
+              <span className="bg-brand-olive-light/95 dark:bg-brand-olive text-brand-olive-text dark:text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-olive-border dark:border-brand-olive/40">
                 Disponível
               </span>
             )}
             {plant.status === 'reservada' && (
-              <span className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-amber-400/40 backdrop-blur-md">
+              <span className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-amber-400/40">
                 Reservada
               </span>
             )}
             {plant.status === 'vendida' && (
-              <span className="bg-brand-nude text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-nude-hover/40 backdrop-blur-md">
+              <span className="bg-brand-nude text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-nude-hover/40">
                 Vendida
               </span>
             )}
           </div>
 
-          <div className="absolute bottom-3 left-3 bg-brand-surface/90 backdrop-blur-md text-brand-text text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 max-w-[85%] truncate border border-brand-border">
+          <div className="absolute bottom-3 left-3 bg-brand-surface/95 text-brand-text text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 max-w-[85%] truncate border border-brand-border shadow-xs">
             <MapPin className="w-3 h-3 text-brand-olive shrink-0" />
             <span className="truncate">{plant.location}</span>
           </div>
@@ -93,4 +94,4 @@ export const PlantCard: React.FC<PlantCardProps> = ({ plant, onSelect }) => {
       </div>
     </div>
   );
-};
+});
