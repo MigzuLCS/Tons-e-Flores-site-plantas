@@ -792,11 +792,26 @@ export const plantClassificationService = {
       return results;
     }
 
-    // 1b. Se não encontrou no acervo local, consulta a API gratuita da Wikipedia em português
+    const geminiKey = this.getGeminiApiKey();
+
+    // 1b. Prioridade Máxima: Se a chave do Gemini estiver configurada, adiciona a opção de IA em primeiro lugar
+    if (geminiKey) {
+      results.push({
+        id: `gemini_${Date.now()}_${encodeURIComponent(trimmed)}`,
+        common_name: trimmed,
+        scientific_name: ['Classificação Inteligente via IA'],
+        matchedPtName: trimmed,
+        suggestedCategory: inferCategory(trimmed),
+        careInstructions: `Gerar ficha botânica completa e dicas de cultivo de "${trimmed}" com Google Gemini IA.`,
+        source: 'gemini',
+      });
+    }
+
+    // 1c. Em seguida, busca na API gratuita da Wikipedia em português como complemento/fallback
     try {
       const wikiUrl = `https://pt.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(
         trimmed
-      )}&limit=5&namespace=0&format=json&origin=*`;
+      )}&limit=4&namespace=0&format=json&origin=*`;
       const wikiRes = await fetch(wikiUrl);
       if (wikiRes.ok) {
         const data = await wikiRes.json();
@@ -823,7 +838,7 @@ export const plantClassificationService = {
       console.warn('Wikipedia OpenSearch fallback failed:', e);
     }
 
-    // 1c. Se ainda assim não houver nada, monta uma sugestão direta com o termo digitado
+    // 1d. Se ainda assim não houver nada, monta uma sugestão direta com o termo digitado
     if (results.length === 0) {
       results.push({
         id: `custom_${Date.now()}`,
