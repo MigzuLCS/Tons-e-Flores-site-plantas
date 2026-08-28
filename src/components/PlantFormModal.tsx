@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, Sparkles, Image as ImageIcon, MapPin, Upload, Search, Loader2, AlertCircle } from 'lucide-react';
+import { X, Save, Sparkles, Image as ImageIcon, MapPin, Upload, Search, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { Plant, LightRequirement, WateringFrequency, PlantStatus } from '../types/plant';
 import { plantService } from '../services/plantService';
 import { configService } from '../services/configService';
 import { plantClassificationService, type BotanicalSearchResult } from '../services/plantClassificationService';
+import { compressImageFile, formatBytes } from '../utils/imageCompressor';
 
 interface PlantFormModalProps {
   plantToEdit?: Plant | null;
@@ -32,6 +33,13 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
   const [formData, setFormData] = useState<Partial<Plant>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionDetails, setCompressionDetails] = useState<{
+    originalSize: string;
+    compressedSize: string;
+    savingsPercent: number;
+    dimensions: string;
+  } | null>(null);
 
   // Botanical Classification Search State (100% Gratuito / Híbrido)
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,6 +58,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
     if (plantToEdit) {
       setFormData(plantToEdit);
       setUploadedFileName('');
+      setCompressionDetails(null);
       setSearchQuery('');
       setSearchResults([]);
       setApiError('');
@@ -83,6 +92,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         setFormData(prev => ({ ...prev, id: nextId }));
       });
       setUploadedFileName('');
+      setCompressionDetails(null);
       setSearchQuery('');
       setSearchResults([]);
       setApiError('');
@@ -178,31 +188,35 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Redimensiona para no máximo 800px e converte para JPEG 80% para economizar espaço
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const img = new Image();
-      img.onload = () => {
-        const maxW = 800;
-        const scale = img.width > maxW ? maxW / img.width : 1;
-        const w = Math.round(img.width * scale);
-        const h = Math.round(img.height * scale);
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d')!;
-        ctx.drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
-        setUploadedFileName(file.name);
-      };
-      img.src = evt.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+    setIsCompressing(true);
+    setApiError('');
+
+    try {
+      // Redimensiona proporcionalmente para no máx 800px e compacta em WebP 80% qualidade
+      const result = await compressImageFile(file, {
+        maxDimension: 800,
+        quality: 0.8,
+        mimeType: 'image/webp',
+      });
+
+      setFormData(prev => ({ ...prev, imageUrl: result.dataUrl }));
+      setUploadedFileName(file.name);
+      setCompressionDetails({
+        originalSize: formatBytes(result.originalSizeBytes),
+        compressedSize: formatBytes(result.compressedSizeBytes),
+        savingsPercent: result.savingsPercent,
+        dimensions: `${result.width}x${result.height}px`,
+      });
+    } catch (err: any) {
+      console.error('Erro na compactação da foto:', err);
+      setApiError('Erro ao compactar foto selecionada. Tente outra imagem.');
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -659,8 +673,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 Enviar Foto do Celular / Computador
               </label>
               <div
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-brand-border hover:border-brand-olive rounded-xl p-4 cursor-pointer text-center bg-brand-surface-subtle hover:bg-brand-olive-light transition-colors"
+                onClick={() => !isCompressing && fileInputRef.current?.click()}
+                className={`w-full border-2 border-dashed rounded-xl p-4 cursor-pointer text-center transition-colors ${
+                  isCompressing 
+                    ? 'border-brand-olive bg-brand-olive-subtle opacity-80 cursor-wait' 
+                    : 'border-brand-border hover:border-brand-olive bg-brand-surface-subtle hover:bg-brand-olive-light'
+                }`}
               >
                 <input 
                   ref={fileInputRef}
@@ -668,16 +686,38 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   accept="image/*"
                   className="hidden"
                   onChange={handleFileUpload}
+                  disabled={isCompressing}
                 />
-                {uploadedFileName ? (
-                  <div className="text-xs font-semibold text-brand-olive-text">
-                    ✅ Foto carregada: <span className="font-mono">{uploadedFileName}</span>
+                {isCompressing ? (
+                  <div className="text-xs text-brand-olive flex flex-col items-center justify-center gap-2 py-1">
+                    <Loader2 className="w-5 h-5 animate-spin text-brand-olive" />
+                    <span className="font-semibold">Compactando foto para WebP (máx. 800px)...</span>
+                  </div>
+                ) : uploadedFileName ? (
+                  <div className="text-xs space-y-1">
+                    <div className="font-semibold text-brand-olive flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-brand-olive" />
+                      <span>Foto compactada em WebP: <strong className="font-mono">{uploadedFileName}</strong></span>
+                    </div>
+                    {compressionDetails && (
+                      <div className="text-[11px] text-brand-text-muted flex items-center justify-center gap-2 flex-wrap">
+                        <span className="bg-brand-olive-light text-brand-olive px-2 py-0.5 rounded font-mono font-medium">
+                          {compressionDetails.dimensions}
+                        </span>
+                        <span>{compressionDetails.originalSize} → <strong>{compressionDetails.compressedSize}</strong></span>
+                        {compressionDetails.savingsPercent > 0 && (
+                          <span className="text-brand-olive font-bold">
+                            (-{compressionDetails.savingsPercent}%)
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-xs text-brand-text-muted space-y-0.5">
                     <div className="text-2xl">📷</div>
                     <p className="font-semibold text-brand-text">Clique para selecionar uma foto</p>
-                    <p>JPG, PNG, WEBP — será redimensionada automaticamente</p>
+                    <p>Compactação automática em WebP • Máx. 800px • 80% qualidade</p>
                   </div>
                 )}
               </div>
@@ -697,6 +737,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                 onChange={e => {
                   setFormData({ ...formData, imageUrl: e.target.value });
                   setUploadedFileName('');
+                  setCompressionDetails(null);
                 }}
                 placeholder="https://..."
                 className="w-full px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl text-xs focus:ring-2 focus:ring-brand-olive focus:outline-none text-brand-text"
@@ -714,6 +755,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                     onClick={() => {
                       setFormData({ ...formData, imageUrl: preset.url });
                       setUploadedFileName('');
+                      setCompressionDetails(null);
                     }}
                     className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                       formData.imageUrl === preset.url 
@@ -735,12 +777,15 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   alt="Prévia" 
                   className="w-16 h-16 rounded-lg object-cover border border-brand-border"
                 />
-                <span className="text-xs text-brand-text-muted">
-                  {uploadedFileName 
-                    ? '📷 Foto própria — será exibida na vitrine e na etiqueta.'
-                    : 'Prévia da foto que aparecerá na etiqueta e no site'
-                  }
-                </span>
+                <div className="text-xs text-brand-text-muted space-y-0.5">
+                  <p className="font-medium text-brand-text">
+                    {uploadedFileName 
+                      ? '📷 Foto própria do vaso compactada em WebP'
+                      : 'Foto ilustrativa selecionada'
+                    }
+                  </p>
+                  <p className="text-[11px]">Será exibida na vitrine e gerada na etiqueta para impressão.</p>
+                </div>
               </div>
             )}
           </div>
