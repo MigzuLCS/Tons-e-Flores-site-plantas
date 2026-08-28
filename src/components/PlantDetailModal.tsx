@@ -30,11 +30,11 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
   return (
     <div className="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
       
-      {/* Container Principal Mobile-First */}
-      <div className="relative w-full max-w-md bg-brand-surface rounded-3xl shadow-xl overflow-hidden border border-brand-border flex flex-col max-h-[92vh]">
+      {/* Container Principal (Mesma largura do modal de cadastro: max-w-2xl) */}
+      <div className="relative w-full max-w-2xl bg-brand-surface rounded-3xl shadow-xl overflow-hidden border border-brand-border flex flex-col max-h-[90vh]">
         
         {/* Barra Superior */}
-        <div className="sticky top-0 z-20 bg-brand-surface/95 backdrop-blur-md px-5 py-3.5 flex items-center justify-between border-b border-brand-border">
+        <div className="sticky top-0 z-20 bg-brand-surface/95 backdrop-blur-md px-5 sm:px-6 py-3.5 flex items-center justify-between border-b border-brand-border">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-xl bg-brand-olive-light text-brand-olive flex items-center justify-center text-xs font-serif-title font-bold shadow-xs border border-brand-olive-border">
               TF
@@ -66,7 +66,7 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
         <div className="overflow-y-auto hide-scrollbar flex-1 pb-6 bg-brand-bg">
           
           {/* Foto Principal */}
-          <div className="relative h-64 bg-brand-surface-subtle">
+          <div className="relative h-64 sm:h-72 lg:h-80 bg-brand-surface-subtle">
             <img 
               src={plant.imageUrl || 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80'} 
               alt={plant.name} 
@@ -91,7 +91,7 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
           </div>
 
           {/* Seção de Informações da Planta */}
-          <div className="p-5 space-y-5">
+          <div className="p-5 sm:p-6 space-y-5 sm:space-y-6">
             
             {/* Título & Preço */}
             <div>
