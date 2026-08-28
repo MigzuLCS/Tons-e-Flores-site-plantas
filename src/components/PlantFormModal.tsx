@@ -54,6 +54,8 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
   useEffect(() => {
     setCategories(configService.getCategories());
     setLocations(configService.getLocations());
+    configService.syncCategoriesWithCloud().then(setCategories);
+    configService.syncLocationsWithCloud().then(locs => setLocations(locs.map(l => l.name)));
   }, [isOpen]);
 
   useEffect(() => {

@@ -62,10 +62,113 @@ export interface PlantClassificationDetails {
   source?: 'local' | 'gemini' | 'wikipedia' | 'fallback';
 }
 
-// 🌿 Dedução inteligente de categorias padrão da loja
-export function inferCategory(name: string, family?: string, description?: string): string {
+// 🌿 Dedução inteligente de categorias da loja (incluindo categorias customizadas como Aquáticas, Carnívoras, Orquídeas, etc)
+export function inferCategory(name: string, family?: string, description?: string, customCategories?: string[]): string {
   const text = `${name} ${family || ''} ${description || ''}`.toLowerCase();
+  const available = customCategories || configService.getCategories();
 
+  // 1. Verifica se alguma categoria customizada casa diretamente com o texto
+  for (const cat of available) {
+    const normCat = normalizeText(cat);
+    if (normCat.length >= 4 && text.includes(normCat)) {
+      return cat;
+    }
+  }
+
+  // 2. Orquídeas
+  if (
+    text.includes('orquid') ||
+    text.includes('orquídea') ||
+    text.includes('orchidaceae') ||
+    text.includes('phalaenopsis') ||
+    text.includes('cattleya') ||
+    text.includes('dendrobium') ||
+    text.includes('vanda') ||
+    text.includes('oncidium') ||
+    text.includes('cymbidium')
+  ) {
+    const matched = available.find(c => normalizeText(c).includes('orquid'));
+    if (matched) return matched;
+    return 'Orquídeas';
+  }
+
+  // 3. Aquáticas
+  if (
+    text.includes('cabomba') ||
+    text.includes('aquat') ||
+    text.includes('aquát') ||
+    text.includes('vitoria-regia') ||
+    text.includes('vitória régia') ||
+    text.includes('aguape') ||
+    text.includes('aguapé') ||
+    text.includes('lotus') ||
+    text.includes('lótus') ||
+    text.includes('ninfeia') ||
+    text.includes('nymphaea') ||
+    text.includes('alface d') ||
+    text.includes('salvinia') ||
+    text.includes('papiro') ||
+    text.includes('elodea') ||
+    text.includes('elódea') ||
+    text.includes('valisneria') ||
+    text.includes('lentilha d')
+  ) {
+    const matched = available.find(c => normalizeText(c).includes('aquat'));
+    if (matched) return matched;
+    return 'Aquáticas';
+  }
+
+  // 4. Carnívoras
+  if (
+    text.includes('carniv') ||
+    text.includes('carnív') ||
+    text.includes('dionaea') ||
+    text.includes('dioneia') ||
+    text.includes('drosera') ||
+    text.includes('nepenthes') ||
+    text.includes('sarracenia') ||
+    text.includes('papa moscas') ||
+    text.includes('papa-moscas')
+  ) {
+    const matched = available.find(c => normalizeText(c).includes('carniv'));
+    if (matched) return matched;
+    return 'Carnívoras';
+  }
+
+  // 5. Bromélias
+  if (
+    text.includes('bromel') ||
+    text.includes('bromélia') ||
+    text.includes('bromeliaceae') ||
+    text.includes('guzmania') ||
+    text.includes('neoregelia') ||
+    text.includes('tillandsia') ||
+    text.includes('aechmea') ||
+    text.includes('vriesea')
+  ) {
+    const matched = available.find(c => normalizeText(c).includes('bromel'));
+    if (matched) return matched;
+    return 'Bromélias';
+  }
+
+  // 6. Palmeiras
+  if (
+    text.includes('palmeira') ||
+    text.includes('areca') ||
+    text.includes('rafia') ||
+    text.includes('rhapis') ||
+    text.includes('chamaedorea') ||
+    text.includes('arecaceae') ||
+    text.includes('cica') ||
+    text.includes('cycas') ||
+    text.includes('licuala')
+  ) {
+    const matched = available.find(c => normalizeText(c).includes('palmeira'));
+    if (matched) return matched;
+    return 'Palmeiras';
+  }
+
+  // 7. Suculentas & Cactos
   if (
     text.includes('cacto') ||
     text.includes('suculenta') ||
@@ -76,12 +179,12 @@ export function inferCategory(name: string, family?: string, description?: strin
     text.includes('kalanchoe') ||
     text.includes('cactaceae')
   ) {
-    return 'Suculentas & Cactos';
+    const matched = available.find(c => normalizeText(c).includes('suculenta') || normalizeText(c).includes('cacto'));
+    return matched || 'Suculentas & Cactos';
   }
 
+  // 8. Flores
   if (
-    text.includes('orquid') ||
-    text.includes('orquídea') ||
     text.includes('rosa') ||
     text.includes('lirio') ||
     text.includes('lírio') ||
@@ -93,12 +196,13 @@ export function inferCategory(name: string, family?: string, description?: strin
     text.includes('azaleia') ||
     text.includes('girassol') ||
     text.includes('begonia') ||
-    text.includes('begônia') ||
-    text.includes('orchidaceae')
+    text.includes('begônia')
   ) {
-    return 'Flores';
+    const matched = available.find(c => normalizeText(c).includes('flor'));
+    return matched || 'Flores';
   }
 
+  // 9. Pendentes
   if (
     text.includes('pendente') ||
     text.includes('samambaia') ||
@@ -113,9 +217,11 @@ export function inferCategory(name: string, family?: string, description?: strin
     text.includes('renda portuguesa') ||
     text.includes('chifre de veado')
   ) {
-    return 'Pendentes';
+    const matched = available.find(c => normalizeText(c).includes('pendente') || normalizeText(c).includes('samambaia'));
+    return matched || 'Pendentes';
   }
 
+  // 10. Ervas & Temperos
   if (
     text.includes('hortela') ||
     text.includes('hortelã') ||
@@ -138,28 +244,29 @@ export function inferCategory(name: string, family?: string, description?: strin
     text.includes('pimenta') ||
     text.includes('lamiaceae')
   ) {
-    return 'Ervas & Temperos';
+    const matched = available.find(c => normalizeText(c).includes('erva') || normalizeText(c).includes('tempero'));
+    return matched || 'Ervas & Temperos';
   }
 
+  // 11. Arbustos & Árvores
   if (
     text.includes('arvore') ||
     text.includes('árvore') ||
     text.includes('arbusto') ||
     text.includes('ficus') ||
-    text.includes('palmeira') ||
     text.includes('pleomele') ||
     text.includes('pata de elefante') ||
     text.includes('dracena') ||
     text.includes('dracaena') ||
     text.includes('bambu') ||
-    text.includes('areca') ||
-    text.includes('rafia') ||
     text.includes('moraceae')
   ) {
-    return 'Arbustos & Árvores';
+    const matched = available.find(c => normalizeText(c).includes('arbusto') || normalizeText(c).includes('arvore') || normalizeText(c).includes('árvore'));
+    return matched || 'Arbustos & Árvores';
   }
 
-  return 'Folhagens';
+  const defaultMatched = available.find(c => normalizeText(c).includes('folhagem')) || available[0] || 'Folhagens';
+  return defaultMatched;
 }
 
 // 🌿 Base botânica brasileira completa com categorias mapeadas
@@ -441,7 +548,7 @@ const BOTANICAL_DATABASE: Record<string, PlantBotanicalPreset> = {
     ptName: 'Orquídea Borboleta (Phalaenopsis)',
     family: 'Orchidaceae',
     origin: 'Sudeste Asiático e Filipinas',
-    suggestedCategory: 'Flores',
+    suggestedCategory: 'Orquídeas',
     light: 'sombra-difusa',
     watering: 'moderada',
     petFriendly: true,
@@ -451,7 +558,92 @@ const BOTANICAL_DATABASE: Record<string, PlantBotanicalPreset> = {
     bloomingSeason: 'Outono / Inverno (dura até 3 meses em flor)',
     pestsDiseases: 'Fungos, pulgões e cochonilhas',
     toxicity: 'Não tóxica (100% Pet Friendly)',
-    aliases: ['orquidea', 'orquídea', 'phalaenopsis', 'orquidea phalaenopsis', 'orquídea borboleta'],
+    aliases: ['orquidea', 'orquídea', 'phalaenopsis', 'orquidea phalaenopsis', 'orquídea borboleta', 'cattleya', 'vanda', 'dendrobium', 'oncidium'],
+  },
+  'cabomba': {
+    scientific: 'Cabomba caroliniana',
+    ptName: 'Cabomba (Planta Aquática)',
+    family: 'Cabombaceae',
+    origin: 'América do Sul e Central (Brasil)',
+    suggestedCategory: 'Aquáticas',
+    light: 'sol-pleno',
+    watering: 'frequente',
+    petFriendly: true,
+    wateringTip: 'Planta 100% submersa em água doce com circulação suave e boa claridade.',
+    careInstructions: 'Excelente para aquários plantados e espelhos dágua. Ajuda a oxigenar a água e manter o equilíbrio biológico.',
+    cycle: 'Perene',
+    bloomingSeason: 'Verão',
+    pestsDiseases: 'Algas em excesso de matéria orgânica',
+    toxicity: 'Não tóxica (100% segura para fauna)',
+    aliases: ['cabomba', 'cabomba caroliniana', 'planta aquatica', 'leque aquatico', 'elodea', 'elódea'],
+  },
+  'vitoria regia': {
+    scientific: 'Victoria amazonica',
+    ptName: 'Vitória-régia',
+    family: 'Nymphaeaceae',
+    origin: 'Bacia Amazônica (Brasil)',
+    suggestedCategory: 'Aquáticas',
+    light: 'sol-pleno',
+    watering: 'frequente',
+    petFriendly: true,
+    wateringTip: 'Planta aquática flutuante de lagos e espelhos dágua solares.',
+    careInstructions: 'Necessita de sol pleno constante e água rica em matéria orgânica. Folhas circulares ornamentais de grande porte.',
+    cycle: 'Perene',
+    bloomingSeason: 'Verão',
+    pestsDiseases: 'Lagartas aquáticas',
+    toxicity: 'Não tóxica',
+    aliases: ['vitoria regia', 'vitória régia', 'victoria amazonica', 'aguapé', 'lotus', 'lótus', 'ninfeia'],
+  },
+  'dioneia': {
+    scientific: 'Dionaea muscipula',
+    ptName: 'Dioneia (Planta Carnívora / Papa-moscas)',
+    family: 'Droseraceae',
+    origin: 'Pântanos da América do Norte',
+    suggestedCategory: 'Carnívoras',
+    light: 'sol-pleno',
+    watering: 'frequente',
+    petFriendly: true,
+    wateringTip: 'Regar sempre por capilaridade (prato com 1cm de água destilada ou de chuva). Nunca usar água da torneira.',
+    careInstructions: 'Cultivada em musgo sphagnum e perlita. Nunca adubar a terra (absorve nutrientes capturando pequenos insetos nas armadilhas).',
+    cycle: 'Perene',
+    bloomingSeason: 'Primavera',
+    pestsDiseases: 'Pulgões e fungos por falta de sol',
+    toxicity: 'Não tóxica para animais',
+    aliases: ['dionaea', 'dionaea muscipula', 'dioneia', 'planta carnivora', 'papa moscas', 'papa-moscas', 'drosera', 'nepenthes'],
+  },
+  'bromelia': {
+    scientific: 'Guzmania lingulata',
+    ptName: 'Bromélia Guzmânia',
+    family: 'Bromeliaceae',
+    origin: 'América Central e América do Sul',
+    suggestedCategory: 'Bromélias',
+    light: 'meia-sombra',
+    watering: 'moderada',
+    petFriendly: true,
+    wateringTip: 'Manter água limpa no copo central formado pelas folhas, renovando periodicamente.',
+    careInstructions: 'Aprecia claridade difusa e boa umidade no ar. Muito durável e decorativa em ambientes internos.',
+    cycle: 'Perene',
+    bloomingSeason: 'Primavera / Verão (floresce 1 vez e emite brotos laterais)',
+    pestsDiseases: 'Cochonilhas',
+    toxicity: 'Não tóxica (100% Pet Friendly)',
+    aliases: ['bromelia', 'bromélia', 'guzmania', 'neoregelia', 'tillandsia', 'aechmea'],
+  },
+  'palmeira rafia': {
+    scientific: 'Rhapis excelsa',
+    ptName: 'Palmeira Ráfia (Rapis)',
+    family: 'Arecaceae',
+    origin: 'Ásia (Sul da China e Japão)',
+    suggestedCategory: 'Palmeiras',
+    light: 'meia-sombra',
+    watering: 'moderada',
+    petFriendly: true,
+    wateringTip: 'Regar 1 a 2 vezes por semana, mantendo a terra levemente úmida sem encharcar.',
+    careInstructions: 'Uma das melhores palmeiras para interiores, salas e escritórios. Tolera ar-condicionado e luz indireta.',
+    cycle: 'Perene',
+    bloomingSeason: 'Raro em vasos',
+    pestsDiseases: 'Cochonilhas e pontas secas por falta de umidade no ar',
+    toxicity: 'Não tóxica (100% Pet Friendly)',
+    aliases: ['palmeira rafia', 'rhapis excelsa', 'rapis', 'palmeira rapis', 'palmeira areca', 'areca bambu', 'palmeira'],
   },
   'dracena pleomele': {
     scientific: 'Dracaena reflexa',
@@ -1164,15 +1356,19 @@ export const plantClassificationService = {
   },
 
   // Chamada estruturada à API do Google Gemini
-  async classifyWithGemini(plantName: string, apiKey: string): Promise<PlantClassificationDetails | null> {
+  async classifyWithGemini(plantName: string, apiKey: string, customCategories?: string[]): Promise<PlantClassificationDetails | null> {
+    const storeCategories = customCategories || configService.getCategories();
+    const categoriesPromptStr = storeCategories.map(c => `"${c}"`).join(', ');
+
     const prompt = `Você é um botânico especialista em plantas de interior e jardim no Brasil.
 Classifique a seguinte planta: "${plantName}".
-Categorias possíveis: "Folhagens", "Suculentas & Cactos", "Flores", "Pendentes", "Arbustos & Árvores", "Ervas & Temperos".
+Categorias cadastradas na loja: ${categoriesPromptStr}.
+Escolha a categoria mais adequada estritamente dentre as categorias cadastradas acima. Se a planta for aquática, carnívora, etc. e houver uma categoria correspondente na lista, escolha-a.
 Retorne APENAS um objeto JSON válido (sem blocos markdown adicionais, sem explicações fora do JSON) com as propriedades exatas:
 {
   "name": "Nome popular brasileiro",
   "scientificName": "Gênero e espécie em latim",
-  "category": "Uma das categorias possíveis acima",
+  "category": "Uma das categorias da loja listadas acima",
   "light": "sol-pleno" OU "meia-sombra" OU "sombra-difusa",
   "watering": "baixa" OU "moderada" OU "frequente",
   "petFriendly": true OU false,
@@ -1238,6 +1434,47 @@ Retorne APENAS um objeto JSON válido (sem blocos markdown adicionais, sem expli
       fromFallback: false,
       source: 'gemini',
     };
+  },
+
+  // Retorna todas as espécies cadastradas no acervo (Nativo + Nuvem + Cache Local)
+  getAllBotanicalPresetsList(): PlantBotanicalPreset[] {
+    const all = getAllBotanicalPresets();
+    return Object.values(all).sort((a, b) => a.ptName.localeCompare(b.ptName, 'pt-BR'));
+  },
+
+  // Salva/Edita uma espécie no acervo (LocalStorage e Nuvem Supabase)
+  async savePreset(preset: PlantBotanicalPreset): Promise<void> {
+    savePersistedBotanicalPreset(preset, preset.ptName);
+    await saveToCloudPreset(preset.ptName, preset);
+    searchCache.clear();
+    detailsCache.clear();
+  },
+
+  // Remove uma espécie do acervo (LocalStorage e Nuvem Supabase)
+  async deletePreset(presetNameOrId: string): Promise<void> {
+    const norm = normalizeText(presetNameOrId);
+    const current = getPersistedBotanicalCache();
+    delete current[norm];
+    localStorage.setItem(BOTANICAL_CACHE_KEY, JSON.stringify(current));
+    searchCache.clear();
+    detailsCache.clear();
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabase
+          .from('botanical_presets')
+          .delete()
+          .or(`id.eq.${norm},pt_name.ilike.${presetNameOrId}`);
+      } catch (e) {
+        console.warn('Erro ao deletar do Supabase:', e);
+      }
+    }
+  },
+
+  // Força ressincronização com o Supabase
+  async syncCloud(): Promise<void> {
+    hasSyncedWithCloud = false;
+    await syncWithCloud();
   },
 
   // Retorna a contagem de espécies aprendidas e salvas no LocalStorage

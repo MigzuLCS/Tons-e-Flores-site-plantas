@@ -40,6 +40,7 @@ export function App() {
     themeService.initTheme();
     loadPlants();
     configService.syncLocationsWithCloud();
+    configService.syncCategoriesWithCloud();
     setIsAdmin(authService.isAuthenticated());
 
     // Verificação de URL Hash (Ex: #p-TF-001 para vaso ou #bancada=NomeDaBancada para setor)

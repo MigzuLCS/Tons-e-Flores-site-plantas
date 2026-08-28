@@ -16,10 +16,15 @@ export interface StoreLocation {
 
 const DEFAULT_CATEGORIES = [
   'Folhagens',
-  'Suculentas & Cactos',
   'Flores',
+  'Orquídeas',
+  'Suculentas & Cactos',
   'Pendentes',
+  'Aquáticas',
+  'Carnívoras',
+  'Bromélias',
   'Arbustos & Árvores',
+  'Palmeiras',
   'Ervas & Temperos',
 ];
 
@@ -229,7 +234,7 @@ export const configService = {
     return [...DEFAULT_STORE_LOCATIONS];
   },
 
-  // ── Categorias ──────────────────────────────────────────────
+  // ── Categorias (Sincronização Nuvem + Local) ────────────────
   getCategories(): string[] {
     try {
       const raw = localStorage.getItem(CATEGORIES_KEY);
@@ -242,19 +247,94 @@ export const configService = {
     localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
   },
 
-  addCategory(name: string): string[] {
+  async syncCategoriesWithCloud(): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('store_categories')
+        .select('name')
+        .order('name');
+
+      if (!error && data && data.length > 0) {
+        const cloudCategories: string[] = data.map((row: any) => row.name).filter(Boolean);
+
+        // Mescla categorias da nuvem com as locais e com as padrões
+        const existing = this.getCategories();
+        const mergedSet = new Set([...DEFAULT_CATEGORIES, ...cloudCategories, ...existing]);
+        const finalCategories = Array.from(mergedSet);
+        this.setCategories(finalCategories);
+        return finalCategories;
+      }
+    } catch (err) {
+      console.warn('Sincronização de categorias offline ou tabela store_categories ainda não criada no Supabase:', err);
+    }
+    return this.getCategories();
+  },
+
+  async generateNextCategoryId(): Promise<string> {
+    let maxNum = 0;
+    try {
+      const { data } = await supabase
+        .from('store_categories')
+        .select('id');
+
+      if (data && data.length > 0) {
+        for (const row of data) {
+          const match = row.id?.match(/^cat-(\d+)$/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num < 1000 && num > maxNum) {
+              maxNum = num;
+            }
+          }
+        }
+      }
+    } catch {}
+
+    if (maxNum === 0) {
+      const cats = this.getCategories();
+      maxNum = cats.length;
+    }
+
+    const nextNum = maxNum + 1;
+    return `cat-${String(nextNum).padStart(2, '0')}`;
+  },
+
+  async addCategory(name: string): Promise<string[]> {
     const cats = this.getCategories();
     const trimmed = name.trim();
-    if (trimmed && !cats.includes(trimmed)) {
-      cats.push(trimmed);
-      this.setCategories(cats);
+    if (!trimmed) return cats;
+
+    if (!cats.includes(trimmed)) {
+      const updated = [...cats, trimmed];
+      this.setCategories(updated);
+
+      // Envia para o Supabase com ID sequencial limpo (ex: cat-07)
+      try {
+        const nextId = await this.generateNextCategoryId();
+        await supabase
+          .from('store_categories')
+          .upsert({ id: nextId, name: trimmed }, { onConflict: 'name' });
+      } catch (err) {
+        console.warn('Erro ao salvar categoria no Supabase (salvo apenas localmente):', err);
+      }
+
+      return updated;
     }
     return cats;
   },
 
-  removeCategory(name: string): string[] {
+  async removeCategory(name: string): Promise<string[]> {
     const cats = this.getCategories().filter(c => c !== name);
     this.setCategories(cats);
+
+    try {
+      await supabase
+        .from('store_categories')
+        .delete()
+        .eq('name', name);
+    } catch (err) {
+      console.warn('Erro ao remover categoria do Supabase:', err);
+    }
     return cats;
   },
 
