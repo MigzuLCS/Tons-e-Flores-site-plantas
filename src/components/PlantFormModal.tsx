@@ -30,6 +30,7 @@ const WATERING_OPTIONS = [
 
 export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isOpen, onClose, onSave }) => {
   const [categories, setCategories] = useState<string[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
   const [formData, setFormData] = useState<Partial<Plant>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
@@ -52,10 +53,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
 
   useEffect(() => {
     setCategories(configService.getCategories());
+    setLocations(configService.getLocations());
   }, [isOpen]);
 
   useEffect(() => {
     const cats = configService.getCategories();
+    const locs = configService.getLocations();
     if (plantToEdit) {
       setFormData(plantToEdit);
       setUploadedFileName('');
@@ -73,7 +76,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         category: cats[0] || 'Folhagens',
         price: 45.0,
         potSize: 'Pote 15',
-        location: 'Estufa 01 • Bancada A',
+        location: locs[0] || 'Bancada Central • Estufa 01',
         status: 'disponivel',
         light: 'meia-sombra',
         watering: 'moderada',
@@ -228,6 +231,11 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
     setApiError('');
 
     try {
+      const loc = (formData.location || locations[0] || 'Bancada Central • Estufa 01').trim();
+      if (loc) {
+        configService.addLocation(loc);
+      }
+
       const finalPlant: Plant = {
         id: formData.id!,
         name: formData.name!,
@@ -235,7 +243,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         category: formData.category || categories[0] || 'Folhagens',
         price: Number(formData.price) || 0,
         potSize: formData.potSize || 'Pote 15',
-        location: formData.location || 'Loja',
+        location: loc,
         status: (formData.status as PlantStatus) || 'disponivel',
         light: (formData.light as LightRequirement) || 'meia-sombra',
         watering: (formData.watering as WateringFrequency) || 'moderada',
@@ -485,17 +493,51 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-brand-text mb-1 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-brand-olive" />
-                Localização Física na Loja / Casa *
+              <label className="block text-xs font-semibold text-brand-text mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-brand-olive" />
+                  Localização / Bancada na Loja *
+                </span>
+                <span className="text-[10px] text-brand-text-muted">
+                  Selecione uma bancada ou digite uma nova
+                </span>
               </label>
               <input 
                 type="text" 
+                list="locations-datalist"
                 value={formData.location}
                 onChange={e => setFormData({ ...formData, location: e.target.value })}
-                placeholder="Ex: Estufa 01 • Bancada A, Prateleira Suspensa, Entrada"
-                className="w-full px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-olive focus:outline-none text-brand-text"
+                placeholder="Ex: Bancada Central • Estufa 01, Prateleira Suspensa..."
+                className="w-full px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-olive focus:outline-none text-brand-text font-medium"
               />
+              <datalist id="locations-datalist">
+                {locations.map((loc) => (
+                  <option key={loc} value={loc} />
+                ))}
+              </datalist>
+
+              {/* Chips de Bancadas Frequentes para Seleção com 1 Clique */}
+              {locations.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <span className="text-[10px] font-bold text-brand-text-muted uppercase tracking-wider">
+                    Sugestões:
+                  </span>
+                  {locations.slice(0, 4).map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, location: loc })}
+                      className={`text-[11px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                        formData.location === loc
+                          ? 'bg-brand-olive-light border-brand-olive text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light hover:border-brand-olive-border'
+                      }`}
+                    >
+                      📍 {loc}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

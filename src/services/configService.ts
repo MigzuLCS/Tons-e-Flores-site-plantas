@@ -1,9 +1,18 @@
+import { supabase } from './supabaseClient';
+
 // Serviço de configurações personalizadas da loja
-// Salva categorias e chaves de API no localStorage
+// Salva categorias, bancadas e chaves de API com sincronização híbrida (Supabase Nuvem + LocalStorage)
 
 const CATEGORIES_KEY = 'tonseflores_categories';
+const LOCATIONS_KEY = 'tonseflores_locations';
 const API_KEY_KEY = 'tonseflores_perenual_apikey';
 const GEMINI_API_KEY_KEY = 'tonseflores_gemini_apikey';
+
+export interface StoreLocation {
+  id: string;
+  name: string;
+  description: string;
+}
 
 const DEFAULT_CATEGORIES = [
   'Folhagens',
@@ -14,7 +23,212 @@ const DEFAULT_CATEGORIES = [
   'Ervas & Temperos',
 ];
 
+const DEFAULT_STORE_LOCATIONS: StoreLocation[] = [
+  { id: 'loc-01', name: 'Bancada Central • Estufa 01', description: 'Mesa principal de destaque na entrada' },
+  { id: 'loc-02', name: 'Bancada 02 • Sombra & Samambaias', description: 'Setor interno de meia sombra e folhagens' },
+  { id: 'loc-03', name: 'Bancada 03 • Sol Pleno & Cactos', description: 'Setor ensolarado para cactos e suculentas' },
+  { id: 'loc-04', name: 'Prateleira Suspensa • Pendentes', description: 'Estrutura vertical para vasos suspensos' },
+  { id: 'loc-05', name: 'Entrada Principal • Destaques', description: 'Área de recepção e novidades da semana' },
+];
+
 export const configService = {
+  // ── Localizações / Bancadas (Sincronização Nuvem + Local) ───
+  getLocationDetails(): StoreLocation[] {
+    try {
+      const raw = localStorage.getItem(LOCATIONS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Converte caso o formato antigo fosse apenas array de strings
+          if (typeof parsed[0] === 'string') {
+            return parsed.map((name: string, idx: number) => ({
+              id: `loc-${String(idx + 1).padStart(2, '0')}`,
+              name,
+              description: 'Setor físico da loja',
+            }));
+          }
+          return parsed as StoreLocation[];
+        }
+      }
+    } catch {}
+    return [...DEFAULT_STORE_LOCATIONS];
+  },
+
+  getLocations(): string[] {
+    return this.getLocationDetails().map(l => l.name);
+  },
+
+  getLocationDescription(name: string): string {
+    const found = this.getLocationDetails().find(l => l.name === name);
+    return found?.description || '';
+  },
+
+  setLocationDetails(details: StoreLocation[]): void {
+    localStorage.setItem(LOCATIONS_KEY, JSON.stringify(details));
+  },
+
+  setLocations(locNames: string[]): void {
+    const current = this.getLocationDetails();
+    const updated: StoreLocation[] = locNames.map((name, idx) => {
+      const existing = current.find(c => c.name === name);
+      return existing || {
+        id: `loc-${String(idx + 1).padStart(2, '0')}`,
+        name,
+        description: 'Setor físico da loja',
+      };
+    });
+    this.setLocationDetails(updated);
+  },
+
+  generateNextLocationId(existing: StoreLocation[]): string {
+    let maxNum = 0;
+    for (const loc of existing) {
+      const match = loc.id?.match(/^loc-(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        // Ignora timestamps gigantes para não quebrar a sequência limpa
+        if (!isNaN(num) && num < 1000 && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    const nextNum = maxNum + 1;
+    return `loc-${String(nextNum).padStart(2, '0')}`;
+  },
+
+  async syncLocationsWithCloud(): Promise<StoreLocation[]> {
+    try {
+      const { data, error } = await supabase
+        .from('store_locations')
+        .select('id, name, description')
+        .order('name');
+
+      if (!error && data && data.length > 0) {
+        const cloudLocations: StoreLocation[] = data.map((row: any, idx: number) => ({
+          id: row.id || `loc-${String(idx + 1).padStart(2, '0')}`,
+          name: row.name,
+          description: row.description || '',
+        }));
+
+        // Mescla garantindo que bancadas locais não sejam perdidas
+        const existing = this.getLocationDetails();
+        const mergedMap = new Map<string, StoreLocation>();
+        
+        for (const loc of cloudLocations) {
+          mergedMap.set(loc.name, loc);
+        }
+        for (const loc of existing) {
+          if (!mergedMap.has(loc.name)) {
+            mergedMap.set(loc.name, loc);
+          }
+        }
+
+        const finalLocations = Array.from(mergedMap.values());
+        this.setLocationDetails(finalLocations);
+        return finalLocations;
+      }
+    } catch (err) {
+      console.warn('Sincronização de bancadas offline ou tabela store_locations ainda não criada no Supabase:', err);
+    }
+    return this.getLocationDetails();
+  },
+
+  async addLocation(name: string, description: string = ''): Promise<StoreLocation[]> {
+    const locs = this.getLocationDetails();
+    const trimmed = name.trim();
+    if (!trimmed) return locs;
+
+    const exists = locs.some(l => l.name.toLowerCase() === trimmed.toLowerCase());
+    if (!exists) {
+      const nextId = this.generateNextLocationId(locs);
+      const newLoc: StoreLocation = {
+        id: nextId,
+        name: trimmed,
+        description: description.trim() || 'Setor físico cadastrado pela loja',
+      };
+
+      const updated = [...locs, newLoc];
+      this.setLocationDetails(updated);
+
+      // Envia para o Supabase em segundo plano com ID sequencial limpo
+      try {
+        await supabase
+          .from('store_locations')
+          .upsert({
+            id: nextId,
+            name: trimmed,
+            description: newLoc.description,
+          }, { onConflict: 'name' });
+      } catch (err) {
+        console.warn('Erro ao salvar bancada no Supabase (salvo apenas localmente):', err);
+      }
+
+      return updated;
+    }
+    return locs;
+  },
+
+  async updateLocation(oldName: string, newName: string, newDescription: string): Promise<StoreLocation[]> {
+    const trimmedNew = newName.trim();
+    const trimmedDesc = newDescription.trim();
+    if (!trimmedNew) return this.getLocationDetails();
+
+    const locs = this.getLocationDetails();
+    const updated = locs.map(l => {
+      if (l.name === oldName) {
+        return { ...l, name: trimmedNew, description: trimmedDesc || l.description };
+      }
+      return l;
+    });
+
+    this.setLocationDetails(updated);
+
+    try {
+      // 1. Atualiza o nome e descrição no Supabase
+      await supabase
+        .from('store_locations')
+        .update({ name: trimmedNew, description: trimmedDesc })
+        .eq('name', oldName);
+
+      // 2. Atualização em cascata nas plantas vinculadas se o nome mudou
+      if (oldName !== trimmedNew) {
+        await supabase
+          .from('plants')
+          .update({ location: trimmedNew })
+          .eq('location', oldName);
+      }
+    } catch (err) {
+      console.warn('Erro ao atualizar bancada no Supabase:', err);
+    }
+
+    return updated;
+  },
+
+  async renameLocation(oldName: string, newName: string): Promise<string[]> {
+    const updated = await this.updateLocation(oldName, newName, '');
+    return updated.map(l => l.name);
+  },
+
+  async removeLocation(name: string): Promise<StoreLocation[]> {
+    const locs = this.getLocationDetails().filter(l => l.name !== name);
+    this.setLocationDetails(locs);
+
+    try {
+      await supabase
+        .from('store_locations')
+        .delete()
+        .eq('name', name);
+    } catch (err) {
+      console.warn('Erro ao remover bancada do Supabase:', err);
+    }
+    return locs;
+  },
+
+  resetLocations(): StoreLocation[] {
+    localStorage.removeItem(LOCATIONS_KEY);
+    return [...DEFAULT_STORE_LOCATIONS];
+  },
+
   // ── Categorias ──────────────────────────────────────────────
   getCategories(): string[] {
     try {

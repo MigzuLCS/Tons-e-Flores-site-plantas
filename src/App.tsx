@@ -4,7 +4,7 @@ import { ShowcaseView } from './components/ShowcaseView';
 import { PlantDetailModal } from './components/PlantDetailModal';
 import { plantService } from './services/plantService';
 import { authService } from './services/authService';
-import { themeService } from './services/configService';
+import { configService, themeService } from './services/configService';
 import type { Plant, PlantStatus } from './types/plant';
 
 // Carregamento sob demanda (Code-Splitting) para manter a vitrine inicial ultra-rápida
@@ -23,6 +23,7 @@ export function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [plantToEdit, setPlantToEdit] = useState<Plant | null>(null);
   const [selectedPlantForTag, setSelectedPlantForTag] = useState<string | null>(null);
+  const [activeLocationFilter, setActiveLocationFilter] = useState<string | null>(null);
 
   // Carregar plantas do Supabase
   const loadPlants = async () => {
@@ -38,9 +39,10 @@ export function App() {
   useEffect(() => {
     themeService.initTheme();
     loadPlants();
+    configService.syncLocationsWithCloud();
     setIsAdmin(authService.isAuthenticated());
 
-    // Verificação de URL Hash (Ex: ao escanear o QR Code que leva a #p-TF-001)
+    // Verificação de URL Hash (Ex: #p-TF-001 para vaso ou #bancada=NomeDaBancada para setor)
     const checkHash = async () => {
       const hash = window.location.hash;
       if (hash.startsWith('#p-')) {
@@ -49,6 +51,11 @@ export function App() {
         if (found) {
           setSelectedPlant(found);
         }
+      } else if (hash.startsWith('#bancada=') || hash.startsWith('#local=')) {
+        const rawLoc = hash.startsWith('#bancada=') ? hash.replace('#bancada=', '') : hash.replace('#local=', '');
+        const decodedLoc = decodeURIComponent(rawLoc.replace(/\+/g, ' '));
+        setActiveLocationFilter(decodedLoc);
+        setCurrentTab('showcase');
       }
     };
 
@@ -134,6 +141,13 @@ export function App() {
             <ShowcaseView 
               plants={plants} 
               onSelectPlant={(plant) => setSelectedPlant(plant)} 
+              activeLocationFilter={activeLocationFilter}
+              onClearLocationFilter={() => {
+                setActiveLocationFilter(null);
+                if (window.location.hash.startsWith('#bancada=') || window.location.hash.startsWith('#local=')) {
+                  history.pushState('', document.title, window.location.pathname + window.location.search);
+                }
+              }}
             />
           )
         )}

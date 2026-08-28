@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, 
   Flower2, 
@@ -16,7 +16,8 @@ import {
   X, 
   Layers, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 import type { Plant } from '../types/plant';
 import { PlantCard } from './PlantCard';
@@ -25,11 +26,19 @@ import { configService } from '../services/configService';
 interface ShowcaseViewProps {
   plants: Plant[];
   onSelectPlant: (plant: Plant) => void;
+  activeLocationFilter?: string | null;
+  onClearLocationFilter?: () => void;
 }
 
-export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlant }) => {
+export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ 
+  plants, 
+  onSelectPlant, 
+  activeLocationFilter, 
+  onClearLocationFilter 
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedLocation, setSelectedLocation] = useState<string>(activeLocationFilter || 'all');
   const [selectedLight, setSelectedLight] = useState<string>('all');
   const [selectedWater, setSelectedWater] = useState<string>('all');
   const [petFriendlyOnly, setPetFriendlyOnly] = useState<boolean>(false);
@@ -37,7 +46,37 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
   // Modais
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [isCareModalOpen, setIsCareModalOpen] = useState(false);
+
+  // Sincroniza quando activeLocationFilter mudar externamente (ex: leitura de QR code)
+  useEffect(() => {
+    if (activeLocationFilter) {
+      setSelectedLocation(activeLocationFilter);
+    }
+  }, [activeLocationFilter]);
+
+  // Carrega todas as localizações/bancadas cadastradas na loja dinamicamente
+  const allLocations = useMemo(() => {
+    const configuredLocs = configService.getLocations();
+    const plantLocs = plants.map(p => p.location).filter(Boolean);
+    const merged = Array.from(new Set([...configuredLocs, ...plantLocs]));
+    return merged.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [plants]);
+
+  // Contagem de vasos por localização
+  const locationCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: plants.filter(p => p.status !== 'vendida').length
+    };
+    for (const p of plants) {
+      if (p.status !== 'vendida' && p.location) {
+        counts[p.location] = (counts[p.location] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [plants]);
 
   // Carrega todas as categorias cadastradas na loja dinamicamente
   const allCategories = useMemo(() => {
@@ -83,6 +122,13 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
     return count;
   }, [selectedLight, selectedWater, petFriendlyOnly]);
 
+  // Localizações filtradas dentro do modal de seleção
+  const filteredModalLocations = useMemo(() => {
+    if (!locationSearchQuery.trim()) return allLocations;
+    const q = locationSearchQuery.toLowerCase();
+    return allLocations.filter(loc => loc.toLowerCase().includes(q));
+  }, [allLocations, locationSearchQuery]);
+
   // Categorias filtradas dentro do modal de seleção
   const filteredModalCategories = useMemo(() => {
     if (!categorySearchQuery.trim()) return allCategories;
@@ -104,10 +150,14 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
         plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plant.scientificName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plant.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plant.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plant.id.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Categoria
       const matchesCategory = selectedCategory === 'all' || plant.category === selectedCategory;
+
+      // Localização / Bancada
+      const matchesLocation = selectedLocation === 'all' || plant.location === selectedLocation;
 
       // Luz
       const matchesLight = selectedLight === 'all' || plant.light === selectedLight;
@@ -118,7 +168,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
       // Pets
       const matchesPets = !petFriendlyOnly || plant.petFriendly;
 
-      return matchesSearch && matchesCategory && matchesLight && matchesWater && matchesPets;
+      return matchesSearch && matchesCategory && matchesLocation && matchesLight && matchesWater && matchesPets;
     });
 
     // Regra 2: Ordenação - Disponíveis no topo, Reservadas abaixo
@@ -127,14 +177,25 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
       if (a.status === 'reservada' && b.status === 'disponivel') return 1;
       return 0;
     });
-  }, [plants, searchTerm, selectedCategory, selectedLight, selectedWater, petFriendlyOnly]);
+  }, [plants, searchTerm, selectedCategory, selectedLocation, selectedLight, selectedWater, petFriendlyOnly]);
 
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedCategory('all');
+    setSelectedLocation('all');
     setSelectedLight('all');
     setSelectedWater('all');
     setPetFriendlyOnly(false);
+    if (onClearLocationFilter) {
+      onClearLocationFilter();
+    }
+  };
+
+  const handleClearLocation = () => {
+    setSelectedLocation('all');
+    if (onClearLocationFilter) {
+      onClearLocationFilter();
+    }
   };
 
   const handleResetCareFilters = () => {
@@ -146,6 +207,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
   const hasActiveFilters =
     searchTerm !== '' ||
     selectedCategory !== 'all' ||
+    selectedLocation !== 'all' ||
     selectedLight !== 'all' ||
     selectedWater !== 'all' ||
     petFriendlyOnly;
@@ -153,26 +215,67 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in duration-300">
       
-      {/* Banner Principal / Hero */}
-      <div className="relative bg-brand-olive-light/60 dark:bg-brand-surface rounded-3xl p-6 sm:p-10 text-brand-text overflow-hidden shadow-xs border border-brand-olive-border/70 dark:border-brand-border">
-        <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-brand-surface/90 dark:bg-brand-surface-subtle rounded-full text-xs font-semibold text-brand-olive-text border border-brand-olive-border shadow-xs">
-            <Flower2 className="w-3.5 h-3.5 text-brand-olive" />
-            Tons & Flores • Boutique de Plantas
+      {/* Banner de Boas-Vindas da Bancada (Exibido ao ler o QR Code da Bancada) */}
+      {selectedLocation !== 'all' && (
+        <div className="bg-brand-olive-light border-2 border-brand-olive rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in slide-in-from-top-2 duration-300">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-brand-olive text-white flex items-center justify-center shrink-0 shadow-xs text-xl">
+              📍
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-brand-olive text-white">
+                  Bancada Física
+                </span>
+                <span className="text-xs text-brand-olive-text font-bold">
+                  Tons & Flores
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-serif-title text-brand-olive-text mt-0.5">
+                {selectedLocation}
+              </h2>
+              {configService.getLocationDescription(selectedLocation) && (
+                <p className="text-xs text-brand-olive-text/80 italic mt-0.5">
+                  {configService.getLocationDescription(selectedLocation)}
+                </p>
+              )}
+              <p className="text-xs text-brand-text-muted mt-0.5">
+                Exibindo <strong>{locationCounts[selectedLocation] || 0}</strong> vasos disponíveis nesta bancada.
+              </p>
+            </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif-title leading-tight text-brand-text m-0">
-            Encontre a planta perfeita para o seu espaço.
-          </h1>
-          <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed max-w-xl">
-            Explore nossas espécies exclusivas, conheça as necessidades de rega e luz de cada vaso e transforme seu ambiente!
-          </p>
-        </div>
 
-        {/* Efeito decorativo botanical */}
-        <div className="absolute -right-8 -bottom-10 opacity-15 dark:opacity-10 pointer-events-none text-brand-olive">
-          <Sprout className="w-72 h-72" />
+          <button
+            onClick={handleClearLocation}
+            className="self-start sm:self-center px-4 py-2.5 bg-white hover:bg-brand-surface border border-brand-olive-border text-brand-olive-text font-bold text-xs rounded-xl shadow-xs transition-all hover:shadow cursor-pointer flex items-center gap-2 shrink-0"
+          >
+            <span>✕ Ver Todas as Bancadas da Loja</span>
+          </button>
         </div>
-      </div>
+      )}
+
+      {/* Banner Principal / Hero (Oculto se uma bancada específica estiver em foco para priorizar espaço no mobile) */}
+      {selectedLocation === 'all' && (
+        <div className="relative bg-brand-olive-light/60 dark:bg-brand-surface rounded-3xl p-6 sm:p-10 text-brand-text overflow-hidden shadow-xs border border-brand-olive-border/70 dark:border-brand-border">
+          <div className="relative z-10 max-w-2xl space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-brand-surface/90 dark:bg-brand-surface-subtle rounded-full text-xs font-semibold text-brand-olive-text border border-brand-olive-border shadow-xs">
+              <Flower2 className="w-3.5 h-3.5 text-brand-olive" />
+              Tons & Flores • Boutique de Plantas
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-serif-title leading-tight text-brand-text m-0">
+              Encontre a planta perfeita para o seu espaço.
+            </h1>
+            <p className="text-xs sm:text-sm text-brand-text-muted leading-relaxed max-w-xl">
+              Explore nossas espécies exclusivas, conheça as necessidades de rega e luz de cada vaso e transforme seu ambiente!
+            </p>
+          </div>
+
+          {/* Efeito decorativo botanical */}
+          <div className="absolute -right-8 -bottom-10 opacity-15 dark:opacity-10 pointer-events-none text-brand-olive">
+            <Sprout className="w-72 h-72" />
+          </div>
+        </div>
+      )}
 
       {/* Caixa de Busca e Filtros Rápidos */}
       <div className="bg-brand-surface p-5 rounded-2xl border border-brand-border shadow-xs space-y-4">
@@ -184,7 +287,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Pesquisar por nome popular, científico, tag #TF ou categoria..." 
+            placeholder={selectedLocation !== 'all' ? `Pesquisar em "${selectedLocation}"...` : "Pesquisar por nome popular, científico, tag #TF ou categoria..."} 
             className="w-full pl-12 pr-10 py-3 text-sm bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-brand-olive font-medium transition-all text-brand-text placeholder:text-brand-text-light"
           />
           {searchTerm && (
@@ -197,8 +300,89 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
           )}
         </div>
 
-        {/* Barra de Seleção e Filtro de Categorias */}
+        {/* Barra de Seleção e Filtro de Localização / Bancadas */}
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-1">
+          {/* Botão Geral de Bancadas */}
+          <button 
+            onClick={() => setIsLocationModalOpen(true)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0 ${
+              selectedLocation !== 'all' 
+                ? 'bg-brand-olive text-white shadow-xs hover:bg-brand-olive-hover' 
+                : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
+            }`}
+            title="Abrir mapa de bancadas e setores"
+          >
+            <MapPin className="w-4 h-4 text-brand-olive shrink-0" />
+            <span>Bancadas</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+              selectedLocation !== 'all' 
+                ? 'bg-white/20 text-white' 
+                : 'bg-brand-olive-light text-brand-olive-text border border-brand-olive-border'
+            }`}>
+              {allLocations.length}
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 opacity-70 ml-0.5" />
+          </button>
+
+          {/* Chips Rápidos de Bancadas */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar flex-1">
+            <button 
+              onClick={() => setSelectedLocation('all')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+                selectedLocation === 'all' 
+                  ? 'bg-brand-olive text-white shadow-xs font-bold' 
+                  : 'bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light'
+              }`}
+            >
+              Todas as Bancadas ({locationCounts.all || 0})
+            </button>
+
+            {/* Se houver uma bancada ativa, mostra chip de destaque com botão de remoção */}
+            {selectedLocation !== 'all' && (
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-olive text-white rounded-full text-xs font-semibold shadow-xs shrink-0 animate-in fade-in">
+                <span>📍 {selectedLocation}</span>
+                <span className="text-white/80 text-[10px]">({locationCounts[selectedLocation] || 0})</span>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClearLocation();
+                  }}
+                  title="Remover filtro de bancada"
+                  className="ml-1 w-4 h-4 bg-white/20 hover:bg-white/40 rounded-full inline-flex items-center justify-center text-[10px] cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Primeiras bancadas para acesso rápido */}
+            {allLocations.slice(0, 4).map((loc) => {
+              if (loc === selectedLocation) return null;
+              return (
+                <button 
+                  key={loc}
+                  onClick={() => setSelectedLocation(loc)}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light transition-all cursor-pointer"
+                >
+                  {loc} {locationCounts[loc] !== undefined && `(${locationCounts[loc]})`}
+                </button>
+              );
+            })}
+
+            {/* Botão Ver Todas as Bancadas */}
+            {allLocations.length > 4 && (
+              <button 
+                onClick={() => setIsLocationModalOpen(true)}
+                className="px-3 py-1.5 rounded-full text-xs font-bold shrink-0 text-brand-olive bg-brand-olive-light hover:bg-brand-olive-border/40 border border-dashed border-brand-olive-border transition-all cursor-pointer"
+              >
+                + Ver Todas ({allLocations.length})
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Barra de Seleção e Filtro de Categorias */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-2 border-t border-brand-border">
           {/* Botão Geral de Categorias */}
           <button 
             onClick={() => setIsCategoryModalOpen(true)}
@@ -448,6 +632,182 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ plants, onSelectPlan
           >
             Ver Todas as Plantas
           </button>
+        </div>
+      )}
+
+      {/* Modal de Seleção de Bancadas Completo */}
+      {isLocationModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => {
+            setIsLocationModalOpen(false);
+            setLocationSearchQuery('');
+          }}
+        >
+          <div 
+            className="bg-brand-surface rounded-3xl shadow-xl border border-brand-border w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Cabeçalho do Modal */}
+            <div className="p-5 sm:p-6 border-b border-brand-border flex items-center justify-between bg-brand-surface-subtle">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-brand-olive-light text-brand-olive-text flex items-center justify-center shadow-xs">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-brand-text font-serif-title flex items-center gap-2">
+                    Bancadas & Setores da Loja
+                    <span className="text-xs px-2 py-0.5 bg-brand-olive-light text-brand-olive-text rounded-full font-sans font-semibold border border-brand-olive-border">
+                      {allLocations.length}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-brand-text-muted">
+                    Selecione uma bancada para explorar os vasos organizados naquele espaço
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsLocationModalOpen(false);
+                  setLocationSearchQuery('');
+                }}
+                className="w-8 h-8 rounded-full bg-brand-border hover:bg-brand-border-subtle text-brand-text-muted hover:text-brand-text flex items-center justify-center transition-colors cursor-pointer"
+                title="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Campo de Busca de Bancadas */}
+            <div className="p-4 sm:px-6 border-b border-brand-border bg-brand-surface">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3.5 top-3 text-brand-text-light" />
+                <input
+                  type="text"
+                  value={locationSearchQuery}
+                  onChange={(e) => setLocationSearchQuery(e.target.value)}
+                  placeholder="Buscar bancada ou setor..."
+                  className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive font-medium transition-all text-brand-text"
+                  autoFocus
+                />
+                {locationSearchQuery && (
+                  <button
+                    onClick={() => setLocationSearchQuery('')}
+                    className="absolute right-3 top-2.5 text-xs text-brand-text-muted hover:text-brand-text bg-brand-border hover:bg-brand-border-subtle w-4 h-4 rounded-full flex items-center justify-center font-bold cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Lista e Grade de Bancadas */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3">
+              {/* Opção: Todas as Bancadas */}
+              {(!locationSearchQuery || 'todas as bancadas'.includes(locationSearchQuery.toLowerCase())) && (
+                <button
+                  onClick={() => {
+                    handleClearLocation();
+                    setIsLocationModalOpen(false);
+                    setLocationSearchQuery('');
+                  }}
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                    selectedLocation === 'all'
+                      ? 'bg-brand-olive-light border-brand-olive ring-2 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${selectedLocation === 'all' ? 'bg-brand-olive text-white' : 'bg-brand-border text-brand-text-muted'}`}>
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold">Todas as Bancadas</div>
+                      <div className="text-xs text-brand-text-muted">Exibir catálogo geral da loja sem restrição de local</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2 py-0.5 bg-brand-olive-light text-brand-olive-text border border-brand-olive-border rounded-full font-bold">
+                      {locationCounts.all || 0} vasos
+                    </span>
+                    {selectedLocation === 'all' && (
+                      <Check className="w-4 h-4 text-brand-olive font-bold" />
+                    )}
+                  </div>
+                </button>
+              )}
+
+              {/* Grade com Todas as Bancadas */}
+              {filteredModalLocations.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  {filteredModalLocations.map((loc) => {
+                    const count = locationCounts[loc] || 0;
+                    const isSelected = selectedLocation === loc;
+                    return (
+                      <button
+                        key={loc}
+                        onClick={() => {
+                          setSelectedLocation(loc);
+                          setIsLocationModalOpen(false);
+                          setLocationSearchQuery('');
+                        }}
+                        className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-brand-olive-light border-brand-olive ring-2 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                            : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light hover:border-brand-olive-border'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 truncate pr-2">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
+                            isSelected ? 'bg-brand-olive text-white' : 'bg-brand-surface-subtle text-brand-text-muted'
+                          }`}>
+                            📍
+                          </div>
+                          <span className="text-xs sm:text-sm font-semibold truncate">{loc}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                            count > 0 ? 'bg-brand-surface-subtle text-brand-text-muted' : 'bg-brand-surface-subtle text-brand-text-light'
+                          }`}>
+                            {count} {count === 1 ? 'vaso' : 'vasos'}
+                          </span>
+                          {isSelected && (
+                            <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-10 text-center text-brand-text-muted space-y-2">
+                  <p className="text-sm font-medium">Nenhuma bancada encontrada para "{locationSearchQuery}".</p>
+                  <button
+                    onClick={() => setLocationSearchQuery('')}
+                    className="text-xs text-brand-olive font-bold hover:underline cursor-pointer"
+                  >
+                    Limpar busca
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Rodapé do Modal */}
+            <div className="p-4 border-t border-brand-border bg-brand-surface-subtle flex items-center justify-between text-xs">
+              <span className="text-brand-text-muted font-medium">
+                Total: <strong>{allLocations.length}</strong> bancadas cadastradas
+              </span>
+              <button
+                onClick={() => {
+                  setIsLocationModalOpen(false);
+                  setLocationSearchQuery('');
+                }}
+                className="px-4 py-2 bg-brand-border hover:bg-brand-border-subtle text-brand-text font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

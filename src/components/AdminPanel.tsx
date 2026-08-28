@@ -53,9 +53,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  // Estado de configurações (categorias)
+  // Estado de configurações (categorias e bancadas)
   const [categories, setCategories] = useState<string[]>(() => configService.getCategories());
   const [newCatName, setNewCatName] = useState('');
+  const [locations, setLocations] = useState<any[]>(() => configService.getLocationDetails());
+  const [newLocName, setNewLocName] = useState('');
+  const [newLocDesc, setNewLocDesc] = useState('');
+  const [editingLoc, setEditingLoc] = useState<{ oldName: string; name: string; description: string } | null>(null);
 
 
 
@@ -555,6 +559,239 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Bancadas & Setores Físicos da Loja (Supabase Sync) */}
+          <div className="bg-brand-surface rounded-3xl border border-brand-border shadow-xs p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-brand-olive" />
+                <div>
+                  <h3 className="text-base font-bold text-brand-text flex items-center gap-2">
+                    Bancadas & Setores Físicos
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-olive-light text-brand-olive-text font-bold border border-brand-olive-border">
+                      ☁️ Nuvem Supabase
+                    </span>
+                  </h3>
+                </div>
+              </div>
+
+              <span className="text-xs text-brand-text-muted">
+                <strong>{locations.length}</strong> bancadas ativas
+              </span>
+            </div>
+
+            <p className="text-xs text-brand-text-muted">
+              As bancadas organizam os vasos na loja física, alimentam o gerador de QR Codes e filtram a vitrine do cliente.
+            </p>
+
+            {/* Lista de bancadas com IDs limpos e descrições visíveis */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {locations.map(loc => {
+                const count = plants.filter(p => p.location === loc.name && p.status !== 'vendida').length;
+                return (
+                  <div 
+                    key={loc.name} 
+                    className="flex items-start justify-between bg-brand-surface-subtle border border-brand-border rounded-2xl p-3.5 text-xs gap-3 hover:border-brand-olive/40 transition-colors"
+                  >
+                    <div className="flex items-start gap-2.5 truncate flex-1">
+                      <span className="text-base mt-0.5">📍</span>
+                      <div className="truncate flex-1 space-y-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono text-[10px] bg-brand-border/60 text-brand-text-muted px-1.5 py-0.5 rounded font-bold">
+                            {loc.id}
+                          </span>
+                          <span className="font-bold text-brand-text truncate text-sm">
+                            {loc.name}
+                          </span>
+                        </div>
+                        {loc.description && (
+                          <p className="text-[11px] text-brand-text-muted italic truncate">
+                            {loc.description}
+                          </p>
+                        )}
+                        <span className="text-[10px] inline-block font-semibold text-brand-olive bg-brand-olive-light px-2 py-0.5 rounded-full border border-brand-olive-border">
+                          {count} {count === 1 ? 'vaso ativo' : 'vasos ativos'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                      {/* Editar Nome e Descrição */}
+                      <button
+                        onClick={() => {
+                          setEditingLoc({
+                            oldName: loc.name,
+                            name: loc.name,
+                            description: loc.description || '',
+                          });
+                        }}
+                        title="Editar nome e descrição da bancada"
+                        className="p-1.5 text-brand-text-muted hover:text-brand-olive hover:bg-brand-surface rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+
+                      {/* Remover bancada */}
+                      <button
+                        onClick={async () => {
+                          if (confirm(`Remover a bancada "${loc.name}" da lista de setores da loja?`)) {
+                            const updated = await configService.removeLocation(loc.name);
+                            setLocations(updated);
+                          }
+                        }}
+                        title="Remover bancada"
+                        className="p-1.5 text-brand-text-muted hover:text-brand-nude-text hover:bg-brand-nude-light rounded-lg transition-colors cursor-pointer"
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Adicionar nova bancada com Nome e Descrição */}
+            <div className="pt-3 border-t border-brand-border space-y-2">
+              <span className="text-xs font-bold text-brand-text flex items-center gap-1">
+                <Plus className="w-3.5 h-3.5 text-brand-olive" />
+                Cadastrar Nova Bancada / Setor:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={newLocName}
+                  onChange={e => setNewLocName(e.target.value)}
+                  placeholder="Nome da bancada (ex: Bancada 04 • Orquídeas)"
+                  className="px-3 py-2 text-xs bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive text-brand-text font-medium"
+                />
+                <input
+                  type="text"
+                  value={newLocDesc}
+                  onChange={e => setNewLocDesc(e.target.value)}
+                  placeholder="Descrição / Localização (ex: Mesa perto da entrada)"
+                  className="px-3 py-2 text-xs bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive text-brand-text"
+                  onKeyDown={async e => {
+                    if (e.key === 'Enter' && newLocName.trim()) {
+                      const updated = await configService.addLocation(newLocName.trim(), newLocDesc.trim());
+                      setLocations(updated);
+                      setNewLocName('');
+                      setNewLocDesc('');
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-1">
+                <button
+                  onClick={async () => {
+                    if (newLocName.trim()) {
+                      const updated = await configService.addLocation(newLocName.trim(), newLocDesc.trim());
+                      setLocations(updated);
+                      setNewLocName('');
+                      setNewLocDesc('');
+                    }
+                  }}
+                  disabled={!newLocName.trim()}
+                  className="px-4 py-2 bg-brand-olive hover:bg-brand-olive-hover disabled:opacity-50 text-white text-xs font-semibold rounded-xl cursor-pointer transition-colors flex items-center gap-1.5 shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Salvar Bancada
+                </button>
+                <button
+                  onClick={() => setLocations(configService.resetLocations())}
+                  title="Restaurar bancadas padrão"
+                  className="px-3 py-2 bg-brand-surface-subtle hover:bg-brand-border text-brand-text text-xs font-semibold rounded-xl cursor-pointer border border-brand-border flex items-center gap-1"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Restaurar padrão
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Modal de Edição de Bancada */}
+          {editingLoc && (
+            <div 
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in"
+              onClick={() => setEditingLoc(null)}
+            >
+              <div 
+                className="bg-brand-surface rounded-3xl shadow-xl border border-brand-border w-full max-w-md p-6 space-y-4 animate-in zoom-in-95"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between border-b border-brand-border pb-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-brand-olive" />
+                    <h3 className="text-base font-bold text-brand-text font-serif-title">
+                      Editar Bancada / Setor
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setEditingLoc(null)}
+                    className="p-1 rounded-lg text-brand-text-muted hover:text-brand-text hover:bg-brand-border cursor-pointer"
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-brand-text mb-1">
+                      Nome da Bancada *
+                    </label>
+                    <input
+                      type="text"
+                      value={editingLoc.name}
+                      onChange={e => setEditingLoc({ ...editingLoc, name: e.target.value })}
+                      className="w-full px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-olive focus:outline-none font-bold text-brand-text"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-brand-text mb-1">
+                      Descrição / Detalhe Físico
+                    </label>
+                    <input
+                      type="text"
+                      value={editingLoc.description}
+                      onChange={e => setEditingLoc({ ...editingLoc, description: e.target.value })}
+                      placeholder="Ex: Mesa principal de destaque na entrada"
+                      className="w-full px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-olive focus:outline-none text-brand-text"
+                    />
+                  </div>
+
+                  <p className="text-[11px] text-brand-text-muted bg-brand-surface-subtle p-2.5 rounded-xl border border-brand-border">
+                    💡 Se você alterar o nome, todas as plantas atualmente cadastradas nesta bancada serão atualizadas automaticamente.
+                  </p>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-brand-border text-xs">
+                  <button
+                    onClick={() => setEditingLoc(null)}
+                    className="px-4 py-2 bg-brand-border hover:bg-brand-border-subtle text-brand-text font-bold rounded-xl cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (editingLoc.name.trim()) {
+                        const updated = await configService.updateLocation(
+                          editingLoc.oldName,
+                          editingLoc.name.trim(),
+                          editingLoc.description.trim()
+                        );
+                        setLocations(updated);
+                        setEditingLoc(null);
+                        onRefresh();
+                      }
+                    }}
+                    className="px-4 py-2 bg-brand-olive hover:bg-brand-olive-hover text-white font-bold rounded-xl shadow-xs cursor-pointer"
+                  >
+                    Salvar Alterações
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       )}

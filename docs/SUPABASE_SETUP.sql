@@ -148,3 +148,41 @@ USING (bucket_id = 'plant-photos');
 CREATE POLICY "Permitir exclusão de fotos de plantas"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'plant-photos');
+
+-- ------------------------------------------------------------------------------
+-- 4. TABELA DE BANCADAS E SETORES DA LOJA (store_locations)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.store_locations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.store_locations ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Permitir leitura pública das bancadas" ON public.store_locations;
+    DROP POLICY IF EXISTS "Permitir gerenciamento completo das bancadas" ON public.store_locations;
+END $$;
+
+CREATE POLICY "Permitir leitura pública das bancadas" 
+ON public.store_locations FOR SELECT 
+USING (true);
+
+CREATE POLICY "Permitir gerenciamento completo das bancadas" 
+ON public.store_locations FOR ALL 
+USING (true)
+WITH CHECK (true);
+
+-- Bancadas iniciais padrão
+INSERT INTO public.store_locations (id, name, description)
+VALUES 
+  ('loc-01', 'Bancada Central • Estufa 01', 'Mesa principal de destaque na entrada'),
+  ('loc-02', 'Bancada 02 • Sombra & Samambaias', 'Setor interno de meia sombra e folhagens'),
+  ('loc-03', 'Bancada 03 • Sol Pleno & Cactos', 'Setor ensolarado para cactos e suculentas'),
+  ('loc-04', 'Prateleira Suspensa • Pendentes', 'Estrutura vertical para vasos suspensos e jiboias'),
+  ('loc-05', 'Entrada Principal • Destaques', 'Área de recepção e novidades da semana')
+ON CONFLICT (name) DO NOTHING;
+
