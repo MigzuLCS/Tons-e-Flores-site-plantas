@@ -290,9 +290,9 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       )}
 
       {/* ======================================================== */}
-      {/* 1. VERSÃO MOBILE DA BUSCA E FILTROS (Conforme Excalidraw) */}
+      {/* 1. VERSÃO MOBILE & TABLET DA BUSCA E FILTROS (Excalidraw) */}
       {/* ======================================================== */}
-      <div className="md:hidden bg-brand-surface p-3.5 sm:p-4 rounded-2xl border border-brand-border shadow-xs space-y-3">
+      <div className="lg:hidden bg-brand-surface p-3.5 sm:p-4 rounded-2xl border border-brand-border shadow-xs space-y-3">
         {/* Barra de Pesquisa com Botão de Filtro Embutido */}
         <div className="relative flex items-center">
           <Search className="w-4 h-4 absolute left-3.5 text-brand-text-light pointer-events-none" />
@@ -427,7 +427,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       {/* ======================================================== */}
       {/* 2. VERSÃO DESKTOP DA CAIXA DE BUSCA E FILTROS RÁPIDOS    */}
       {/* ======================================================== */}
-      <div className="hidden md:block bg-brand-surface p-5 rounded-2xl border border-brand-border shadow-xs space-y-4">
+      <div className="hidden lg:block bg-brand-surface p-5 rounded-2xl border border-brand-border shadow-xs space-y-4">
         
         {/* Campo de Busca Desktop */}
         <div className="relative">
@@ -1526,10 +1526,10 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       )}
 
       {/* ======================================================== */}
-      {/* 4. MODAL / BOTTOM SHEET DE FILTROS MOBILE (Excalidraw)   */}
+      {/* 4. MODAL / BOTTOM SHEET DE FILTROS MOBILE & TABLET       */}
       {/* ======================================================== */}
       <div 
-        className={`md:hidden fixed inset-0 z-50 transition-all duration-300 ${
+        className={`lg:hidden fixed inset-0 z-50 transition-all duration-300 ${
           isMobileFilterSheetOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >

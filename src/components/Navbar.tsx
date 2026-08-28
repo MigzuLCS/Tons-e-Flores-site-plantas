@@ -95,12 +95,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* LADO ESQUERDO: Botão Hambúrguer + Logo e Nome da Loja colados lado a lado */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               
-              {/* Botão de Menu Lateral (Mobile) */}
+              {/* Botão de Menu Lateral (Mobile & Tablet) */}
               <button
                 onClick={() => setIsDrawerOpen(true)}
                 aria-label="Abrir menu de navegação"
                 title="Abrir menu"
-                className="md:hidden bg-[#221E1C] hover:bg-[#2C2522] text-stone-200 hover:text-white p-2 rounded-xl border border-[#2F2926] shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                className="lg:hidden bg-[#221E1C] hover:bg-[#2C2522] text-stone-200 hover:text-white p-2 rounded-xl border border-[#2F2926] shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
               >
                 <Menu className="w-5 h-5 text-stone-200" />
               </button>
@@ -131,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Abas de Navegação no Desktop (quando for Admin) */}
             {isAdmin && (
-              <nav className="hidden md:flex items-center bg-[#221E1C] p-1 rounded-2xl border border-[#2F2926] text-xs font-semibold gap-1">
+              <nav className="hidden lg:flex items-center bg-[#221E1C] p-1 rounded-2xl border border-[#2F2926] text-xs font-semibold gap-1">
                 <button
                   onClick={() => onSelectTab('showcase')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
@@ -188,7 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* Botões visíveis no Desktop */}
               {isAdmin ? (
-                <div className="hidden md:flex items-center gap-2">
+                <div className="hidden lg:flex items-center gap-2">
                   <button
                     onClick={onOpenAddModal}
                     className="bg-brand-nude hover:bg-brand-nude-hover text-white font-semibold text-xs px-3.5 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -209,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button
                   onClick={onOpenLoginModal}
-                  className="hidden md:flex bg-[#221E1C] hover:bg-[#2C2522] text-stone-200 hover:text-white text-xs font-semibold px-3.5 py-2 rounded-xl border border-[#2F2926] shadow-xs items-center gap-1.5 transition-colors cursor-pointer"
+                  className="hidden lg:flex bg-[#221E1C] hover:bg-[#2C2522] text-stone-200 hover:text-white text-xs font-semibold px-3.5 py-2 rounded-xl border border-[#2F2926] shadow-xs items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Lock className="w-3.5 h-3.5 text-[#A3B596]" />
                   <span>Área do Lojista</span>
@@ -222,10 +222,10 @@ export const Navbar: React.FC<NavbarProps> = ({
       </header>
 
       {/* ======================================================== */}
-      {/* MENU LATERAL EXPANSIVO (DRAWER MOBILE)                  */}
+      {/* MENU LATERAL EXPANSIVO (DRAWER MOBILE & TABLET)         */}
       {/* ======================================================== */}
       <div 
-        className={`md:hidden fixed inset-0 z-50 transition-all duration-300 ${
+        className={`lg:hidden fixed inset-0 z-50 transition-all duration-300 ${
           isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
