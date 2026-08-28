@@ -74,12 +74,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   const DRAWER_WIDTH = 280;
 
   useEffect(() => {
+    isDrawerOpenRef.current = isDrawerOpen;
+  }, [isDrawerOpen]);
+
+  useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
       if (window.innerWidth >= 1024) return;
       const touch = e.touches[0];
       const target = e.target as HTMLElement | null;
 
-      // Se tocar em controles de formulário, ignora a menos que seja o gatilho de borda
+      // Se tocar diretamente em campos de texto/input, ignora para não atrapalhar digitação
       if (target?.closest('input, textarea, select')) {
         touchStartRef.current = null;
         return;
@@ -89,15 +93,16 @@ export const Navbar: React.FC<NavbarProps> = ({
       const clientY = touch.clientY;
 
       if (!isDrawerOpenRef.current) {
-        // Se fechado: aceita toque nos primeiros 60px da tela ou no trigger de borda
-        if (clientX <= 60 || target?.closest('.drawer-edge-trigger')) {
+        // Se fechado: aceita toque até 80px da borda ou 25% da largura da tela, ou no trigger invisível
+        const maxStartEdge = Math.max(80, window.innerWidth * 0.25);
+        if (clientX <= maxStartEdge || target?.closest('.drawer-edge-trigger')) {
           touchStartRef.current = { x: clientX, y: clientY, time: Date.now() };
           isDraggingRef.current = false;
         } else {
           touchStartRef.current = null;
         }
       } else {
-        // Se aberto: aceita toque em qualquer ponto para arrastar e fechar
+        // Se aberto: aceita toque em qualquer ponto para arrastar para a esquerda e fechar
         touchStartRef.current = { x: clientX, y: clientY, time: Date.now() };
         isDraggingRef.current = false;
       }
@@ -111,10 +116,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       // Identifica intenção de gesto horizontal
       if (!isDraggingRef.current) {
-        if (Math.abs(deltaX) > 6 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
+        // Para abrir: movimento positivo (direita). Para fechar: movimento negativo (esquerda).
+        const isDirectionValid = !isDrawerOpenRef.current ? deltaX > 4 : deltaX < -4;
+
+        if (isDirectionValid && Math.abs(deltaX) > Math.abs(deltaY) * 0.75) {
           isDraggingRef.current = true;
-        } else if (Math.abs(deltaY) > 12) {
-          // Scroll vertical detectado -> aborta o gesto do drawer
+        } else if (Math.abs(deltaY) > 28 && Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
+          // Scroll vertical intencional -> cancela arrasto do menu
           touchStartRef.current = null;
           setDragProgress(null);
           return;
@@ -122,6 +130,11 @@ export const Navbar: React.FC<NavbarProps> = ({
       }
 
       if (isDraggingRef.current) {
+        // Trava o scroll vertical nativo enquanto estiver arrastando o menu horizontalmente
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+
         if (!isDrawerOpenRef.current) {
           // Deslizando para a direita (abrindo)
           const progress = Math.min(Math.max(0, deltaX / DRAWER_WIDTH), 1);
@@ -148,15 +161,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       if (isDraggingRef.current || Math.abs(deltaX) > 20) {
         if (!isDrawerOpenRef.current) {
-          // Abrir: se arrastou > 20% da largura ou deu um flick rápido para a direita
-          if (deltaX > DRAWER_WIDTH * 0.2 || velocity > 0.25) {
+          // Abrir: se arrastou > 18% da largura ou deu um flick rápido para a direita
+          if (deltaX > DRAWER_WIDTH * 0.18 || velocity > 0.22) {
             setIsDrawerOpen(true);
           } else {
             setIsDrawerOpen(false);
           }
         } else {
-          // Fechar: se arrastou > 20% para a esquerda ou deu flick rápido para esquerda
-          if (deltaX < -DRAWER_WIDTH * 0.2 || velocity < -0.25) {
+          // Fechar: se arrastou > 18% para a esquerda ou deu flick rápido para esquerda
+          if (deltaX < -DRAWER_WIDTH * 0.18 || velocity < -0.22) {
             setIsDrawerOpen(false);
           } else {
             setIsDrawerOpen(true);
@@ -170,7 +183,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
 
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
     window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
