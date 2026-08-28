@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { storageService } from './storageService';
 import type { Plant } from '../types/plant';
 
 // ─── Plantas de exemplo (usadas no reset inicial) ────────────────────────────
@@ -179,9 +180,21 @@ async function generateNextId(): Promise<string> {
 
 async function addPlant(plant: Plant): Promise<boolean> {
   try {
+    let finalImageUrl = plant.imageUrl;
+
+    // Se a foto for um Data URL base64, faz upload para o Supabase Storage
+    if (finalImageUrl && finalImageUrl.startsWith('data:image/')) {
+      finalImageUrl = await storageService.uploadPlantPhoto(plant.id, finalImageUrl);
+    }
+
+    const plantToSave: Plant = {
+      ...plant,
+      imageUrl: finalImageUrl,
+    };
+
     const { error } = await supabase
       .from('plants')
-      .insert([plantToRow(plant)]);
+      .insert([plantToRow(plantToSave)]);
 
     if (error) {
       console.error('[plantService] Erro ao adicionar planta:', error.message);
@@ -197,9 +210,26 @@ async function addPlant(plant: Plant): Promise<boolean> {
 
 async function updatePlant(plant: Plant): Promise<boolean> {
   try {
+    let finalImageUrl = plant.imageUrl;
+
+    // Se a foto for um novo Data URL base64, faz upload para o Supabase Storage
+    if (finalImageUrl && finalImageUrl.startsWith('data:image/')) {
+      // Opcional: remove a foto antiga do storage se houver troca de arquivo
+      const existing = await getPlantById(plant.id);
+      if (existing?.imageUrl && existing.imageUrl !== finalImageUrl) {
+        await storageService.deletePlantPhoto(existing.imageUrl);
+      }
+      finalImageUrl = await storageService.uploadPlantPhoto(plant.id, finalImageUrl);
+    }
+
+    const plantToSave: Plant = {
+      ...plant,
+      imageUrl: finalImageUrl,
+    };
+
     const { error } = await supabase
       .from('plants')
-      .update({ ...plantToRow(plant), updated_at: new Date().toISOString() })
+      .update({ ...plantToRow(plantToSave), updated_at: new Date().toISOString() })
       .eq('id', plant.id);
 
     if (error) {
@@ -216,6 +246,12 @@ async function updatePlant(plant: Plant): Promise<boolean> {
 
 async function deletePlant(id: string): Promise<boolean> {
   try {
+    // Busca a planta antes de deletar para limpar a foto do Storage
+    const existing = await getPlantById(id);
+    if (existing?.imageUrl) {
+      await storageService.deletePlantPhoto(existing.imageUrl);
+    }
+
     const { error } = await supabase
       .from('plants')
       .delete()

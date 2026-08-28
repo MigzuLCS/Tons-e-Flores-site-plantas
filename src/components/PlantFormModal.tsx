@@ -10,7 +10,7 @@ interface PlantFormModalProps {
   plantToEdit?: Plant | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (plant: Plant) => void;
+  onSave: (plant: Plant) => Promise<void> | void;
 }
 
 const PRESET_PHOTOS = [
@@ -34,6 +34,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [compressionDetails, setCompressionDetails] = useState<{
     originalSize: string;
     compressedSize: string;
@@ -219,36 +220,46 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.id) return;
 
-    const finalPlant: Plant = {
-      id: formData.id!,
-      name: formData.name!,
-      scientificName: formData.scientificName || formData.name!,
-      category: formData.category || categories[0] || 'Folhagens',
-      price: Number(formData.price) || 0,
-      potSize: formData.potSize || 'Pote 15',
-      location: formData.location || 'Loja',
-      status: (formData.status as PlantStatus) || 'disponivel',
-      light: (formData.light as LightRequirement) || 'meia-sombra',
-      watering: (formData.watering as WateringFrequency) || 'moderada',
-      petFriendly: Boolean(formData.petFriendly),
-      wateringTip: formData.wateringTip || '',
-      careInstructions: formData.careInstructions || '',
-      family: formData.family || '',
-      origin: formData.origin || '',
-      cycle: formData.cycle || '',
-      bloomingSeason: formData.bloomingSeason || '',
-      pestsDiseases: formData.pestsDiseases || '',
-      toxicity: formData.toxicity || '',
-      imageUrl: formData.imageUrl || PRESET_PHOTOS[0].url,
-      createdAt: plantToEdit?.createdAt || new Date().toISOString(),
-    };
+    setIsSaving(true);
+    setApiError('');
 
-    onSave(finalPlant);
-    onClose();
+    try {
+      const finalPlant: Plant = {
+        id: formData.id!,
+        name: formData.name!,
+        scientificName: formData.scientificName || formData.name!,
+        category: formData.category || categories[0] || 'Folhagens',
+        price: Number(formData.price) || 0,
+        potSize: formData.potSize || 'Pote 15',
+        location: formData.location || 'Loja',
+        status: (formData.status as PlantStatus) || 'disponivel',
+        light: (formData.light as LightRequirement) || 'meia-sombra',
+        watering: (formData.watering as WateringFrequency) || 'moderada',
+        petFriendly: Boolean(formData.petFriendly),
+        wateringTip: formData.wateringTip || '',
+        careInstructions: formData.careInstructions || '',
+        family: formData.family || '',
+        origin: formData.origin || '',
+        cycle: formData.cycle || '',
+        bloomingSeason: formData.bloomingSeason || '',
+        pestsDiseases: formData.pestsDiseases || '',
+        toxicity: formData.toxicity || '',
+        imageUrl: formData.imageUrl || PRESET_PHOTOS[0].url,
+        createdAt: plantToEdit?.createdAt || new Date().toISOString(),
+      };
+
+      await onSave(finalPlant);
+      onClose();
+    } catch (err: any) {
+      console.error('Erro ao salvar planta:', err);
+      setApiError('Erro ao salvar planta ou enviar foto: ' + (err.message || err));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -795,16 +806,27 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
             <button 
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-brand-text-muted hover:text-brand-text font-semibold text-xs rounded-xl hover:bg-brand-surface-subtle cursor-pointer"
+              disabled={isSaving}
+              className="px-4 py-2.5 text-brand-text-muted hover:text-brand-text font-semibold text-xs rounded-xl hover:bg-brand-surface-subtle cursor-pointer disabled:opacity-50"
             >
               Cancelar
             </button>
             <button 
               type="submit"
-              className="px-6 py-2.5 bg-brand-olive hover:bg-brand-olive-hover text-white font-semibold text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-colors"
+              disabled={isSaving || isCompressing}
+              className="px-6 py-2.5 bg-brand-olive hover:bg-brand-olive-hover disabled:bg-brand-border text-white font-semibold text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-colors"
             >
-              <Save className="w-4 h-4" />
-              Salvar Planta
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Salvando no Supabase...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Salvar Planta
+                </>
+              )}
             </button>
           </div>
 

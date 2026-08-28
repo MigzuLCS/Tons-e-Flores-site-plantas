@@ -26,7 +26,7 @@ dist-ssr
 # Environment variables (todos os arquivos de ambiente)
 .env
 .env*
-.env.example
+!.env.example
 .env.local
 .env.*.local
 
