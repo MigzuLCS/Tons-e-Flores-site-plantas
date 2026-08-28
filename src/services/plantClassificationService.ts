@@ -696,25 +696,39 @@ const BOTANICAL_DATABASE: Record<string, PlantBotanicalPreset> = {
 // Chave do acervo persistente no LocalStorage
 const BOTANICAL_CACHE_KEY = 'tons_botanical_custom_cache_v1';
 
-// Recupera todo o cache persistente aprendido pelo Gemini
+// Recupera todo o cache persistente aprendido pelo Gemini (com auto-deduplicação)
 function getPersistedBotanicalCache(): Record<string, PlantBotanicalPreset> {
   try {
     const raw = localStorage.getItem(BOTANICAL_CACHE_KEY);
     if (!raw) return {};
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null) return {};
+
+    const deduplicated: Record<string, PlantBotanicalPreset> = {};
+    const seenScientific = new Set<string>();
+
+    for (const [, preset] of Object.entries(parsed as Record<string, PlantBotanicalPreset>)) {
+      if (!preset || !preset.ptName) continue;
+      const scientificKey = normalizeText(preset.scientific || preset.ptName);
+      if (!seenScientific.has(scientificKey)) {
+        seenScientific.add(scientificKey);
+        deduplicated[normalizeText(preset.ptName)] = preset;
+      }
+    }
+    return deduplicated;
   } catch (e) {
     console.warn('Erro ao ler acervo persistente botânico:', e);
     return {};
   }
 }
 
-// Salva uma nova espécie no acervo persistente do LocalStorage
-function savePersistedBotanicalPreset(key: string, preset: PlantBotanicalPreset): void {
+// Salva uma nova espécie no acervo persistente do LocalStorage (indexada unicamente)
+function savePersistedBotanicalPreset(preset: PlantBotanicalPreset, customKey?: string): void {
   try {
-    const normKey = normalizeText(key);
-    if (!normKey) return;
+    const primaryKey = normalizeText(customKey || preset.ptName || preset.scientific);
+    if (!primaryKey) return;
     const current = getPersistedBotanicalCache();
-    current[normKey] = preset;
+    current[primaryKey] = preset;
     localStorage.setItem(BOTANICAL_CACHE_KEY, JSON.stringify(current));
   } catch (e) {
     console.warn('Erro ao salvar no acervo persistente botânico:', e);
@@ -799,9 +813,7 @@ async function syncWithCloud(): Promise<void> {
           imageUrl: row.image_url || undefined,
           aliases: Array.isArray(row.aliases) ? row.aliases : [],
         };
-        savePersistedBotanicalPreset(row.id || preset.ptName, preset);
-        if (preset.ptName) savePersistedBotanicalPreset(preset.ptName, preset);
-        if (preset.scientific) savePersistedBotanicalPreset(preset.scientific, preset);
+        savePersistedBotanicalPreset(preset, row.id || preset.ptName);
       }
     }
 
@@ -831,8 +843,7 @@ async function syncWithCloud(): Promise<void> {
           imageUrl: p.image_url || undefined,
           aliases: [normalizeText(p.name), normalizeText(p.scientific_name || '')].filter(Boolean),
         };
-        savePersistedBotanicalPreset(p.name, preset);
-        if (p.scientific_name) savePersistedBotanicalPreset(p.scientific_name, preset);
+        savePersistedBotanicalPreset(preset, p.name);
       }
     }
   } catch (e) {
@@ -899,6 +910,7 @@ export const plantClassificationService = {
     if (cached) return cached;
 
     const results: BotanicalSearchResult[] = [];
+    const seenSpecies = new Set<string>();
 
     // 1a. Procura correspondências na base local (Nativa + LocalStorage Aprendido)
     const allPresets = getAllBotanicalPresets();
@@ -910,8 +922,13 @@ export const plantClassificationService = {
         (preset.aliases && preset.aliases.some(a => normalizeText(a).includes(normQuery)));
 
       if (matchScore) {
+        // Evita duplicatas da mesma espécie no dropdown de sugestões
+        const uniqueKey = normalizeText(preset.scientific || preset.ptName);
+        if (seenSpecies.has(uniqueKey)) continue;
+        seenSpecies.add(uniqueKey);
+
         results.push({
-          id: `local_${key}`,
+          id: `local_${normalizeText(preset.scientific || preset.ptName)}`,
           common_name: preset.ptName,
           scientific_name: [preset.scientific],
           matchedPtName: preset.ptName,
@@ -1068,12 +1085,8 @@ export const plantClassificationService = {
             ].filter((v, i, arr) => v && arr.indexOf(v) === i),
           };
 
-          // Salva indexando pelo termo buscado, nome popular e nome científico no LocalStorage
-          savePersistedBotanicalPreset(query, presetToSave);
-          savePersistedBotanicalPreset(aiDetails.name, presetToSave);
-          if (aiDetails.scientificName) {
-            savePersistedBotanicalPreset(aiDetails.scientificName, presetToSave);
-          }
+          // Salva indexando unicamente pelo nome principal no LocalStorage
+          savePersistedBotanicalPreset(presetToSave, aiDetails.name);
 
           // ☁️ Salva no Supabase para compartilhar com todos os usuários e dispositivos
           saveToCloudPreset(aiDetails.name, presetToSave);
