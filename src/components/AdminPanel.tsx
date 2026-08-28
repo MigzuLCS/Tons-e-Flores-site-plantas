@@ -215,48 +215,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       </div>
 
-      {/* Cards de Métricas */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-surface-subtle flex items-center justify-center text-brand-olive">
-            <Sprout className="w-5 h-5 text-brand-olive" />
+      {/* Cards de Métricas (Apenas em Vasos Ativos e Histórico) */}
+      {(adminTab === 'ativas' || adminTab === 'vendidas') && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-in fade-in">
+          <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-surface-subtle flex items-center justify-center text-brand-olive">
+              <Sprout className="w-5 h-5 text-brand-olive" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Em Estoque</div>
+              <div className="text-xl font-extrabold text-brand-text">{stats.available + stats.reserved}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Em Estoque</div>
-            <div className="text-xl font-extrabold text-brand-text">{stats.available + stats.reserved}</div>
-          </div>
-        </div>
 
-        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-olive-light flex items-center justify-center text-brand-olive-text">
-            <CheckCircle2 className="w-5 h-5 text-brand-olive" />
+          <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-olive-light flex items-center justify-center text-brand-olive-text">
+              <CheckCircle2 className="w-5 h-5 text-brand-olive" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Disponíveis</div>
+              <div className="text-xl font-extrabold text-brand-olive-text">{stats.available}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Disponíveis</div>
-            <div className="text-xl font-extrabold text-brand-olive-text">{stats.available}</div>
-          </div>
-        </div>
 
-        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-700 dark:text-amber-200">
-            <Clock className="w-5 h-5" />
+          <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-700 dark:text-amber-200">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Reservadas</div>
+              <div className="text-xl font-extrabold text-amber-700 dark:text-amber-200">{stats.reserved}</div>
+            </div>
           </div>
-          <div>
-            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Reservadas</div>
-            <div className="text-xl font-extrabold text-amber-700 dark:text-amber-200">{stats.reserved}</div>
-          </div>
-        </div>
 
-        <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-brand-nude-light flex items-center justify-center text-brand-nude-text">
-            <Archive className="w-5 h-5 text-brand-nude" />
-          </div>
-          <div>
-            <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Total Vendidas</div>
-            <div className="text-xl font-extrabold text-brand-nude-text">{stats.sold}</div>
+          <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-brand-nude-light flex items-center justify-center text-brand-nude-text">
+              <Archive className="w-5 h-5 text-brand-nude" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Total Vendidas</div>
+              <div className="text-xl font-extrabold text-brand-nude-text">{stats.sold}</div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Seletor de Seção do Painel (Scrollável e adaptativo para mobile) */}
       <div className="border-b border-brand-border">
@@ -335,15 +337,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <span>Valor em estoque: <strong className="text-brand-text">R$ {stats.stockValue.toFixed(2).replace('.', ',')}</strong></span>
             ) : adminTab === 'vendidas' ? (
               <span>Faturamento histórico: <strong className="text-brand-nude-text">R$ {stats.soldTotalValue.toFixed(2).replace('.', ',')}</strong></span>
+            ) : adminTab === 'acervo' ? (
+              <span>Espécies cadastradas: <strong className="text-brand-olive-text">{botanicalPresets.length} espécies</strong></span>
             ) : null}
           </div>
         </div>
       </div>
 
 
-      {/* Barra de Busca e Filtros da Tabela — oculta na aba Config */}
-      {adminTab !== 'config' && (
-      <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+      {/* Barra de Busca e Filtros da Tabela — apenas em Vasos Ativos e Vendidas */}
+      {(adminTab === 'ativas' || adminTab === 'vendidas') && (
+      <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between animate-in fade-in">
 
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-brand-text-light" />
@@ -391,9 +395,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       </div>
       )}
 
-      {/* Tabela de Plantas — oculta na aba Config */}
-      {adminTab !== 'config' && (
-      <div className="bg-brand-surface rounded-3xl border border-brand-border shadow-xs overflow-hidden">
+      {/* Tabela de Plantas — apenas em Vasos Ativos e Vendidas */}
+      {(adminTab === 'ativas' || adminTab === 'vendidas') && (
+      <div className="bg-brand-surface rounded-3xl border border-brand-border shadow-xs overflow-hidden animate-in fade-in">
         <div className="overflow-x-auto">
 
           <table className="w-full text-left text-xs text-brand-text">

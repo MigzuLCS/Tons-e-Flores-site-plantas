@@ -12,24 +12,25 @@ export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect
   return (
     <div 
       onClick={() => onSelect(plant)}
-      className="bg-brand-surface rounded-2xl border border-brand-border shadow-xs overflow-hidden hover:shadow-md hover:border-brand-olive/50 transition-all group flex flex-col justify-between cursor-pointer"
+      className="bg-brand-surface rounded-2xl border border-brand-border shadow-xs overflow-hidden hover:shadow-md hover:border-brand-olive/50 transition-[border-color,box-shadow,transform] duration-200 ease-out group flex flex-col justify-between cursor-pointer transform-gpu will-change-[transform,box-shadow]"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 380px' }}
     >
       <div>
-        {/* Imagem do Vaso */}
-        <div className="relative h-52 bg-brand-surface-subtle overflow-hidden">
+        {/* Imagem do Vaso com aceleração GPU isolada */}
+        <div className="relative h-52 bg-brand-surface-subtle overflow-hidden [transform:translateZ(0)]">
           <img 
             src={plant.imageUrl || 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=600&q=80'} 
             alt={plant.name} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 ease-out transform-gpu will-change-transform"
             loading="lazy"
             decoding="async"
           />
           
-          <div className="absolute top-3 left-3 bg-brand-surface/95 text-brand-text text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg shadow-xs border border-brand-border">
+          <div className="absolute top-3 left-3 bg-brand-surface/95 text-brand-text text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg shadow-xs border border-brand-border pointer-events-none">
             #{plant.id}
           </div>
 
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 right-3 pointer-events-none">
             {plant.status === 'disponivel' && (
               <span className="bg-brand-olive-light/95 dark:bg-brand-olive text-brand-olive-text dark:text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-brand-olive-border dark:border-brand-olive/40">
                 Disponível
@@ -47,7 +48,7 @@ export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect
             )}
           </div>
 
-          <div className="absolute bottom-3 left-3 bg-brand-surface/95 text-brand-text text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 max-w-[85%] truncate border border-brand-border shadow-xs">
+          <div className="absolute bottom-3 left-3 bg-brand-surface/95 text-brand-text text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 max-w-[85%] truncate border border-brand-border shadow-xs pointer-events-none">
             <MapPin className="w-3 h-3 text-brand-olive shrink-0" />
             <span className="truncate">{plant.location}</span>
           </div>
@@ -63,7 +64,7 @@ export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect
           </div>
 
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="text-lg font-bold text-brand-text font-serif-title leading-snug group-hover:text-brand-olive transition-colors">
+            <h3 className="text-lg font-bold text-brand-text font-serif-title leading-snug group-hover:text-brand-olive transition-colors duration-200">
               {plant.name}
             </h3>
             <span className="text-lg font-extrabold text-brand-text shrink-0 font-sans">
@@ -86,10 +87,11 @@ export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect
       {/* Botão de Ver Detalhes */}
       <div className="p-5 pt-0">
         <button 
-          className="w-full bg-brand-olive-light group-hover:bg-brand-olive text-brand-olive-text group-hover:text-white border border-brand-olive-border text-xs font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+          type="button"
+          className="w-full bg-brand-olive-light group-hover:bg-brand-olive text-brand-olive-text group-hover:text-white border border-brand-olive-border text-xs font-semibold py-2.5 rounded-xl transition-colors duration-200 flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
         >
           <span>Ver Ficha & Cuidados</span>
-          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
         </button>
       </div>
     </div>

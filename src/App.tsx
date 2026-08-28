@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Navbar, type AppTab } from './components/Navbar';
 import { ShowcaseView } from './components/ShowcaseView';
 import { PlantDetailModal } from './components/PlantDetailModal';
@@ -26,7 +26,7 @@ export function App() {
   const [activeLocationFilter, setActiveLocationFilter] = useState<string | null>(null);
 
   // Carregar plantas do Supabase
-  const loadPlants = async () => {
+  const loadPlants = useCallback(async () => {
     setIsLoading(true);
     try {
       const loaded = await plantService.getPlants();
@@ -34,7 +34,7 @@ export function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     themeService.initTheme();
@@ -63,10 +63,10 @@ export function App() {
     checkHash();
     window.addEventListener('hashchange', checkHash);
     return () => window.removeEventListener('hashchange', checkHash);
-  }, []);
+  }, [loadPlants]);
 
-  // Handlers
-  const handleSavePlant = async (plant: Plant) => {
+  // Handlers memoizados
+  const handleSavePlant = useCallback(async (plant: Plant) => {
     if (plantToEdit) {
       await plantService.updatePlant(plant);
     } else {
@@ -74,33 +74,37 @@ export function App() {
     }
     await loadPlants();
     setPlantToEdit(null);
-  };
+  }, [plantToEdit, loadPlants]);
 
-  const handleDeletePlant = async (id: string) => {
+  const handleDeletePlant = useCallback(async (id: string) => {
     await plantService.deletePlant(id);
     await loadPlants();
-  };
+  }, [loadPlants]);
 
-  const handleStatusChange = async (plant: Plant, newStatus: PlantStatus) => {
+  const handleStatusChange = useCallback(async (plant: Plant, newStatus: PlantStatus) => {
     await plantService.updatePlant({ ...plant, status: newStatus });
     await loadPlants();
-  };
+  }, [loadPlants]);
 
-  const handleSelectForTag = (plant: Plant) => {
+  const handleSelectForTag = useCallback((plant: Plant) => {
     setSelectedPlantForTag(plant.id);
     setCurrentTab('tags');
-  };
+  }, []);
 
-  const handleLoginSuccess = () => {
+  const handleSelectPlant = useCallback((plant: Plant) => {
+    setSelectedPlant(plant);
+  }, []);
+
+  const handleLoginSuccess = useCallback(() => {
     setIsAdmin(true);
     setCurrentTab('admin');
-  };
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     authService.logout();
     setIsAdmin(false);
     setCurrentTab('showcase');
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col selection:bg-brand-nude-light selection:text-brand-nude-text">
@@ -141,7 +145,7 @@ export function App() {
           ) : (
             <ShowcaseView 
               plants={plants} 
-              onSelectPlant={(plant) => setSelectedPlant(plant)} 
+              onSelectPlant={handleSelectPlant} 
               activeLocationFilter={activeLocationFilter}
               onClearLocationFilter={() => {
                 setActiveLocationFilter(null);
@@ -171,7 +175,7 @@ export function App() {
                 setPlantToEdit(plant);
                 setIsFormModalOpen(true);
               }}
-              onViewPlant={(plant) => setSelectedPlant(plant)}
+              onViewPlant={handleSelectPlant}
               onSelectForTag={handleSelectForTag}
               onDeletePlant={handleDeletePlant}
               onStatusChange={handleStatusChange}

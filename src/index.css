@@ -100,6 +100,18 @@ html.dark, .dark {
   scrollbar-width: none;
 }
 
+/* Otimização de toque e renderização gráfica em tablets e mobile */
+@layer utilities {
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+  .gpu-layer {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+}
+
 @media print {
   body {
     background: white !important;

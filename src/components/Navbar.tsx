@@ -64,6 +64,64 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Touch swipe gestures para abrir e fechar o menu lateral no mobile
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchStartTime = useRef<number>(0);
+
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.innerWidth >= 1024) return;
+      const touch = e.touches[0];
+      // Ignora toques em inputs ou elementos com scroll horizontal dedicado
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, .overflow-x-auto')) {
+        touchStartX.current = null;
+        touchStartY.current = null;
+        return;
+      }
+
+      touchStartX.current = touch.clientX;
+      touchStartY.current = touch.clientY;
+      touchStartTime.current = Date.now();
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (touchStartX.current === null || touchStartY.current === null) return;
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = touch.clientY - touchStartY.current;
+      const deltaTime = Date.now() - touchStartTime.current;
+
+      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * 1.2 && Math.abs(deltaX) > 40 && deltaTime < 600;
+
+      if (isHorizontalSwipe) {
+        if (!isDrawerOpen) {
+          // Arrastar a partir da borda esquerda para abrir o menu lateral
+          if (deltaX > 40 && touchStartX.current < Math.min(window.innerWidth * 0.4, 120)) {
+            setIsDrawerOpen(true);
+          }
+        } else {
+          // Arrastar para a esquerda para fechar o menu lateral
+          if (deltaX < -30) {
+            setIsDrawerOpen(false);
+          }
+        }
+      }
+
+      touchStartX.current = null;
+      touchStartY.current = null;
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isDrawerOpen]);
+
   // Previne scroll de fundo quando o menu lateral estiver aberto
   useEffect(() => {
     if (isDrawerOpen) {
@@ -225,7 +283,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* MENU LATERAL EXPANSIVO (DRAWER MOBILE & TABLET)         */}
       {/* ======================================================== */}
       <div 
-        className={`lg:hidden fixed inset-0 z-50 transition-all duration-300 ${
+        className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
           isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
@@ -333,7 +391,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-brand-nude hover:bg-brand-nude-hover text-white shadow-xs transition-colors cursor-pointer mt-2"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>+ Nova Planta</span>
+                    <span>Nova Planta</span>
                   </button>
                 </>
               )}

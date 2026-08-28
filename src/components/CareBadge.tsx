@@ -7,7 +7,7 @@ interface CareBadgeProps {
   value?: LightRequirement | WateringFrequency | boolean;
 }
 
-export const CareBadge: React.FC<CareBadgeProps> = ({ type, value }) => {
+export const CareBadge: React.FC<CareBadgeProps> = React.memo(({ type, value }) => {
   if (type === 'light') {
     const lightVal = value as LightRequirement;
     if (lightVal === 'sol-pleno') {
@@ -79,4 +79,4 @@ export const CareBadge: React.FC<CareBadgeProps> = ({ type, value }) => {
   }
 
   return null;
-};
+});
