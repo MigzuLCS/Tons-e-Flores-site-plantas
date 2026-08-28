@@ -49,6 +49,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [isCareModalOpen, setIsCareModalOpen] = useState(false);
+  const [isMobileFilterSheetOpen, setIsMobileFilterSheetOpen] = useState(false);
 
   // Sincroniza quando activeLocationFilter mudar externamente (ex: leitura de QR code)
   useEffect(() => {
@@ -212,6 +213,17 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
     selectedWater !== 'all' ||
     petFriendlyOnly;
 
+  const totalActiveFiltersCount = useMemo(() => {
+    let count = 0;
+    if (searchTerm.trim() !== '') count++;
+    if (selectedCategory !== 'all') count++;
+    if (selectedLocation !== 'all') count++;
+    if (selectedLight !== 'all') count++;
+    if (selectedWater !== 'all') count++;
+    if (petFriendlyOnly) count++;
+    return count;
+  }, [searchTerm, selectedCategory, selectedLocation, selectedLight, selectedWater, petFriendlyOnly]);
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in duration-300">
       
@@ -277,10 +289,147 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
         </div>
       )}
 
-      {/* Caixa de Busca e Filtros Rápidos */}
-      <div className="bg-brand-surface p-5 rounded-2xl border border-brand-border shadow-xs space-y-4">
+      {/* ======================================================== */}
+      {/* 1. VERSÃO MOBILE DA BUSCA E FILTROS (Conforme Excalidraw) */}
+      {/* ======================================================== */}
+      <div className="md:hidden bg-brand-surface p-3.5 sm:p-4 rounded-2xl border border-brand-border shadow-xs space-y-3">
+        {/* Barra de Pesquisa com Botão de Filtro Embutido */}
+        <div className="relative flex items-center">
+          <Search className="w-4 h-4 absolute left-3.5 text-brand-text-light pointer-events-none" />
+          <input 
+            type="text" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={selectedLocation !== 'all' ? `Pesquisar em "${selectedLocation}"...` : "Pesquisar plantas, espécies, #TF..."} 
+            className="w-full pl-10 pr-12 py-2.5 text-xs bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-brand-olive font-medium transition-all text-brand-text placeholder:text-brand-text-light"
+          />
+          
+          {/* Botão Expansivo de Filtro Mobile */}
+          <button 
+            onClick={() => setIsMobileFilterSheetOpen(true)}
+            title="Abrir menu de escolhas de filtro"
+            aria-label="Abrir menu de escolhas de filtro"
+            className={`absolute right-1.5 p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-center ${
+              totalActiveFiltersCount > 0
+                ? 'bg-brand-olive text-white border-brand-olive shadow-xs'
+                : 'bg-brand-surface text-brand-text-muted hover:text-brand-text border-brand-border'
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            {totalActiveFiltersCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-brand-nude text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                {totalActiveFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Chips de Filtros Aplicados */}
+        {hasActiveFilters && (
+          <div className="space-y-2 pt-1 border-t border-brand-border/60">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px]">
+              {searchTerm && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                  🔍 "{searchTerm}"
+                  <button 
+                    onClick={() => setSearchTerm('')} 
+                    className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
+                    title="Remover busca"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedCategory !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                  🌱 {selectedCategory}
+                  <button 
+                    onClick={() => setSelectedCategory('all')} 
+                    className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
+                    title="Remover categoria"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedLocation !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                  📍 {selectedLocation}
+                  <button 
+                    onClick={handleClearLocation} 
+                    className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
+                    title="Remover bancada"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedLight !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                  ☀️ {selectedLight === 'sol-pleno' ? 'Sol Pleno' : selectedLight === 'meia-sombra' ? 'Meia-Sombra' : 'Sombra'}
+                  <button 
+                    onClick={() => setSelectedLight('all')} 
+                    className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
+                    title="Remover filtro de luz"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedWater !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-500/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                  💧 Rega {selectedWater === 'baixa' ? 'Baixa' : selectedWater === 'moderada' ? 'Moderada' : 'Frequente'}
+                  <button 
+                    onClick={() => setSelectedWater('all')} 
+                    className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
+                    title="Remover filtro de rega"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {petFriendlyOnly && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-nude-light text-brand-nude-text border border-brand-nude-border rounded-full shrink-0 font-medium animate-in fade-in">
+                  🐾 Pet Friendly
+                  <button 
+                    onClick={() => setPetFriendlyOnly(false)} 
+                    className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
+                    title="Remover filtro pet friendly"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+            </div>
+
+            {/* Linha com Botão Limpar Filtros */}
+            <div className="flex items-center justify-between text-xs pt-0.5">
+              <button 
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1.5 text-xs text-brand-text-muted hover:text-brand-olive font-medium transition-colors cursor-pointer"
+              >
+                <span className="w-3.5 h-3.5 rounded-full border border-brand-border flex items-center justify-center text-[9px]">✕</span>
+                <span>Limpar filtros</span>
+              </button>
+              <span className="text-[11px] text-brand-text-muted">
+                {filteredAndSortedPlants.length} {filteredAndSortedPlants.length === 1 ? 'vaso' : 'vasos'}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. VERSÃO DESKTOP DA CAIXA DE BUSCA E FILTROS RÁPIDOS    */}
+      {/* ======================================================== */}
+      <div className="hidden md:block bg-brand-surface p-5 rounded-2xl border border-brand-border shadow-xs space-y-4">
         
-        {/* Campo de Busca */}
+        {/* Campo de Busca Desktop */}
         <div className="relative">
           <Search className="w-5 h-5 absolute left-4 top-3.5 text-brand-text-light" />
           <input 
@@ -1375,6 +1524,227 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* ======================================================== */}
+      {/* 4. MODAL / BOTTOM SHEET DE FILTROS MOBILE (Excalidraw)   */}
+      {/* ======================================================== */}
+      <div 
+        className={`md:hidden fixed inset-0 z-50 transition-all duration-300 ${
+          isMobileFilterSheetOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop escuro */}
+        <div 
+          onClick={() => setIsMobileFilterSheetOpen(false)}
+          className="absolute inset-0 bg-black/75 backdrop-blur-xs transition-opacity duration-300"
+        />
+
+        {/* Painel Inferior (Bottom Sheet) */}
+        <div 
+          className={`absolute bottom-0 left-0 right-0 max-h-[85vh] bg-brand-surface text-brand-text rounded-t-[28px] border-t border-brand-border shadow-2xl flex flex-col p-5 transition-transform duration-300 ease-out z-10 ${
+            isMobileFilterSheetOpen ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          {/* Puxador Superior */}
+          <div className="w-12 h-1.5 bg-brand-border rounded-full mx-auto mb-3 shrink-0" />
+
+          {/* Header do Sheet */}
+          <div className="flex items-center justify-between pb-3 border-b border-brand-border shrink-0">
+            <div>
+              <h3 className="font-bold text-sm text-brand-text font-serif-title">Filtros de Plantas</h3>
+              <p className="text-[11px] text-brand-text-muted">Escolha categorias, bancadas e cuidados</p>
+            </div>
+            <button 
+              onClick={() => setIsMobileFilterSheetOpen(false)}
+              className="w-8 h-8 rounded-xl bg-brand-surface-subtle text-brand-text-muted hover:text-brand-text flex items-center justify-center text-xs border border-brand-border cursor-pointer"
+              title="Fechar filtros"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Corpo Rolável com os Filtros */}
+          <div className="flex-1 overflow-y-auto py-3 space-y-4 text-xs">
+            
+            {/* Seção 1: Categorias */}
+            <div>
+              <h4 className="font-bold text-brand-text mb-2 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">🌿 Categorias</span>
+                <span className="text-[10px] text-brand-olive font-semibold">{allCategories.length} tipos</span>
+              </h4>
+              <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto no-scrollbar p-0.5">
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                    selectedCategory === 'all'
+                      ? 'bg-brand-olive text-white shadow-xs font-bold'
+                      : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
+                  }`}
+                >
+                  Todas ({categoryCounts.all || 0})
+                </button>
+                {allCategories.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat === selectedCategory ? 'all' : cat)}
+                    className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                      selectedCategory === cat
+                        ? 'bg-brand-olive text-white shadow-xs font-bold'
+                        : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
+                    }`}
+                  >
+                    {cat} {categoryCounts[cat] !== undefined && `(${categoryCounts[cat]})`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Seção 2: Bancadas & Setores */}
+            <div>
+              <h4 className="font-bold text-brand-text mb-2 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">📍 Bancadas & Setores</span>
+                <span className="text-[10px] text-brand-olive font-semibold">{allLocations.length} locais</span>
+              </h4>
+              <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto no-scrollbar p-0.5">
+                <button
+                  onClick={() => handleClearLocation()}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                    selectedLocation === 'all'
+                      ? 'bg-brand-olive text-white shadow-xs font-bold'
+                      : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
+                  }`}
+                >
+                  Todas ({locationCounts.all || 0})
+                </button>
+                {allLocations.map(loc => (
+                  <button
+                    key={loc}
+                    onClick={() => setSelectedLocation(loc === selectedLocation ? 'all' : loc)}
+                    className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                      selectedLocation === loc
+                        ? 'bg-brand-olive text-white shadow-xs font-bold'
+                        : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
+                    }`}
+                  >
+                    {loc} {locationCounts[loc] !== undefined && `(${locationCounts[loc]})`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Seção 3: Necessidade de Luz */}
+            <div>
+              <h4 className="font-bold text-brand-text mb-2">☀️ Necessidade de Luz</h4>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  onClick={() => setSelectedLight(selectedLight === 'sol-pleno' ? 'all' : 'sol-pleno')}
+                  className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
+                    selectedLight === 'sol-pleno'
+                      ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold shadow-xs'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text'
+                  }`}
+                >
+                  Sol Pleno
+                </button>
+                <button
+                  onClick={() => setSelectedLight(selectedLight === 'meia-sombra' ? 'all' : 'meia-sombra')}
+                  className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
+                    selectedLight === 'meia-sombra'
+                      ? 'bg-orange-50 border-orange-300 text-orange-900 font-bold shadow-xs'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text'
+                  }`}
+                >
+                  Meia-Sombra
+                </button>
+                <button
+                  onClick={() => setSelectedLight(selectedLight === 'sombra-difusa' ? 'all' : 'sombra-difusa')}
+                  className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
+                    selectedLight === 'sombra-difusa'
+                      ? 'bg-indigo-50 border-indigo-300 text-indigo-900 font-bold shadow-xs'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text'
+                  }`}
+                >
+                  Sombra
+                </button>
+              </div>
+            </div>
+
+            {/* Seção 4: Rega */}
+            <div>
+              <h4 className="font-bold text-brand-text mb-2">💧 Frequência de Rega</h4>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  onClick={() => setSelectedWater(selectedWater === 'baixa' ? 'all' : 'baixa')}
+                  className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
+                    selectedWater === 'baixa'
+                      ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text'
+                  }`}
+                >
+                  Pouca Rega
+                </button>
+                <button
+                  onClick={() => setSelectedWater(selectedWater === 'moderada' ? 'all' : 'moderada')}
+                  className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
+                    selectedWater === 'moderada'
+                      ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text'
+                  }`}
+                >
+                  Moderada
+                </button>
+                <button
+                  onClick={() => setSelectedWater(selectedWater === 'frequente' ? 'all' : 'frequente')}
+                  className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
+                    selectedWater === 'frequente'
+                      ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text'
+                  }`}
+                >
+                  Frequente
+                </button>
+              </div>
+            </div>
+
+            {/* Seção 5: Pet Friendly */}
+            <div>
+              <button
+                onClick={() => setPetFriendlyOnly(!petFriendlyOnly)}
+                className={`w-full p-2.5 rounded-xl font-semibold flex items-center justify-between transition-all cursor-pointer border ${
+                  petFriendlyOnly
+                    ? 'bg-brand-nude-light border-brand-nude-border text-brand-nude-text font-bold shadow-xs'
+                    : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-nude-light'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Heart className={`w-4 h-4 ${petFriendlyOnly ? 'text-brand-nude fill-brand-nude' : 'text-brand-text-light'}`} />
+                  <span>Amigas de Cães e Gatos (Pet Friendly)</span>
+                </div>
+                <span className="text-[10px] font-bold">
+                  {petFriendlyOnly ? '✓ Ativo' : 'Desativado'}
+                </span>
+              </button>
+            </div>
+
+          </div>
+
+          {/* Footer do Sheet */}
+          <div className="pt-3 border-t border-brand-border flex gap-2 shrink-0">
+            <button 
+              onClick={handleResetFilters}
+              className="w-1/3 py-2.5 bg-brand-surface-subtle border border-brand-border text-brand-text rounded-xl font-semibold text-xs hover:bg-brand-olive-light cursor-pointer"
+            >
+              Limpar
+            </button>
+            <button 
+              onClick={() => setIsMobileFilterSheetOpen(false)}
+              className="w-2/3 py-2.5 bg-brand-olive text-white rounded-xl font-bold text-xs hover:bg-brand-olive-hover shadow-xs cursor-pointer"
+            >
+              Ver Vasos ({filteredAndSortedPlants.length})
+            </button>
+          </div>
+        </div>
+      </div>
 
     </div>
   );

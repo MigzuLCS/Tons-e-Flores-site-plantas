@@ -258,73 +258,85 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       </div>
 
-      {/* Seletor de Seção do Painel (Ativas vs Histórico de Vendidas vs Config) */}
-      <div className="flex items-center justify-between border-b border-brand-border">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setAdminTab('ativas');
-              setStatusFilter('all');
-            }}
-            className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-              adminTab === 'ativas'
-                ? 'border-brand-olive text-brand-text font-bold'
-                : 'border-transparent text-brand-text-muted hover:text-brand-text'
-            }`}
-          >
-            <Sprout className="w-4 h-4 text-brand-olive" />
-            <span>🌿 Vasos Ativos ({stats.available + stats.reserved})</span>
-          </button>
+      {/* Seletor de Seção do Painel (Scrollável e adaptativo para mobile) */}
+      <div className="border-b border-brand-border">
+        <div className="flex items-center justify-between gap-4">
+          {/* Abas com scroll horizontal suave no mobile */}
+          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar pb-0.5 max-w-full -mb-px">
+            <button
+              onClick={() => {
+                setAdminTab('ativas');
+                setStatusFilter('all');
+              }}
+              className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                adminTab === 'ativas'
+                  ? 'border-brand-olive text-brand-text font-bold bg-brand-olive-light/40 sm:bg-transparent rounded-t-xl sm:rounded-none'
+                  : 'border-transparent text-brand-text-muted hover:text-brand-text'
+              }`}
+            >
+              <Sprout className="w-4 h-4 text-brand-olive shrink-0" />
+              <span>Vasos Ativos</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-surface-subtle border border-brand-border font-bold text-brand-text">
+                {stats.available + stats.reserved}
+              </span>
+            </button>
 
-          <button
-            onClick={() => {
-              setAdminTab('vendidas');
-              setStatusFilter('all');
-            }}
-            className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-              adminTab === 'vendidas'
-                ? 'border-brand-nude text-brand-text font-bold'
-                : 'border-transparent text-brand-text-muted hover:text-brand-text'
-            }`}
-          >
-            <Archive className="w-4 h-4 text-brand-nude" />
-            <span>📦 Histórico ({stats.sold})</span>
-          </button>
+            <button
+              onClick={() => {
+                setAdminTab('vendidas');
+                setStatusFilter('all');
+              }}
+              className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                adminTab === 'vendidas'
+                  ? 'border-brand-nude text-brand-text font-bold bg-brand-nude-light/40 sm:bg-transparent rounded-t-xl sm:rounded-none'
+                  : 'border-transparent text-brand-text-muted hover:text-brand-text'
+              }`}
+            >
+              <Archive className="w-4 h-4 text-brand-nude shrink-0" />
+              <span>Histórico</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-surface-subtle border border-brand-border font-bold text-brand-text">
+                {stats.sold}
+              </span>
+            </button>
 
-          <button
-            onClick={() => {
-              setAdminTab('acervo');
-              setBotanicalPresets(plantClassificationService.getAllBotanicalPresetsList());
-            }}
-            className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-              adminTab === 'acervo'
-                ? 'border-brand-olive text-brand-text font-bold'
-                : 'border-transparent text-brand-text-muted hover:text-brand-text'
-            }`}
-          >
-            <BookOpen className="w-4 h-4 text-brand-olive" />
-            <span>📖 Acervo Botânico ({botanicalPresets.length})</span>
-          </button>
+            <button
+              onClick={() => {
+                setAdminTab('acervo');
+                setBotanicalPresets(plantClassificationService.getAllBotanicalPresetsList());
+              }}
+              className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                adminTab === 'acervo'
+                  ? 'border-brand-olive text-brand-text font-bold bg-brand-olive-light/40 sm:bg-transparent rounded-t-xl sm:rounded-none'
+                  : 'border-transparent text-brand-text-muted hover:text-brand-text'
+              }`}
+            >
+              <BookOpen className="w-4 h-4 text-brand-olive shrink-0" />
+              <span>Acervo</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-surface-subtle border border-brand-border font-bold text-brand-text">
+                {botanicalPresets.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setAdminTab('config')}
-            className={`pb-3 px-4 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-              adminTab === 'config'
-                ? 'border-brand-olive text-brand-text font-bold'
-                : 'border-transparent text-brand-text-muted hover:text-brand-text'
-            }`}
-          >
-            <Settings className="w-4 h-4" />
-            <span>⚙️ Configurações</span>
-          </button>
-        </div>
+            <button
+              onClick={() => setAdminTab('config')}
+              className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-1.5 sm:gap-2 border-b-2 transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                adminTab === 'config'
+                  ? 'border-brand-olive text-brand-text font-bold bg-brand-olive-light/40 sm:bg-transparent rounded-t-xl sm:rounded-none'
+                  : 'border-transparent text-brand-text-muted hover:text-brand-text'
+              }`}
+            >
+              <Settings className="w-4 h-4 shrink-0" />
+              <span>Configurações</span>
+            </button>
+          </div>
 
-        <div className="hidden sm:block text-xs text-brand-text-muted pb-3">
-          {adminTab === 'ativas' ? (
-            <span>Valor em estoque: <strong className="text-brand-text">R$ {stats.stockValue.toFixed(2).replace('.', ',')}</strong></span>
-          ) : adminTab === 'vendidas' ? (
-            <span>Faturamento histórico: <strong className="text-brand-nude-text">R$ {stats.soldTotalValue.toFixed(2).replace('.', ',')}</strong></span>
-          ) : null}
+          <div className="hidden lg:block text-xs text-brand-text-muted pb-3 shrink-0 whitespace-nowrap">
+            {adminTab === 'ativas' ? (
+              <span>Valor em estoque: <strong className="text-brand-text">R$ {stats.stockValue.toFixed(2).replace('.', ',')}</strong></span>
+            ) : adminTab === 'vendidas' ? (
+              <span>Faturamento histórico: <strong className="text-brand-nude-text">R$ {stats.soldTotalValue.toFixed(2).replace('.', ',')}</strong></span>
+            ) : null}
+          </div>
         </div>
       </div>
 
