@@ -64,63 +64,123 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Touch swipe gestures para abrir e fechar o menu lateral no mobile
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-  const touchStartTime = useRef<number>(0);
+  // Touch swipe gestures ultra-suaves para abrir e fechar o menu lateral no mobile
+  const [dragProgress, setDragProgress] = useState<number | null>(null); // 0 a 1 (arrasto em tempo real)
+  const isDraggingRef = useRef(false);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const isDrawerOpenRef = useRef(isDrawerOpen);
+  isDrawerOpenRef.current = isDrawerOpen;
+
+  const DRAWER_WIDTH = 280;
 
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
       if (window.innerWidth >= 1024) return;
       const touch = e.touches[0];
-      // Ignora toques em inputs ou elementos com scroll horizontal dedicado
       const target = e.target as HTMLElement | null;
-      if (target?.closest('input, textarea, select, .overflow-x-auto')) {
-        touchStartX.current = null;
-        touchStartY.current = null;
+
+      // Se tocar em controles de formulário, ignora a menos que seja o gatilho de borda
+      if (target?.closest('input, textarea, select')) {
+        touchStartRef.current = null;
         return;
       }
 
-      touchStartX.current = touch.clientX;
-      touchStartY.current = touch.clientY;
-      touchStartTime.current = Date.now();
+      const clientX = touch.clientX;
+      const clientY = touch.clientY;
+
+      if (!isDrawerOpenRef.current) {
+        // Se fechado: aceita toque nos primeiros 60px da tela ou no trigger de borda
+        if (clientX <= 60 || target?.closest('.drawer-edge-trigger')) {
+          touchStartRef.current = { x: clientX, y: clientY, time: Date.now() };
+          isDraggingRef.current = false;
+        } else {
+          touchStartRef.current = null;
+        }
+      } else {
+        // Se aberto: aceita toque em qualquer ponto para arrastar e fechar
+        touchStartRef.current = { x: clientX, y: clientY, time: Date.now() };
+        isDraggingRef.current = false;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!touchStartRef.current) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartRef.current.x;
+      const deltaY = touch.clientY - touchStartRef.current.y;
+
+      // Identifica intenção de gesto horizontal
+      if (!isDraggingRef.current) {
+        if (Math.abs(deltaX) > 6 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
+          isDraggingRef.current = true;
+        } else if (Math.abs(deltaY) > 12) {
+          // Scroll vertical detectado -> aborta o gesto do drawer
+          touchStartRef.current = null;
+          setDragProgress(null);
+          return;
+        }
+      }
+
+      if (isDraggingRef.current) {
+        if (!isDrawerOpenRef.current) {
+          // Deslizando para a direita (abrindo)
+          const progress = Math.min(Math.max(0, deltaX / DRAWER_WIDTH), 1);
+          setDragProgress(progress);
+        } else {
+          // Deslizando para a esquerda (fechando)
+          const progress = Math.min(Math.max(0, 1 + deltaX / DRAWER_WIDTH), 1);
+          setDragProgress(progress);
+        }
+      }
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      if (touchStartX.current === null || touchStartY.current === null) return;
+      if (!touchStartRef.current) {
+        setDragProgress(null);
+        isDraggingRef.current = false;
+        return;
+      }
+
       const touch = e.changedTouches[0];
-      const deltaX = touch.clientX - touchStartX.current;
-      const deltaY = touch.clientY - touchStartY.current;
-      const deltaTime = Date.now() - touchStartTime.current;
+      const deltaX = touch.clientX - touchStartRef.current.x;
+      const deltaTime = Date.now() - touchStartRef.current.time;
+      const velocity = deltaX / (deltaTime || 1);
 
-      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY) * 1.2 && Math.abs(deltaX) > 40 && deltaTime < 600;
-
-      if (isHorizontalSwipe) {
-        if (!isDrawerOpen) {
-          // Arrastar a partir da borda esquerda para abrir o menu lateral
-          if (deltaX > 40 && touchStartX.current < Math.min(window.innerWidth * 0.4, 120)) {
+      if (isDraggingRef.current || Math.abs(deltaX) > 20) {
+        if (!isDrawerOpenRef.current) {
+          // Abrir: se arrastou > 20% da largura ou deu um flick rápido para a direita
+          if (deltaX > DRAWER_WIDTH * 0.2 || velocity > 0.25) {
             setIsDrawerOpen(true);
+          } else {
+            setIsDrawerOpen(false);
           }
         } else {
-          // Arrastar para a esquerda para fechar o menu lateral
-          if (deltaX < -30) {
+          // Fechar: se arrastou > 20% para a esquerda ou deu flick rápido para esquerda
+          if (deltaX < -DRAWER_WIDTH * 0.2 || velocity < -0.25) {
             setIsDrawerOpen(false);
+          } else {
+            setIsDrawerOpen(true);
           }
         }
       }
 
-      touchStartX.current = null;
-      touchStartY.current = null;
+      touchStartRef.current = null;
+      isDraggingRef.current = false;
+      setDragProgress(null);
     };
 
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
     return () => {
       window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
     };
-  }, [isDrawerOpen]);
+  }, []);
 
   // Previne scroll de fundo quando o menu lateral estiver aberto
   useEffect(() => {
@@ -138,6 +198,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     onSelectTab(tab);
     setIsDrawerOpen(false);
   };
+
+  const currentPercent = dragProgress !== null ? dragProgress : (isDrawerOpen ? 1 : 0);
+  const translateX = -100 + (currentPercent * 100);
+  const backdropOpacity = currentPercent * 0.75;
+  const isVisibleOrDragging = isDrawerOpen || (dragProgress !== null && dragProgress > 0);
 
   return (
     <>
@@ -279,25 +344,39 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
+      {/* Gatilho invisível de borda na esquerda para captura de swipe ultra-fácil */}
+      {!isDrawerOpen && (
+        <div 
+          className="drawer-edge-trigger lg:hidden fixed left-0 top-0 bottom-0 w-8 z-30 touch-pan-y pointer-events-auto"
+          aria-hidden="true"
+        />
+      )}
+
       {/* ======================================================== */}
       {/* MENU LATERAL EXPANSIVO (DRAWER MOBILE & TABLET)         */}
       {/* ======================================================== */}
       <div 
-        className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
-          isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        className={`lg:hidden fixed inset-0 z-50 ${
+          isVisibleOrDragging ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
       >
-        {/* Overlay escuro */}
+        {/* Overlay escuro dinâmico */}
         <div 
           onClick={() => setIsDrawerOpen(false)}
-          className="absolute inset-0 bg-black/75 backdrop-blur-xs transition-opacity duration-300"
+          style={{
+            opacity: backdropOpacity,
+            transition: dragProgress !== null ? 'none' : 'opacity 280ms cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+          className="absolute inset-0 bg-black backdrop-blur-xs"
         />
 
-        {/* Painel lateral deslizante da esquerda */}
+        {/* Painel lateral deslizante da esquerda com física fluida */}
         <div 
-          className={`absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-[#1A1615] text-stone-100 border-r border-[#2F2926] shadow-2xl flex flex-col justify-between p-5 transition-transform duration-300 ease-out z-10 ${
-            isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          style={{
+            transform: `translateX(${translateX}%)`,
+            transition: dragProgress !== null ? 'none' : 'transform 280ms cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+          className="absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-[#1A1615] text-stone-100 border-r border-[#2F2926] shadow-2xl flex flex-col justify-between p-5 z-10 will-change-transform transform-gpu"
         >
           {/* Topo do Drawer */}
           <div className="space-y-4">
