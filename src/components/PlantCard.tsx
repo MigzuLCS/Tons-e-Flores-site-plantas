@@ -56,11 +56,18 @@ export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect
 
         {/* Informações da Planta */}
         <div className="p-5 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-brand-olive uppercase tracking-wider">
-              {plant.category}
-            </span>
-            <span className="text-xs text-brand-text-muted font-medium">{plant.potSize}</span>
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[11px] font-bold text-brand-olive uppercase tracking-wider truncate">
+                {plant.category}
+              </span>
+              {plant.cultivation && plant.cultivation !== 'Tradicional' && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-brand-olive-subtle text-brand-olive border border-brand-olive/20 shrink-0">
+                  {plant.cultivation}
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-brand-text-muted font-medium shrink-0">{plant.potSize}</span>
           </div>
 
           <div className="flex items-baseline justify-between gap-2">

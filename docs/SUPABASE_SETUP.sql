@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.plants (
     pot_size TEXT DEFAULT '',
     location TEXT DEFAULT '',
     status TEXT DEFAULT 'disponivel',
+    cultivation TEXT DEFAULT 'Tradicional',
     light TEXT DEFAULT 'meia-sombra',
     watering TEXT DEFAULT 'moderada',
     pet_friendly BOOLEAN DEFAULT false,
@@ -185,4 +186,41 @@ VALUES
   ('loc-04', 'Prateleira Suspensa • Pendentes', 'Estrutura vertical para vasos suspensos e jiboias'),
   ('loc-05', 'Entrada Principal • Destaques', 'Área de recepção e novidades da semana')
 ON CONFLICT (name) DO NOTHING;
+
+-- ------------------------------------------------------------------------------
+-- 5. TABELA DE TIPOS DE CULTIVO (store_cultivations)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.store_cultivations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.store_cultivations ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "Permitir leitura pública dos cultivos" ON public.store_cultivations;
+    DROP POLICY IF EXISTS "Permitir gerenciamento completo dos cultivos" ON public.store_cultivations;
+END $$;
+
+CREATE POLICY "Permitir leitura pública dos cultivos" 
+ON public.store_cultivations FOR SELECT 
+USING (true);
+
+CREATE POLICY "Permitir gerenciamento completo dos cultivos" 
+ON public.store_cultivations FOR ALL 
+USING (true)
+WITH CHECK (true);
+
+INSERT INTO public.store_cultivations (id, name, description)
+VALUES 
+  ('cul-01', 'Tradicional', 'Cultivo padrão estabelecido em vaso convencional'),
+  ('cul-02', 'Muda', 'Muda jovem em desenvolvimento para plantio ou transplante'),
+  ('cul-03', 'Bonsai', 'Árvore miniaturizada e cultivada com técnicas de poda e aramação'),
+  ('cul-04', 'Arranjo', 'Composição artística combinando uma ou mais espécies decorativas'),
+  ('cul-05', 'Kokedama', 'Técnica japonesa de cultivo em esfera de musgo suspensa ou apoiada')
+ON CONFLICT (name) DO NOTHING;
+
 

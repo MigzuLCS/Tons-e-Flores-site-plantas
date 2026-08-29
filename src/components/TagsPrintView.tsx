@@ -111,9 +111,10 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     ctx.font = 'bold 26px Arial, sans-serif';
     ctx.fillText(plant.name.slice(0, 18), 20, 115);
 
-    // Nome Científico / Vaso
+    // Nome Científico / Vaso / Cultivo
     ctx.font = 'italic 18px Arial, sans-serif';
-    ctx.fillText(`${plant.potSize}`, 20, 145);
+    const subDesc = `${plant.potSize || ''}${plant.cultivation && plant.cultivation !== 'Tradicional' ? ` • ${plant.cultivation}` : ''}`;
+    ctx.fillText(subDesc.slice(0, 22), 20, 145);
 
     // Dicas
     ctx.font = '16px Arial, sans-serif';
@@ -518,7 +519,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                               {plant.name}
                             </div>
                             <div className="text-[9px] text-stone-600 italic truncate">
-                              {plant.potSize}
+                              {plant.potSize}{plant.cultivation && plant.cultivation !== 'Tradicional' ? ` • ${plant.cultivation}` : ''}
                             </div>
                           </div>
 

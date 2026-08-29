@@ -96,7 +96,14 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
             {/* Título & Preço */}
             <div>
               <div className="flex items-center justify-between text-xs font-bold text-brand-olive uppercase tracking-wider">
-                <span>{plant.category}</span>
+                <div className="flex items-center gap-2">
+                  <span>{plant.category}</span>
+                  {plant.cultivation && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-olive-light text-brand-olive-text border border-brand-olive-border lowercase first-letter:uppercase">
+                      {plant.cultivation}
+                    </span>
+                  )}
+                </div>
                 <span className="text-2xl font-extrabold text-brand-text font-sans">
                   R$ {plant.price.toFixed(2).replace('.', ',')}
                 </span>

@@ -5,6 +5,7 @@ import { supabase } from './supabaseClient';
 
 const CATEGORIES_KEY = 'tonseflores_categories';
 const LOCATIONS_KEY = 'tonseflores_locations';
+const CULTIVATIONS_KEY = 'tonseflores_cultivations';
 const API_KEY_KEY = 'tonseflores_perenual_apikey';
 const GEMINI_API_KEY_KEY = 'tonseflores_gemini_apikey';
 
@@ -13,6 +14,20 @@ export interface StoreLocation {
   name: string;
   description: string;
 }
+
+export interface StoreCultivation {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export const DEFAULT_CULTIVATIONS: StoreCultivation[] = [
+  { id: 'cul-01', name: 'Tradicional', description: 'Cultivo padrão estabelecido em vaso convencional' },
+  { id: 'cul-02', name: 'Muda', description: 'Muda jovem em desenvolvimento para plantio ou transplante' },
+  { id: 'cul-03', name: 'Bonsai', description: 'Árvore miniaturizada e cultivada com técnicas de poda e aramação' },
+  { id: 'cul-04', name: 'Arranjo', description: 'Composição artística combinando uma ou mais espécies decorativas' },
+  { id: 'cul-05', name: 'Kokedama', description: 'Técnica japonesa de cultivo em esfera de musgo suspensa ou apoiada' },
+];
 
 const DEFAULT_CATEGORIES = [
   'Folhagens',
@@ -341,6 +356,187 @@ export const configService = {
   resetCategories(): string[] {
     localStorage.removeItem(CATEGORIES_KEY);
     return [...DEFAULT_CATEGORIES];
+  },
+
+  // ── Tipos de Cultivo (Sincronização Nuvem + Local) ───────────
+  getCultivationDetails(): StoreCultivation[] {
+    try {
+      const raw = localStorage.getItem(CULTIVATIONS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (typeof parsed[0] === 'string') {
+            return parsed.map((name: string, idx: number) => ({
+              id: `cul-${String(idx + 1).padStart(2, '0')}`,
+              name,
+              description: '',
+            }));
+          }
+          return parsed as StoreCultivation[];
+        }
+      }
+    } catch {}
+    return [...DEFAULT_CULTIVATIONS];
+  },
+
+  getCultivations(): string[] {
+    return this.getCultivationDetails().map(c => c.name);
+  },
+
+  setCultivationDetails(details: StoreCultivation[]): void {
+    localStorage.setItem(CULTIVATIONS_KEY, JSON.stringify(details));
+  },
+
+  setCultivations(cultNames: string[]): void {
+    const current = this.getCultivationDetails();
+    const updated: StoreCultivation[] = cultNames.map((name, idx) => {
+      const existing = current.find(c => c.name === name);
+      return existing || {
+        id: `cul-${String(idx + 1).padStart(2, '0')}`,
+        name,
+        description: '',
+      };
+    });
+    this.setCultivationDetails(updated);
+  },
+
+  generateNextCultivationId(existing: StoreCultivation[]): string {
+    let maxNum = 0;
+    for (const cul of existing) {
+      const match = cul.id?.match(/^cul-(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num < 1000 && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+    const nextNum = maxNum + 1;
+    return `cul-${String(nextNum).padStart(2, '0')}`;
+  },
+
+  async syncCultivationsWithCloud(): Promise<StoreCultivation[]> {
+    try {
+      const { data, error } = await supabase
+        .from('store_cultivations')
+        .select('id, name, description')
+        .order('id');
+
+      if (!error && data && data.length > 0) {
+        const cloudCultivations: StoreCultivation[] = data.map((row: any, idx: number) => ({
+          id: row.id || `cul-${String(idx + 1).padStart(2, '0')}`,
+          name: row.name,
+          description: row.description || '',
+        }));
+
+        const existing = this.getCultivationDetails();
+        const mergedMap = new Map<string, StoreCultivation>();
+
+        for (const cul of cloudCultivations) {
+          mergedMap.set(cul.name, cul);
+        }
+        for (const cul of existing) {
+          if (!mergedMap.has(cul.name)) {
+            mergedMap.set(cul.name, cul);
+          }
+        }
+
+        const finalCultivations = Array.from(mergedMap.values());
+        this.setCultivationDetails(finalCultivations);
+        return finalCultivations;
+      }
+    } catch (err) {
+      console.warn('Sincronização de cultivos offline ou tabela store_cultivations ainda não criada no Supabase:', err);
+    }
+    return this.getCultivationDetails();
+  },
+
+  async addCultivation(name: string, description: string = ''): Promise<StoreCultivation[]> {
+    const list = this.getCultivationDetails();
+    const trimmed = name.trim();
+    if (!trimmed) return list;
+
+    const exists = list.some(c => c.name.toLowerCase() === trimmed.toLowerCase());
+    if (!exists) {
+      const nextId = this.generateNextCultivationId(list);
+      const newCult: StoreCultivation = {
+        id: nextId,
+        name: trimmed,
+        description: description.trim() || 'Tipo de cultivo de planta',
+      };
+
+      const updated = [...list, newCult];
+      this.setCultivationDetails(updated);
+
+      try {
+        await supabase
+          .from('store_cultivations')
+          .upsert({
+            id: nextId,
+            name: trimmed,
+            description: newCult.description,
+          }, { onConflict: 'name' });
+      } catch (err) {
+        console.warn('Erro ao salvar tipo de cultivo no Supabase:', err);
+      }
+
+      return updated;
+    }
+    return list;
+  },
+
+  async updateCultivation(oldName: string, newName: string, newDescription: string): Promise<StoreCultivation[]> {
+    const trimmedNew = newName.trim();
+    const trimmedDesc = newDescription.trim();
+    if (!trimmedNew) return this.getCultivationDetails();
+
+    const list = this.getCultivationDetails();
+    const updated = list.map(c => {
+      if (c.name === oldName) {
+        return { ...c, name: trimmedNew, description: trimmedDesc || c.description };
+      }
+      return c;
+    });
+
+    this.setCultivationDetails(updated);
+
+    try {
+      await supabase
+        .from('store_cultivations')
+        .update({ name: trimmedNew, description: trimmedDesc })
+        .eq('name', oldName);
+
+      if (oldName !== trimmedNew) {
+        await supabase
+          .from('plants')
+          .update({ cultivation: trimmedNew })
+          .eq('cultivation', oldName);
+      }
+    } catch (err) {
+      console.warn('Erro ao atualizar tipo de cultivo no Supabase:', err);
+    }
+
+    return updated;
+  },
+
+  async removeCultivation(name: string): Promise<StoreCultivation[]> {
+    const list = this.getCultivationDetails().filter(c => c.name !== name);
+    this.setCultivationDetails(list);
+
+    try {
+      await supabase
+        .from('store_cultivations')
+        .delete()
+        .eq('name', name);
+    } catch (err) {
+      console.warn('Erro ao remover tipo de cultivo do Supabase:', err);
+    }
+    return list;
+  },
+
+  resetCultivations(): StoreCultivation[] {
+    localStorage.removeItem(CULTIVATIONS_KEY);
+    return [...DEFAULT_CULTIVATIONS];
   },
 
   // ── Chaves de API de Classificação Botânica & IA ──────────

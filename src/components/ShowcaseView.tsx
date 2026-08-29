@@ -38,6 +38,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCultivation, setSelectedCultivation] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<string>(activeLocationFilter || 'all');
   const [selectedLight, setSelectedLight] = useState<string>('all');
   const [selectedWater, setSelectedWater] = useState<string>('all');
@@ -57,6 +58,28 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       setSelectedLocation(activeLocationFilter);
     }
   }, [activeLocationFilter]);
+
+  // Carrega todos os tipos de cultivo cadastrados na loja dinamicamente
+  const allCultivations = useMemo(() => {
+    const configuredCuls = configService.getCultivations();
+    const plantCuls = plants.map(p => p.cultivation || 'Tradicional').filter(Boolean);
+    const merged = Array.from(new Set([...configuredCuls, ...plantCuls]));
+    return merged.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [plants]);
+
+  // Contagem de vasos por tipo de cultivo (apenas vasos disponíveis e reservados)
+  const cultivationCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: plants.filter(p => p.status !== 'vendida').length
+    };
+    for (const p of plants) {
+      if (p.status !== 'vendida') {
+        const cul = p.cultivation || 'Tradicional';
+        counts[cul] = (counts[cul] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [plants]);
 
   // Carrega todas as localizações/bancadas cadastradas na loja dinamicamente
   const allLocations = useMemo(() => {
@@ -157,6 +180,9 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       // Categoria
       const matchesCategory = selectedCategory === 'all' || plant.category === selectedCategory;
 
+      // Cultivo / Formato
+      const matchesCultivation = selectedCultivation === 'all' || (plant.cultivation || 'Tradicional') === selectedCultivation;
+
       // Localização / Bancada
       const matchesLocation = selectedLocation === 'all' || plant.location === selectedLocation;
 
@@ -169,7 +195,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       // Pets
       const matchesPets = !petFriendlyOnly || plant.petFriendly;
 
-      return matchesSearch && matchesCategory && matchesLocation && matchesLight && matchesWater && matchesPets;
+      return matchesSearch && matchesCategory && matchesCultivation && matchesLocation && matchesLight && matchesWater && matchesPets;
     });
 
     // Regra 2: Ordenação - Disponíveis no topo, Reservadas abaixo
@@ -178,11 +204,12 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       if (a.status === 'reservada' && b.status === 'disponivel') return 1;
       return 0;
     });
-  }, [plants, searchTerm, selectedCategory, selectedLocation, selectedLight, selectedWater, petFriendlyOnly]);
+  }, [plants, searchTerm, selectedCategory, selectedCultivation, selectedLocation, selectedLight, selectedWater, petFriendlyOnly]);
 
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedCategory('all');
+    setSelectedCultivation('all');
     setSelectedLocation('all');
     setSelectedLight('all');
     setSelectedWater('all');
@@ -208,6 +235,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
   const hasActiveFilters =
     searchTerm !== '' ||
     selectedCategory !== 'all' ||
+    selectedCultivation !== 'all' ||
     selectedLocation !== 'all' ||
     selectedLight !== 'all' ||
     selectedWater !== 'all' ||
@@ -217,12 +245,13 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
     let count = 0;
     if (searchTerm.trim() !== '') count++;
     if (selectedCategory !== 'all') count++;
+    if (selectedCultivation !== 'all') count++;
     if (selectedLocation !== 'all') count++;
     if (selectedLight !== 'all') count++;
     if (selectedWater !== 'all') count++;
     if (petFriendlyOnly) count++;
     return count;
-  }, [searchTerm, selectedCategory, selectedLocation, selectedLight, selectedWater, petFriendlyOnly]);
+  }, [searchTerm, selectedCategory, selectedCultivation, selectedLocation, selectedLight, selectedWater, petFriendlyOnly]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in duration-300">
@@ -348,6 +377,19 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                     onClick={() => setSelectedCategory('all')} 
                     className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
                     title="Remover categoria"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedCultivation !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                  🪴 Cultivo: {selectedCultivation}
+                  <button 
+                    onClick={() => setSelectedCultivation('all')} 
+                    className="hover:text-red-500 font-bold ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center cursor-pointer"
+                    title="Remover cultivo"
                   >
                     ×
                   </button>
@@ -608,6 +650,63 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                 + Ver Todas ({allCategories.length})
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Barra de Seleção e Filtro de Cultivo / Formato */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-2 border-t border-brand-border">
+          {/* Label de Cultivo */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-surface-subtle text-brand-text border border-brand-border shrink-0">
+            <span>🪴</span>
+            <span>Cultivo</span>
+          </div>
+
+          {/* Chips de Cultivo */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar flex-1">
+            <button 
+              onClick={() => setSelectedCultivation('all')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+                selectedCultivation === 'all' 
+                  ? 'bg-brand-olive text-white shadow-xs font-bold' 
+                  : 'bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light'
+              }`}
+            >
+              Todos ({cultivationCounts.all || 0})
+            </button>
+
+            {allCultivations.map((cul) => {
+              const isSelected = selectedCultivation === cul;
+              const getIcon = (name: string) => {
+                const lower = name.toLowerCase();
+                if (lower.includes('tradicional')) return '🪴';
+                if (lower.includes('muda')) return '🌱';
+                if (lower.includes('bonsai')) return '🎍';
+                if (lower.includes('arranjo')) return '💐';
+                if (lower.includes('kokedama') || lower.includes('coquedama')) return '🧶';
+                return '🌿';
+              };
+
+              return (
+                <button 
+                  key={cul}
+                  onClick={() => setSelectedCultivation(isSelected ? 'all' : cul)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-brand-olive text-white shadow-xs font-bold'
+                      : 'bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light'
+                  }`}
+                >
+                  <span>{getIcon(cul)}</span>
+                  <span>{cul}</span>
+                  {cultivationCounts[cul] !== undefined && (
+                    <span className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-brand-text-muted'}`}>
+                      ({cultivationCounts[cul]})
+                    </span>
+                  )}
+                  {isSelected && <span className="text-[10px] text-white/80 ml-0.5">✕</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -1594,6 +1693,39 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                     }`}
                   >
                     {cat} {categoryCounts[cat] !== undefined && `(${categoryCounts[cat]})`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Seção: Tipo de Cultivo */}
+            <div>
+              <h4 className="font-bold text-brand-text mb-2 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">🪴 Tipo de Cultivo</span>
+                <span className="text-[10px] text-brand-olive font-semibold">{allCultivations.length} tipos</span>
+              </h4>
+              <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto no-scrollbar p-0.5">
+                <button
+                  onClick={() => setSelectedCultivation('all')}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                    selectedCultivation === 'all'
+                      ? 'bg-brand-olive text-white shadow-xs font-bold'
+                      : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
+                  }`}
+                >
+                  Todos ({cultivationCounts.all || 0})
+                </button>
+                {allCultivations.map(cul => (
+                  <button
+                    key={cul}
+                    onClick={() => setSelectedCultivation(cul === selectedCultivation ? 'all' : cul)}
+                    className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
+                      selectedCultivation === cul
+                        ? 'bg-brand-olive text-white shadow-xs font-bold'
+                        : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
+                    }`}
+                  >
+                    {cul} {cultivationCounts[cul] !== undefined && `(${cultivationCounts[cul]})`}
                   </button>
                 ))}
               </div>

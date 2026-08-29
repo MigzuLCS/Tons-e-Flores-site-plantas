@@ -31,6 +31,7 @@ const WATERING_OPTIONS = [
 export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isOpen, onClose, onSave }) => {
   const [categories, setCategories] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
+  const [cultivations, setCultivations] = useState<string[]>([]);
   const [formData, setFormData] = useState<Partial<Plant>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
@@ -54,8 +55,10 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
   useEffect(() => {
     setCategories(configService.getCategories());
     setLocations(configService.getLocations());
+    setCultivations(configService.getCultivations());
     configService.syncCategoriesWithCloud().then(setCategories);
     configService.syncLocationsWithCloud().then(locs => setLocations(locs.map(l => l.name)));
+    configService.syncCultivationsWithCloud().then(culs => setCultivations(culs.map(c => c.name)));
   }, [isOpen]);
 
   useEffect(() => {
@@ -76,6 +79,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         name: '',
         scientificName: '',
         category: cats[0] || 'Folhagens',
+        cultivation: 'Tradicional',
         price: 45.0,
         potSize: 'Pote 15',
         location: locs[0] || 'Bancada Central • Estufa 01',
@@ -243,6 +247,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         name: formData.name!,
         scientificName: formData.scientificName || formData.name!,
         category: formData.category || categories[0] || 'Folhagens',
+        cultivation: formData.cultivation || 'Tradicional',
         price: Number(formData.price) || 0,
         potSize: formData.potSize || 'Pote 15',
         location: loc,
@@ -440,6 +445,49 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* SELETOR DE CULTIVO (Destaque visual no topo) */}
+            <div className="bg-brand-surface-subtle/80 p-3.5 rounded-2xl border border-brand-border space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-brand-text flex items-center gap-1.5">
+                  <span>🌿</span> Tipo de Cultivo / Apresentação *
+                </label>
+                <span className="text-[11px] text-brand-text-muted">
+                  Padrão: <strong className="text-brand-olive font-semibold">Tradicional</strong>
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {cultivations.map(cul => {
+                  const isSelected = (formData.cultivation || 'Tradicional') === cul;
+                  const getIcon = (name: string) => {
+                    const lower = name.toLowerCase();
+                    if (lower.includes('tradicional')) return '🪴';
+                    if (lower.includes('muda')) return '🌱';
+                    if (lower.includes('bonsai')) return '🎍';
+                    if (lower.includes('arranjo')) return '💐';
+                    if (lower.includes('kokedama') || lower.includes('coquedama')) return '🧶';
+                    return '🌿';
+                  };
+
+                  return (
+                    <button
+                      key={cul}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, cultivation: cul })}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                        isSelected
+                          ? 'bg-brand-olive text-white shadow-sm ring-2 ring-brand-olive/30 scale-[1.02]'
+                          : 'bg-brand-surface text-brand-text-muted hover:text-brand-text border border-brand-border hover:border-brand-olive/40'
+                      }`}
+                    >
+                      <span className="text-sm">{getIcon(cul)}</span>
+                      <span>{cul}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
