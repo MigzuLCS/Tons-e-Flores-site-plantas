@@ -402,7 +402,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
               )}
 
               {selectedLight !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-full shrink-0 font-medium animate-in fade-in">
                   ☀️ {selectedLight === 'sol-pleno' ? 'Sol Pleno' : selectedLight === 'meia-sombra' ? 'Meia-Sombra' : 'Sombra'}
                   <button 
                     onClick={() => setSelectedLight('all')} 
@@ -415,7 +415,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
               )}
 
               {selectedWater !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-500/30 rounded-full shrink-0 font-medium animate-in fade-in">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-full shrink-0 font-medium animate-in fade-in">
                   💧 Rega {selectedWater === 'baixa' ? 'Baixa' : selectedWater === 'moderada' ? 'Moderada' : 'Frequente'}
                   <button 
                     onClick={() => setSelectedWater('all')} 
@@ -628,7 +628,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
               )}
 
               {selectedLight !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 rounded-xl font-medium animate-in fade-in">
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-xl font-medium animate-in fade-in">
                   ☀️ Luz: {selectedLight === 'sol-pleno' ? 'Sol Pleno' : selectedLight === 'meia-sombra' ? 'Meia-Sombra' : 'Sombra'}
                   <button 
                     onClick={() => setSelectedLight('all')} 
@@ -641,7 +641,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
               )}
 
               {selectedWater !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-500/30 rounded-xl font-medium animate-in fade-in">
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-xl font-medium animate-in fade-in">
                   💧 Rega: {selectedWater === 'baixa' ? 'Baixa' : selectedWater === 'moderada' ? 'Moderada' : 'Frequente'}
                   <button 
                     onClick={() => setSelectedWater('all')} 
@@ -1009,18 +1009,18 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       onClick={() => setSelectedLight('sol-pleno')}
                       className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         selectedLight === 'sol-pleno'
-                          ? 'bg-amber-500/15 border-amber-500 text-amber-900 dark:text-amber-300 font-bold shadow-xs'
-                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-amber-500/10'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light'
                       }`}
                     >
                       <div className="flex items-start gap-2">
-                        <Sun className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <Sun className="w-4 h-4 text-brand-olive shrink-0 mt-0.5" />
                         <div>
                           <div className="font-bold text-xs">Sol Pleno</div>
                           <div className="text-[10px] text-brand-text-muted">4h+ sol direto/dia ({careCounts.solPleno})</div>
                         </div>
                       </div>
-                      {selectedLight === 'sol-pleno' && <Check className="w-3.5 h-3.5 text-amber-600 font-bold" />}
+                      {selectedLight === 'sol-pleno' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
                     </button>
 
                     {/* Meia Sombra */}
@@ -1028,18 +1028,18 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       onClick={() => setSelectedLight('meia-sombra')}
                       className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         selectedLight === 'meia-sombra'
-                          ? 'bg-orange-500/15 border-orange-500 text-orange-900 dark:text-orange-300 font-bold shadow-xs'
-                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-orange-500/10'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light'
                       }`}
                     >
                       <div className="flex items-start gap-2">
-                        <CloudSun className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                        <CloudSun className="w-4 h-4 text-brand-olive shrink-0 mt-0.5" />
                         <div>
                           <div className="font-bold text-xs">Meia Sombra</div>
                           <div className="text-[10px] text-brand-text-muted">Luz indireta ({careCounts.meiaSombra})</div>
                         </div>
                       </div>
-                      {selectedLight === 'meia-sombra' && <Check className="w-3.5 h-3.5 text-orange-600 font-bold" />}
+                      {selectedLight === 'meia-sombra' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
                     </button>
 
                     {/* Sombra Difusa */}
@@ -1047,18 +1047,18 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       onClick={() => setSelectedLight('sombra-difusa')}
                       className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         selectedLight === 'sombra-difusa'
-                          ? 'bg-indigo-500/15 border-indigo-500 text-indigo-900 dark:text-indigo-300 font-bold shadow-xs'
-                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-indigo-500/10'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light'
                       }`}
                     >
                       <div className="flex items-start gap-2">
-                        <Cloud className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                        <Cloud className="w-4 h-4 text-brand-olive shrink-0 mt-0.5" />
                         <div>
                           <div className="font-bold text-xs">Sombra Difusa</div>
                           <div className="text-[10px] text-brand-text-muted">Sem sol direto ({careCounts.sombraDifusa})</div>
                         </div>
                       </div>
-                      {selectedLight === 'sombra-difusa' && <Check className="w-3.5 h-3.5 text-indigo-600 font-bold" />}
+                      {selectedLight === 'sombra-difusa' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
                     </button>
                   </div>
                 </div>
@@ -1102,18 +1102,18 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       onClick={() => setSelectedWater('baixa')}
                       className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         selectedWater === 'baixa'
-                          ? 'bg-blue-500/15 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-xs'
-                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-blue-500/10'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light'
                       }`}
                     >
                       <div className="flex items-start gap-2">
-                        <Droplets className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <Droplets className="w-4 h-4 text-brand-olive shrink-0 mt-0.5" />
                         <div>
                           <div className="font-bold text-xs">Pouca Rega</div>
                           <div className="text-[10px] text-brand-text-muted">Solo seco (1x cada 10-15d) ({careCounts.poucaRega})</div>
                         </div>
                       </div>
-                      {selectedWater === 'baixa' && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                      {selectedWater === 'baixa' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
                     </button>
 
                     {/* Rega Moderada */}
@@ -1121,18 +1121,18 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       onClick={() => setSelectedWater('moderada')}
                       className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         selectedWater === 'moderada'
-                          ? 'bg-blue-500/15 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-xs'
-                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-blue-500/10'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light'
                       }`}
                     >
                       <div className="flex items-start gap-2">
-                        <Droplet className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <Droplet className="w-4 h-4 text-brand-olive shrink-0 mt-0.5" />
                         <div>
                           <div className="font-bold text-xs">Moderada</div>
                           <div className="text-[10px] text-brand-text-muted">1 a 2x por semana ({careCounts.regaModerada})</div>
                         </div>
                       </div>
-                      {selectedWater === 'moderada' && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                      {selectedWater === 'moderada' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
                     </button>
 
                     {/* Rega Frequente */}
@@ -1140,18 +1140,18 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       onClick={() => setSelectedWater('frequente')}
                       className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                         selectedWater === 'frequente'
-                          ? 'bg-blue-500/15 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-xs'
-                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-blue-500/10'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light'
                       }`}
                     >
                       <div className="flex items-start gap-2">
-                        <Droplets className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                        <Droplets className="w-4 h-4 text-brand-olive shrink-0 mt-0.5" />
                         <div>
                           <div className="font-bold text-xs">Frequente</div>
                           <div className="text-[10px] text-brand-text-muted">Solo sempre úmido ({careCounts.regaFrequente})</div>
                         </div>
                       </div>
-                      {selectedWater === 'frequente' && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                      {selectedWater === 'frequente' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
                     </button>
                   </div>
                 </div>
@@ -1381,7 +1381,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   onClick={() => setSelectedLight(selectedLight === 'sol-pleno' ? 'all' : 'sol-pleno')}
                   className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
                     selectedLight === 'sol-pleno'
-                      ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold shadow-xs'
+                      ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
                       : 'bg-brand-surface-subtle border-brand-border text-brand-text'
                   }`}
                 >
@@ -1391,7 +1391,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   onClick={() => setSelectedLight(selectedLight === 'meia-sombra' ? 'all' : 'meia-sombra')}
                   className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
                     selectedLight === 'meia-sombra'
-                      ? 'bg-orange-50 border-orange-300 text-orange-900 font-bold shadow-xs'
+                      ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
                       : 'bg-brand-surface-subtle border-brand-border text-brand-text'
                   }`}
                 >
@@ -1401,7 +1401,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   onClick={() => setSelectedLight(selectedLight === 'sombra-difusa' ? 'all' : 'sombra-difusa')}
                   className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
                     selectedLight === 'sombra-difusa'
-                      ? 'bg-indigo-50 border-indigo-300 text-indigo-900 font-bold shadow-xs'
+                      ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
                       : 'bg-brand-surface-subtle border-brand-border text-brand-text'
                   }`}
                 >
@@ -1418,7 +1418,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   onClick={() => setSelectedWater(selectedWater === 'baixa' ? 'all' : 'baixa')}
                   className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
                     selectedWater === 'baixa'
-                      ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs'
+                      ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
                       : 'bg-brand-surface-subtle border-brand-border text-brand-text'
                   }`}
                 >
@@ -1428,7 +1428,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   onClick={() => setSelectedWater(selectedWater === 'moderada' ? 'all' : 'moderada')}
                   className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
                     selectedWater === 'moderada'
-                      ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs'
+                      ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
                       : 'bg-brand-surface-subtle border-brand-border text-brand-text'
                   }`}
                 >
@@ -1438,7 +1438,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   onClick={() => setSelectedWater(selectedWater === 'frequente' ? 'all' : 'frequente')}
                   className={`p-2 rounded-xl font-semibold text-center transition-all cursor-pointer border ${
                     selectedWater === 'frequente'
-                      ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs'
+                      ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
                       : 'bg-brand-surface-subtle border-brand-border text-brand-text'
                   }`}
                 >

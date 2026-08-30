@@ -13,7 +13,7 @@ export const CareBadge: React.FC<CareBadgeProps> = React.memo(({ type, value }) 
     if (lightVal === 'sol-pleno') {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-surface-subtle text-brand-text border border-brand-border text-xs font-medium">
-          <Sun className="w-3.5 h-3.5 text-amber-500/90 shrink-0" />
+          <Sun className="w-3.5 h-3.5 text-brand-olive shrink-0" />
           Sol Pleno
         </span>
       );
@@ -21,7 +21,7 @@ export const CareBadge: React.FC<CareBadgeProps> = React.memo(({ type, value }) 
     if (lightVal === 'meia-sombra') {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-surface-subtle text-brand-text border border-brand-border text-xs font-medium">
-          <CloudSun className="w-3.5 h-3.5 text-orange-400/90 shrink-0" />
+          <CloudSun className="w-3.5 h-3.5 text-brand-olive shrink-0" />
           Meia Sombra
         </span>
       );
@@ -39,7 +39,7 @@ export const CareBadge: React.FC<CareBadgeProps> = React.memo(({ type, value }) 
     if (waterVal === 'baixa') {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-surface-subtle text-brand-text border border-brand-border text-xs font-medium">
-          <Droplets className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <Droplets className="w-3.5 h-3.5 text-brand-olive shrink-0" />
           Pouca Rega
         </span>
       );
@@ -47,14 +47,14 @@ export const CareBadge: React.FC<CareBadgeProps> = React.memo(({ type, value }) 
     if (waterVal === 'moderada') {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-surface-subtle text-brand-text border border-brand-border text-xs font-medium">
-          <Droplets className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+          <Droplets className="w-3.5 h-3.5 text-brand-olive shrink-0" />
           Rega 1-2x/sem
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-surface-subtle text-brand-text border border-brand-border text-xs font-medium">
-        <Droplets className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+        <Droplets className="w-3.5 h-3.5 text-brand-olive shrink-0" />
         Solo Úmido
       </span>
     );
@@ -72,7 +72,7 @@ export const CareBadge: React.FC<CareBadgeProps> = React.memo(({ type, value }) 
     }
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-surface-subtle text-brand-text-muted border border-brand-border text-xs font-medium">
-        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+        <AlertTriangle className="w-3.5 h-3.5 text-brand-nude shrink-0" />
         Tóxica para Pets
       </span>
     );

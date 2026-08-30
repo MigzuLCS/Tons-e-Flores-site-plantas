@@ -242,12 +242,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
 
           <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-700 dark:text-amber-200">
+            <div className="w-10 h-10 rounded-xl bg-[#9E6738]/15 dark:bg-[#7D4D24]/30 border border-[#9E6738]/30 flex items-center justify-center text-[#9E6738] dark:text-[#E6B894]">
               <Clock className="w-5 h-5" />
             </div>
             <div>
               <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Reservadas</div>
-              <div className="text-xl font-extrabold text-amber-700 dark:text-amber-200">{stats.reserved}</div>
+              <div className="text-xl font-extrabold text-[#9E6738] dark:text-[#E6B894]">{stats.reserved}</div>
             </div>
           </div>
 
@@ -480,7 +480,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           plant.status === 'disponivel'
                             ? 'bg-brand-olive-light border-brand-olive-border text-brand-olive-text'
                             : plant.status === 'reservada'
-                            ? 'bg-amber-500/15 border-amber-400/50 text-amber-900 dark:text-amber-300'
+                            ? 'bg-[#9E6738]/15 border-[#9E6738]/30 text-[#9E6738] dark:text-[#E6B894]'
                             : 'bg-brand-nude-light border-brand-nude-border text-brand-nude-text'
                         }`}
                       >
@@ -689,19 +689,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   {/* Badges de Cuidados */}
                   <div className="flex flex-wrap gap-1.5 text-[10px] font-semibold">
                     <span className="px-2 py-0.5 rounded-lg bg-brand-surface-subtle border border-brand-border text-brand-text-muted flex items-center gap-1">
-                      <Sun className="w-3 h-3 text-amber-500" />
+                      <Sun className="w-3 h-3 text-brand-olive" />
                       {preset.light === 'sol-pleno' ? 'Sol Pleno' : preset.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra Difusa'}
                     </span>
                     <span className="px-2 py-0.5 rounded-lg bg-brand-surface-subtle border border-brand-border text-brand-text-muted flex items-center gap-1">
-                      <Droplets className="w-3 h-3 text-sky-500" />
+                      <Droplets className="w-3 h-3 text-brand-olive" />
                       {preset.watering === 'frequente' ? 'Rega Frequente' : preset.watering === 'moderada' ? 'Rega Moderada' : 'Pouca Rega'}
                     </span>
-                    <span className={`px-2 py-0.5 rounded-lg border flex items-center gap-1 ${
+                    <span className={`px-2 py-0.5 rounded-lg border flex items-center gap-1 font-semibold ${
                       preset.petFriendly 
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
-                        : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800'
+                        ? 'bg-brand-olive-light text-brand-olive-text border-brand-olive-border' 
+                        : 'bg-brand-nude-light text-brand-nude-text border-brand-nude-border'
                     }`}>
-                      {preset.petFriendly ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
+                      {preset.petFriendly ? <ShieldCheck className="w-3 h-3 text-brand-olive" /> : <ShieldAlert className="w-3 h-3 text-brand-nude" />}
                       {preset.petFriendly ? 'Pet Friendly' : 'Tóxica'}
                     </span>
                   </div>

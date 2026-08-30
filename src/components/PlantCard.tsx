@@ -37,7 +37,7 @@ export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect
               </span>
             )}
             {plant.status === 'reservada' && (
-              <span className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-amber-400/40">
+              <span className="bg-[#9E6738] dark:bg-[#7D4D24] text-[#FDF6F0] text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs border border-[#C2854F]/40">
                 Reservada
               </span>
             )}

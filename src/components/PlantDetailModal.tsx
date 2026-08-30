@@ -82,7 +82,7 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
                 plant.status === 'disponivel' 
                   ? 'bg-brand-olive text-white border-brand-olive/50' 
                   : plant.status === 'reservada' 
-                  ? 'bg-amber-500 text-white border-amber-400/40' 
+                  ? 'bg-[#9E6738] dark:bg-[#7D4D24] text-[#FDF6F0] border-[#C2854F]/40' 
                   : 'bg-brand-nude text-white border-brand-nude-border/50'
               }`}>
                 {plant.status === 'disponivel' ? 'Disponível na Loja' : plant.status === 'reservada' ? 'Reservada' : 'Vendida'}
@@ -121,8 +121,8 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
               {/* Iluminação */}
               <div className="p-3 rounded-2xl flex flex-col items-center justify-center bg-brand-surface-subtle border border-brand-border space-y-1">
                 <div className="w-8 h-8 rounded-xl bg-brand-surface border border-brand-border/60 flex items-center justify-center">
-                  {plant.light === 'sol-pleno' && <Sun className="w-4 h-4 text-amber-500/90" />}
-                  {plant.light === 'meia-sombra' && <CloudSun className="w-4 h-4 text-orange-400/90" />}
+                  {plant.light === 'sol-pleno' && <Sun className="w-4 h-4 text-brand-olive" />}
+                  {plant.light === 'meia-sombra' && <CloudSun className="w-4 h-4 text-brand-olive" />}
                   {(plant.light === 'sombra-difusa' || !plant.light) && <Cloud className="w-4 h-4 text-brand-text-muted" />}
                 </div>
                 <span className="text-xs font-semibold text-brand-text leading-tight mt-0.5">
@@ -134,7 +134,7 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
               {/* Rega */}
               <div className="p-3 rounded-2xl flex flex-col items-center justify-center bg-brand-surface-subtle border border-brand-border space-y-1">
                 <div className="w-8 h-8 rounded-xl bg-brand-surface border border-brand-border/60 flex items-center justify-center">
-                  <Droplets className="w-4 h-4 text-sky-400" />
+                  <Droplets className="w-4 h-4 text-brand-olive" />
                 </div>
                 <span className="text-xs font-semibold text-brand-text leading-tight mt-0.5">
                   {plant.watering === 'baixa' ? 'Pouca' : plant.watering === 'moderada' ? 'Moderada' : 'Frequente'}
@@ -151,12 +151,12 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
                   plant.petFriendly 
                     ? 'bg-brand-nude/20 text-brand-nude' 
-                    : 'bg-brand-surface border border-brand-border/60 text-amber-500'
+                    : 'bg-brand-surface border border-brand-border/60 text-brand-nude'
                 }`}>
                   {plant.petFriendly ? (
                     <Heart className="w-4 h-4 fill-brand-nude text-brand-nude" />
                   ) : (
-                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    <AlertTriangle className="w-4 h-4 text-brand-nude" />
                   )}
                 </div>
                 <span className="text-xs font-semibold leading-tight mt-0.5">
