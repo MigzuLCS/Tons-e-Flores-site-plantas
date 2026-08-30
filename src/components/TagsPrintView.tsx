@@ -4,8 +4,6 @@ import {
   CheckSquare, 
   Square, 
   Flower2, 
-  Droplets, 
-  Sun, 
   Sparkles, 
   Download, 
   MapPin, 
@@ -21,7 +19,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import type { Plant } from '../types/plant';
 import { configService } from '../services/configService';
-import { labelExportService } from '../services/labelExportService';
+import { labelExportService, type BancadaExportItem } from '../services/labelExportService';
 
 interface TagsPrintViewProps {
   plants: Plant[];
@@ -40,7 +38,6 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     return plants.filter(p => p.status !== 'vendida').map(p => p.id);
   });
 
-  const [printMode, setPrintMode] = useState<'niimbot' | 'sheet_a4'>('niimbot');
   const [showPrice, setShowPrice] = useState(true);
   const [showCareIcons, setShowCareIcons] = useState(true);
   const tagRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -70,6 +67,16 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     return plants.filter(p => p.location === selectedBancada && p.status !== 'vendida');
   }, [plants, selectedBancada]);
 
+  // Lista estruturada de todas as bancadas para exportação em lote
+  const bancadasList: BancadaExportItem[] = useMemo(() => {
+    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+    return allLocations.map(loc => ({
+      name: loc,
+      count: plants.filter(p => p.location === loc && p.status !== 'vendida').length,
+      url: `${baseUrl}#bancada=${encodeURIComponent(loc)}`
+    }));
+  }, [allLocations, plants]);
+
   // Ações de seleção de vasos
   const toggleSelectAll = () => {
     const activePlants = plants.filter(p => p.status !== 'vendida');
@@ -92,7 +99,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     return plants.filter(p => selectedIds.includes(p.id));
   }, [plants, selectedIds]);
 
-  // ── Exportações em Lote ──────────────────────────────────────
+  // ── Exportações de Vasos ──────────────────────────────────────
   const handleExportXls = () => {
     labelExportService.exportToXls(plantsToPrint);
   };
@@ -108,7 +115,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       await labelExportService.exportThermalPdf(plantsToPrint, showPrice, showCareIcons);
     } catch (err) {
       console.error('Erro ao gerar PDF térmico:', err);
-      alert('Houve um problema ao gerar o PDF. Verifique se os elementos foram renderizados.');
+      alert('Houve um problema ao gerar o PDF térmico.');
     } finally {
       setIsExportingPdf(false);
     }
@@ -128,6 +135,49 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     } catch (err) {
       console.error('Erro ao gerar arquivo ZIP:', err);
       alert('Houve um problema ao empacotar as imagens.');
+    } finally {
+      setIsExportingZip(false);
+      setZipProgress(null);
+    }
+  };
+
+  // ── Exportações de Bancadas ──────────────────────────────────
+  const handleExportBancadasXls = () => {
+    labelExportService.exportBancadasXls(bancadasList);
+  };
+
+  const handleExportBancadasCsv = () => {
+    labelExportService.exportBancadasCsv(bancadasList);
+  };
+
+  const handleExportBancadasPdf = async () => {
+    setIsExportingPdf(true);
+    try {
+      if (bancadaFormat === 'display_a5') {
+        await labelExportService.exportBancadasDisplayA5Pdf(bancadasList);
+      } else {
+        await labelExportService.exportBancadasThermalPdf(bancadasList);
+      }
+    } catch (err) {
+      console.error('Erro ao gerar PDF de bancadas:', err);
+      alert('Houve um problema ao gerar o PDF de bancadas.');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleExportBancadasZip = async () => {
+    setIsExportingZip(true);
+    setZipProgress({ current: 0, total: bancadasList.length });
+    try {
+      await labelExportService.exportBancadasZip(
+        bancadasList,
+        bancadaFormat,
+        (current, total) => setZipProgress({ current, total })
+      );
+    } catch (err) {
+      console.error('Erro ao gerar ZIP de bancadas:', err);
+      alert('Houve um problema ao gerar o arquivo ZIP de bancadas.');
     } finally {
       setIsExportingZip(false);
       setZipProgress(null);
@@ -215,7 +265,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     img.src = blobURL;
   };
 
-  // Baixar imagem de Placa de Bancada
+  // Baixar imagem individual de Placa de Bancada
   const downloadBancadaPlate = () => {
     const svgElement = document.getElementById(`qr-svg-bancada`) as SVGElement | null;
     if (!svgElement) return;
@@ -230,12 +280,10 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Fundo Branco
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, width, height);
 
     if (isDisplay) {
-      // Moldura elegante para Display de Mesa
       ctx.strokeStyle = '#181514';
       ctx.lineWidth = 8;
       ctx.strokeRect(16, 16, width - 32, height - 32);
@@ -244,7 +292,6 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       ctx.lineWidth = 2;
       ctx.strokeRect(26, 26, width - 52, height - 52);
 
-      // Logotipo / Cabeçalho
       ctx.fillStyle = '#5E6B56';
       ctx.font = 'bold 20px sans-serif';
       ctx.textAlign = 'center';
@@ -254,7 +301,6 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       ctx.font = 'italic 16px serif';
       ctx.fillText('Boutique de Plantas • Catálogo Físico', width / 2, 105);
 
-      // Divisor
       ctx.strokeStyle = '#E6E2DE';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -262,17 +308,14 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       ctx.lineTo(width - 80, 130);
       ctx.stroke();
 
-      // Título da Bancada
       ctx.fillStyle = '#181514';
       ctx.font = 'bold 36px serif';
       ctx.fillText(selectedBancada.slice(0, 26), width / 2, 190);
 
-      // Quantidade de vasos
       ctx.fillStyle = '#5E6B56';
       ctx.font = 'bold 18px sans-serif';
       ctx.fillText(`🌿 ${bancadaPlants.length} vasos disponíveis neste espaço`, width / 2, 230);
 
-      // QR Code
       const svgData = new XMLSerializer().serializeToString(svgElement);
       const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const URL = window.URL || window.webkitURL || window;
@@ -283,12 +326,10 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
         const qrSize = 360;
         ctx.drawImage(img, (width - qrSize) / 2, 270, qrSize, qrSize);
 
-        // Moldura em volta do QR
         ctx.strokeStyle = '#181514';
         ctx.lineWidth = 4;
         ctx.strokeRect((width - qrSize) / 2 - 6, 270 - 6, qrSize + 12, qrSize + 12);
 
-        // Chamada de Ação
         ctx.fillStyle = '#181514';
         ctx.font = 'bold 24px sans-serif';
         ctx.fillText('APONTE A CÂMERA DO CELULAR', width / 2, 695);
@@ -297,7 +338,6 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
         ctx.font = '16px sans-serif';
         ctx.fillText('Consulte preços, necessidades de luz e regas desta bancada', width / 2, 735);
 
-        // Rodapé
         ctx.fillStyle = '#5E6B56';
         ctx.font = 'bold 14px monospace';
         ctx.fillText('tons-e-flores.com', width / 2, 940);
@@ -315,7 +355,6 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       img.src = blobURL;
 
     } else {
-      // Formato Faixa Niimbot (50x30mm)
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 4;
       ctx.strokeRect(6, 6, width - 12, height - 12);
@@ -351,6 +390,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
         const downloadLink = document.createElement('a');
         downloadLink.download = `Faixa_Bancada_Niimbot_${selectedBancada.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
         downloadLink.href = pngUrl;
+        document.body.appendChild(downloadLink);
         downloadLink.click();
         downloadLink.remove();
         URL.revokeObjectURL(blobURL);
@@ -373,7 +413,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       <style>{`
         @media print {
           @page {
-            size: ${activeTab === 'plants' ? (printMode === 'niimbot' ? '50mm 30mm' : 'A4 portrait') : (bancadaFormat === 'niimbot' ? '50mm 30mm' : 'A5 portrait')};
+            size: ${activeTab === 'plants' ? '50mm 30mm' : (bancadaFormat === 'niimbot' ? '50mm 30mm' : 'A5 portrait')};
             margin: 0;
           }
           body {
@@ -440,23 +480,18 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       {/* ── ABA 1: ETIQUETAS DE VASOS ─────────────────────────────── */}
       {activeTab === 'plants' && (
         <>
-          {/* Barra de Controle e Exportação Niimbot B1 */}
-          <div className="no-print bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs space-y-5">
+          {/* Barra de Controle e Exportação */}
+          <div className="no-print bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs space-y-4">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-brand-olive">
-                    Identificação Individual de Vasos
-                  </span>
-                  <span className="bg-brand-olive-light text-brand-olive-text border border-brand-olive-border text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                    Niimbot B1 (50x30mm) & LibreOffice
-                  </span>
-                </div>
-                <h2 className="text-2xl font-bold font-serif-title text-brand-text mt-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-olive">
+                  Identificação Individual de Vasos
+                </span>
+                <h2 className="text-2xl font-bold font-serif-title text-brand-text mt-0.5">
                   Gerador de Etiquetas & Exportação
                 </h2>
                 <p className="text-xs text-brand-text-muted mt-0.5">
-                  Exporte planilhas para impressão em lote no app Niimbot ou gere PDFs e imagens calibradas em 50x30mm.
+                  Exporte para o LibreOffice Calc / Niimbot em lote ou gere PDFs e imagens em 50x30mm.
                 </p>
               </div>
 
@@ -470,16 +505,36 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
               </button>
             </div>
 
-            {/* Painel de Ações de Exportação em Lote */}
+            {/* Barra de Ações de Exportação */}
             <div className="p-4 bg-brand-surface-subtle border border-brand-border rounded-2xl space-y-3">
-              <div className="text-xs font-bold text-brand-text flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-brand-text">
                 <span className="flex items-center gap-1.5">
                   <Table className="w-4 h-4 text-brand-olive" />
                   Opções de Exportação em Lote ({plantsToPrint.length} selecionadas):
                 </span>
-                <span className="text-[11px] text-brand-text-muted font-normal">
-                  Selecione as plantas abaixo para exportar
-                </span>
+                
+                {/* Opções de visualização integradas */}
+                <div className="flex items-center gap-4 text-xs font-normal">
+                  <label className="flex items-center gap-1.5 cursor-pointer font-medium">
+                    <input 
+                      type="checkbox" 
+                      checked={showPrice} 
+                      onChange={e => setShowPrice(e.target.checked)}
+                      className="rounded text-brand-olive focus:ring-brand-olive" 
+                    />
+                    Preço
+                  </label>
+
+                  <label className="flex items-center gap-1.5 cursor-pointer font-medium">
+                    <input 
+                      type="checkbox" 
+                      checked={showCareIcons} 
+                      onChange={e => setShowCareIcons(e.target.checked)}
+                      className="rounded text-brand-olive focus:ring-brand-olive" 
+                    />
+                    Cuidados
+                  </label>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5 pt-1">
@@ -539,7 +594,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   </span>
                 </button>
 
-                {/* Impressão Nativa do Navegador */}
+                {/* Impressão Direta */}
                 <button 
                   onClick={handlePrint}
                   disabled={plantsToPrint.length === 0}
@@ -547,71 +602,28 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   className="bg-brand-olive hover:bg-brand-olive-hover disabled:opacity-50 text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all ml-auto cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>Imprimir no Navegador ({plantsToPrint.length})</span>
+                  <span>Imprimir ({plantsToPrint.length})</span>
                 </button>
               </div>
             </div>
 
-            {/* Configurações de Formato e Exibição */}
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-4 text-xs">
-              
-              {/* Seletor de Modo de Visualização */}
-              <div className="flex items-center gap-2 bg-brand-surface-subtle p-1 rounded-xl border border-brand-border">
-                <button
-                  onClick={() => setPrintMode('niimbot')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                    printMode === 'niimbot' ? 'bg-white shadow-xs text-brand-olive font-bold' : 'text-brand-text-muted hover:text-brand-text'
-                  }`}
-                >
-                  🏷️ Modelo Niimbot (50x30mm)
-                </button>
-                <button
-                  onClick={() => setPrintMode('sheet_a4')}
-                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                    printMode === 'sheet_a4' ? 'bg-white shadow-xs text-brand-olive font-bold' : 'text-brand-text-muted hover:text-brand-text'
-                  }`}
-                >
-                  📄 Grade Folha A4
-                </button>
-              </div>
+            {/* Barra de Seleção de Vasos */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <button 
+                onClick={toggleSelectAll}
+                className="flex items-center gap-1.5 font-bold text-xs text-brand-text hover:text-brand-olive cursor-pointer"
+              >
+                {selectedIds.length === plants.filter(p => p.status !== 'vendida').length ? (
+                  <CheckSquare className="w-4 h-4 text-brand-olive" />
+                ) : (
+                  <Square className="w-4 h-4 text-brand-text-muted" />
+                )}
+                {selectedIds.length === plants.filter(p => p.status !== 'vendida').length ? 'Desmarcar Todas' : 'Selecionar Todas'}
+              </button>
 
-              <div className="flex flex-wrap items-center gap-4">
-                <label className="flex items-center gap-1.5 font-medium text-brand-text cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={showPrice} 
-                    onChange={e => setShowPrice(e.target.checked)}
-                    className="rounded text-brand-olive focus:ring-brand-olive" 
-                  />
-                  Exibir Preço
-                </label>
-
-                <label className="flex items-center gap-1.5 font-medium text-brand-text cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={showCareIcons} 
-                    onChange={e => setShowCareIcons(e.target.checked)}
-                    className="rounded text-brand-olive focus:ring-brand-olive" 
-                  />
-                  Exibir Cuidados
-                </label>
-
-                <button 
-                  onClick={toggleSelectAll}
-                  className="flex items-center gap-1.5 font-bold text-brand-text hover:text-brand-olive cursor-pointer ml-2"
-                >
-                  {selectedIds.length === plants.filter(p => p.status !== 'vendida').length ? (
-                    <CheckSquare className="w-4 h-4 text-brand-olive" />
-                  ) : (
-                    <Square className="w-4 h-4 text-brand-text-muted" />
-                  )}
-                  {selectedIds.length === plants.filter(p => p.status !== 'vendida').length ? 'Desmarcar Todas' : 'Selecionar Todas'}
-                </button>
-              </div>
-
-              <div className="text-brand-text-muted text-xs">
-                <strong>{plantsToPrint.length}</strong> etiquetas selecionadas
-              </div>
+              <span className="text-xs text-brand-text-muted">
+                <strong>{plantsToPrint.length}</strong> de {plants.filter(p => p.status !== 'vendida').length} vasos selecionados
+              </span>
             </div>
 
             {/* Seleção rápida por chips */}
@@ -635,131 +647,70 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
           {/* Visualização das Etiquetas de Vasos */}
           <div className="bg-brand-surface p-6 sm:p-10 rounded-3xl shadow-sm border border-brand-border max-w-4xl mx-auto">
             {plantsToPrint.length > 0 ? (
-              <div className={printMode === 'niimbot' ? 'space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'}>
+              <div className="space-y-6">
                 {plantsToPrint.map((plant) => {
                   const plantUrl = `${window.location.origin}${window.location.pathname}#p-${plant.id}`;
 
-                  if (printMode === 'niimbot') {
-                    return (
-                      <div 
-                        key={plant.id}
-                        ref={el => { tagRefs.current[plant.id] = el; }}
-                        className="thermal-page-break border-2 border-stone-900 rounded-lg p-2 bg-white flex items-center justify-between gap-2 max-w-[340px] mx-auto shadow-xs relative group"
-                        style={{ width: '100%', aspectRatio: '50/30' }}
-                      >
-                        {/* Lado Esquerdo: Textos e Informações */}
-                        <div className="flex-1 flex flex-col justify-between h-full pr-1 overflow-hidden text-left">
-                          <div>
-                            <div className="flex items-center justify-between text-[10px] font-extrabold text-stone-900 leading-tight">
-                              <span className="uppercase tracking-tighter">TONS & FLORES</span>
-                              <span className="font-mono">#{plant.id}</span>
-                            </div>
-                            <div className="font-bold text-[13px] text-stone-950 leading-tight mt-0.5 truncate font-serif-title">
-                              {plant.name}
-                            </div>
-                            <div className="text-[9px] text-stone-600 italic truncate">
-                              {plant.potSize}{plant.cultivation && plant.cultivation !== 'Tradicional' ? ` • ${plant.cultivation}` : ''}
-                            </div>
-                          </div>
-
-                          {showCareIcons && (
-                            <div className="text-[8px] text-stone-700 font-semibold space-y-0.5 pt-0.5">
-                              <div>• {plant.light === 'sol-pleno' ? 'Sol Pleno' : plant.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra'}</div>
-                              <div>• {plant.watering === 'baixa' ? 'Pouca Rega' : plant.watering === 'moderada' ? 'Rega 1-2x/sem' : 'Solo Úmido'}</div>
-                            </div>
-                          )}
-
-                          {showPrice && (
-                            <div className="font-extrabold text-[14px] text-stone-950 leading-none pt-0.5">
-                              R$ {plant.price.toFixed(2).replace('.', ',')}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Lado Direito: QR Code SVG Nítido */}
-                        <div className="flex flex-col items-center justify-center shrink-0">
-                          <div className="p-0.5 bg-white border border-stone-800 rounded">
-                            <QRCodeSVG 
-                              id={`qr-svg-${plant.id}`}
-                              value={plantUrl} 
-                              size={78} 
-                              level="M" 
-                              includeMargin={false}
-                            />
-                          </div>
-                          <span className="text-[7px] font-bold text-stone-800 mt-0.5 tracking-tighter">
-                            ESCANEIE O QR
-                          </span>
-                        </div>
-
-                        {/* Botão flutuante para baixar PNG individual */}
-                        <button 
-                          onClick={() => downloadTagImage(plant)}
-                          title="Baixar imagem PNG 50x30mm individual"
-                          className="no-print absolute -top-3 -right-3 bg-brand-green-950 hover:bg-brand-rose-600 text-white p-1.5 rounded-full shadow-md transition-all cursor-pointer opacity-80 group-hover:opacity-100"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    );
-                  }
-
-                  // Layout Folha A4 em Grade
                   return (
                     <div 
                       key={plant.id}
-                      className="border-2 border-dashed border-brand-border p-4 rounded-2xl flex flex-col items-center justify-between text-center bg-white space-y-2.5 relative break-inside-avoid hover:border-brand-olive/50 transition-colors shadow-xs"
+                      ref={el => { tagRefs.current[plant.id] = el; }}
+                      className="thermal-page-break border-2 border-stone-900 rounded-lg p-2 bg-white flex items-center justify-between gap-2 max-w-[340px] mx-auto shadow-xs relative group"
+                      style={{ width: '100%', aspectRatio: '50/30' }}
                     >
-                      <div className="w-full flex items-center justify-between text-[11px] font-bold text-brand-olive border-b border-brand-border pb-1.5">
-                        <div className="flex items-center gap-1 uppercase tracking-wide">
-                          <Flower2 className="w-3.5 h-3.5 text-brand-olive" />
-                          Tons & Flores
+                      {/* Lado Esquerdo: Textos e Informações */}
+                      <div className="flex-1 flex flex-col justify-between h-full pr-1 overflow-hidden text-left">
+                        <div>
+                          <div className="flex items-center justify-between text-[10px] font-extrabold text-stone-900 leading-tight">
+                            <span className="uppercase tracking-tighter">TONS & FLORES</span>
+                            <span className="font-mono">#{plant.id}</span>
+                          </div>
+                          <div className="font-bold text-[13px] text-stone-950 leading-tight mt-0.5 truncate font-serif-title">
+                            {plant.name}
+                          </div>
+                          <div className="text-[9px] text-stone-600 italic truncate">
+                            {plant.potSize}{plant.cultivation && plant.cultivation !== 'Tradicional' ? ` • ${plant.cultivation}` : ''}
+                          </div>
                         </div>
-                        <span className="font-mono text-brand-text-muted bg-brand-surface-subtle border border-brand-border px-1.5 py-0.5 rounded text-[10px]">
-                          #{plant.id}
+
+                        {showCareIcons && (
+                          <div className="text-[8px] text-stone-700 font-semibold space-y-0.5 pt-0.5">
+                            <div>• {plant.light === 'sol-pleno' ? 'Sol Pleno' : plant.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra'}</div>
+                            <div>• {plant.watering === 'baixa' ? 'Pouca Rega' : plant.watering === 'moderada' ? 'Rega 1-2x/sem' : 'Solo Úmido'}</div>
+                          </div>
+                        )}
+
+                        {showPrice && (
+                          <div className="font-extrabold text-[14px] text-stone-950 leading-none pt-0.5">
+                            R$ {plant.price.toFixed(2).replace('.', ',')}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Lado Direito: QR Code SVG Nítido */}
+                      <div className="flex flex-col items-center justify-center shrink-0">
+                        <div className="p-0.5 bg-white border border-stone-800 rounded">
+                          <QRCodeSVG 
+                            id={`qr-svg-${plant.id}`}
+                            value={plantUrl} 
+                            size={78} 
+                            level="M" 
+                            includeMargin={false}
+                          />
+                        </div>
+                        <span className="text-[7px] font-bold text-stone-800 mt-0.5 tracking-tighter">
+                          ESCANEIE O QR
                         </span>
                       </div>
 
-                      <div className="p-1.5 bg-white border border-brand-border rounded-xl shadow-xs">
-                        <QRCodeSVG 
-                          id={`qr-svg-${plant.id}`}
-                          value={plantUrl} 
-                          size={105} 
-                          level="M" 
-                          includeMargin={false}
-                        />
-                      </div>
-
-                      <div className="w-full space-y-0.5">
-                        <div className="font-bold text-sm text-brand-text leading-tight font-serif-title">
-                          {plant.name}
-                        </div>
-                        <div className="text-[10px] text-brand-text-muted italic truncate max-w-full">
-                          {plant.scientificName} • {plant.potSize}
-                        </div>
-                      </div>
-
-                      {showCareIcons && (
-                        <div className="flex items-center justify-center gap-2 text-[10px] text-brand-text pt-0.5">
-                          <span className="flex items-center gap-0.5 font-medium bg-amber-50 text-amber-900 px-1.5 py-0.5 rounded border border-amber-200">
-                            <Sun className="w-3 h-3 text-amber-500" />
-                            {plant.light === 'sol-pleno' ? 'Sol' : plant.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra'}
-                          </span>
-                          <span className="flex items-center gap-0.5 font-medium bg-blue-50 text-blue-900 px-1.5 py-0.5 rounded border border-blue-200">
-                            <Droplets className="w-3 h-3 text-blue-500" />
-                            {plant.watering === 'baixa' ? 'Pouca' : plant.watering === 'moderada' ? 'Moderada' : 'Frequente'}
-                          </span>
-                        </div>
-                      )}
-
-                      <div className="w-full pt-1.5 border-t border-brand-border flex items-center justify-between text-xs">
-                        <span className="text-[9px] text-brand-text-light font-medium">Escaneie o QR Code</span>
-                        {showPrice && (
-                          <span className="font-extrabold text-brand-text text-sm">
-                            R$ {plant.price.toFixed(2).replace('.', ',')}
-                          </span>
-                        )}
-                      </div>
+                      {/* Botão flutuante para baixar PNG individual */}
+                      <button 
+                        onClick={() => downloadTagImage(plant)}
+                        title="Baixar imagem PNG 50x30mm individual"
+                        className="no-print absolute -top-3 -right-3 bg-brand-green-950 hover:bg-brand-rose-600 text-white p-1.5 rounded-full shadow-md transition-all cursor-pointer opacity-80 group-hover:opacity-100"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   );
                 })}
@@ -779,51 +730,126 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       {activeTab === 'bancadas' && (
         <div className="space-y-6">
           {/* Painel de Controle de Placas de Bancada */}
-          <div className="no-print bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs space-y-5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="no-print bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs space-y-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-brand-olive">
-                    Identificação de Setores & Espaço Físico
-                  </span>
-                  <span className="bg-brand-olive-light text-brand-olive-text border border-brand-olive-border text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    QR Code de Bancada
-                  </span>
-                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-olive">
+                  Identificação de Setores & Espaço Físico
+                </span>
                 <h2 className="text-2xl font-bold font-serif-title text-brand-text mt-0.5">
                   Gerador de Placas para Bancadas
                 </h2>
-                <p className="text-xs text-brand-text-muted">
-                  Gere displays de mesa ou faixas adesivas térmicas. Ao escanear o QR, a vitrine abre filtrada com os vasos da mesa.
+                <p className="text-xs text-brand-text-muted mt-0.5">
+                  Gere displays de mesa ou faixas térmicas adesivas. Ao escanear o QR, o cliente abre o catálogo filtrado por setor.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              {/* Botão de Ajuda Niimbot */}
+              <button
+                onClick={() => setShowNiimbotGuide(true)}
+                className="self-start lg:self-center flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all cursor-pointer"
+              >
+                <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Como usar no App Niimbot?</span>
+              </button>
+            </div>
+
+            {/* Barra de Ações de Exportação de Bancadas */}
+            <div className="p-4 bg-brand-surface-subtle border border-brand-border rounded-2xl space-y-3">
+              <div className="text-xs font-bold text-brand-text flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Table className="w-4 h-4 text-brand-olive" />
+                  Opções de Exportação das Bancadas ({bancadasList.length} setores):
+                </span>
+                <span className="text-[11px] text-brand-text-muted font-normal">
+                  Exporte todas as bancadas cadastradas
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                {/* Exportar XLS / LibreOffice */}
                 <button
-                  onClick={downloadBancadaPlate}
-                  className="bg-brand-surface hover:bg-brand-surface-subtle text-brand-text font-bold px-4 py-3 rounded-2xl border border-brand-border shadow-xs flex items-center justify-center gap-2 text-sm transition-all cursor-pointer"
+                  onClick={handleExportBancadasXls}
+                  title="Gera planilha com todas as bancadas para LibreOffice Calc e Niimbot"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
-                  <Download className="w-4 h-4 text-brand-olive" />
-                  Baixar Imagem PNG
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Planilha Bancadas (.xls)</span>
                 </button>
 
+                {/* Exportar CSV */}
+                <button
+                  onClick={handleExportBancadasCsv}
+                  title="Gera arquivo CSV com os links de todas as bancadas"
+                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  <Table className="w-4 h-4 text-brand-olive" />
+                  <span>Planilha CSV (.csv)</span>
+                </button>
+
+                {/* Exportar PDF Térmico / A5 */}
+                <button
+                  onClick={handleExportBancadasPdf}
+                  disabled={isExportingPdf}
+                  title="Gera arquivo PDF com todas as bancadas no formato selecionado"
+                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  {isExportingPdf ? (
+                    <Loader2 className="w-4 h-4 text-brand-olive animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4 text-brand-olive" />
+                  )}
+                  <span>
+                    {bancadaFormat === 'display_a5' ? 'PDF Display (A5)' : 'PDF Térmico (50x30mm)'}
+                  </span>
+                </button>
+
+                {/* Baixar Pacote ZIP */}
+                <button
+                  onClick={handleExportBancadasZip}
+                  disabled={isExportingZip}
+                  title="Baixa todas as bancadas em imagens PNG compactadas em ZIP"
+                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  {isExportingZip ? (
+                    <Loader2 className="w-4 h-4 text-brand-olive animate-spin" />
+                  ) : (
+                    <Archive className="w-4 h-4 text-brand-olive" />
+                  )}
+                  <span>
+                    {isExportingZip && zipProgress 
+                      ? `Gerando ZIP (${zipProgress.current}/${zipProgress.total})...` 
+                      : 'Baixar Todas em ZIP (.png)'}
+                  </span>
+                </button>
+
+                {/* Baixar Imagem Individual */}
+                <button
+                  onClick={downloadBancadaPlate}
+                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-brand-olive" />
+                  <span>Baixar Esta Placa (PNG)</span>
+                </button>
+
+                {/* Imprimir no Navegador */}
                 <button 
                   onClick={handlePrint}
-                  className="bg-brand-olive hover:bg-brand-olive-hover text-white font-semibold px-6 py-3 rounded-2xl shadow-xs flex items-center justify-center gap-2 text-sm transition-all shrink-0 cursor-pointer"
+                  className="bg-brand-olive hover:bg-brand-olive-hover text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all ml-auto cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  Imprimir Placa
+                  <span>Imprimir no Navegador</span>
                 </button>
               </div>
             </div>
 
             {/* Controles de Formato e Seleção da Bancada */}
-            <div className="pt-4 border-t border-brand-border grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Seletor da Bancada */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-brand-text flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-brand-olive" />
-                  Selecione a Bancada / Setor:
+                  Selecione a Bancada / Setor para Visualizar:
                 </label>
                 <select
                   value={selectedBancada}
@@ -845,7 +871,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-brand-text flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-brand-olive" />
-                  Formato da Identificação:
+                  Formato da Placa:
                 </label>
                 <div className="grid grid-cols-2 gap-2 bg-brand-surface-subtle p-1 rounded-xl border border-brand-border">
                   <button
@@ -856,7 +882,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                         : 'text-brand-text-muted hover:text-brand-text'
                     }`}
                   >
-                    🖼️ Display de Mesa (A5 / Acrílico)
+                    🖼️ Display de Mesa (A5)
                   </button>
                   <button
                     onClick={() => setBancadaFormat('niimbot')}
@@ -866,7 +892,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                         : 'text-brand-text-muted hover:text-brand-text'
                     }`}
                   >
-                    🏷️ Faixa Niimbot (50x30mm)
+                    🏷️ Faixa Térmica (50x30mm)
                   </button>
                 </div>
               </div>
@@ -875,18 +901,18 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
             {/* Informações da Bancada Selecionada */}
             <div className="p-3 bg-brand-olive-light/60 border border-brand-olive-border rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-brand-olive-text">URL no QR Code:</span>
+                <span className="font-bold text-brand-olive-text">Link do QR Code:</span>
                 <code className="px-2 py-0.5 bg-white rounded font-mono text-[11px] text-brand-olive-text border border-brand-olive-border">
                   {bancadaUrl}
                 </code>
               </div>
               <div className="text-brand-olive-text font-bold">
-                {bancadaPlants.length} vasos vinculados
+                {bancadaPlants.length} vasos vinculados neste setor
               </div>
             </div>
           </div>
 
-          {/* Pré-Visualização e Impressão da Placa de Bancada */}
+          {/* Pré-Visualização da Placa de Bancada */}
           <div className="bg-brand-surface p-6 sm:p-12 rounded-3xl shadow-sm border border-brand-border max-w-2xl mx-auto text-center">
             
             {bancadaFormat === 'display_a5' ? (
@@ -1027,7 +1053,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                     Baixe a Planilha (.xls ou .csv)
                   </div>
                   <p className="text-brand-text-muted">
-                    No topo desta tela, selecione os vasos que deseja e clique no botão verde <strong>"Planilha Excel / LibreOffice (.xls)"</strong>. Se preferir abrir e editar no LibreOffice Calc antes de imprimir, você pode usar também o formato <strong>CSV</strong>.
+                    No topo desta tela, clique no botão verde <strong>"Planilha Excel / LibreOffice (.xls)"</strong> ou <strong>"Planilha CSV (.csv)"</strong>. Você pode abrir o arquivo direto no LibreOffice Calc para conferir ou editar antes de imprimir.
                   </p>
                 </div>
               </div>
@@ -1046,7 +1072,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   </p>
                   <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
                     <div className="p-2 bg-white rounded-lg border border-brand-border">
-                      • Inserir <strong>Texto</strong> para o Nome da Planta
+                      • Inserir <strong>Texto</strong> para o Nome / Bancada
                     </div>
                     <div className="p-2 bg-white rounded-lg border border-brand-border">
                       • Inserir <strong>Código QR</strong> para o Link
@@ -1074,7 +1100,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                     No menu superior do Niimbot, clique em <strong>"Importar Dados"</strong> (ou <em>Excel Batch Print</em>) e selecione o arquivo baixado. Em seguida, vincule cada campo aos dados:
                   </p>
                   <ul className="list-disc list-inside space-y-0.5 pt-1 text-stone-700">
-                    <li>Vincule o texto do Nome à coluna <code>Nome</code></li>
+                    <li>Vincule o texto do Nome à coluna <code>Nome</code> (ou <code>Bancada</code>)</li>
                     <li>Vincule o QR Code à coluna <code>Link_QR_Code</code></li>
                     <li>Vincule o texto de Preço à coluna <code>Preco_Formatado</code></li>
                   </ul>
