@@ -28,11 +28,14 @@ const WATERING_OPTIONS = [
   { value: 'frequente', label: 'Solo Sempre Úmido',          emoji: '💧💧💧' },
 ];
 
+export const POT_SIZES = ['PP', 'P', 'M', 'G', 'GG'] as const;
+
 export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isOpen, onClose, onSave }) => {
   const [categories, setCategories] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
   const [cultivations, setCultivations] = useState<string[]>([]);
   const [formData, setFormData] = useState<Partial<Plant>>({});
+  const [isCustomPotSize, setIsCustomPotSize] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [isCompressing, setIsCompressing] = useState(false);
@@ -66,6 +69,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
     const locs = configService.getLocations();
     if (plantToEdit) {
       setFormData(plantToEdit);
+      setIsCustomPotSize(plantToEdit.potSize ? !POT_SIZES.includes(plantToEdit.potSize as any) : false);
       setUploadedFileName('');
       setCompressionDetails(null);
       setSearchQuery('');
@@ -81,7 +85,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         category: cats[0] || 'Folhagens',
         cultivation: 'Tradicional',
         price: 45.0,
-        potSize: 'Pote 15',
+        potSize: 'M',
         location: locs[0] || 'Bancada Central • Estufa 01',
         status: 'disponivel',
         light: 'meia-sombra',
@@ -98,6 +102,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         toxicity: '',
       };
       setFormData(defaultData);
+      setIsCustomPotSize(false);
       plantService.generateNextId().then(nextId => {
         setFormData(prev => ({ ...prev, id: nextId }));
       });
@@ -249,7 +254,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
         category: formData.category || categories[0] || 'Folhagens',
         cultivation: formData.cultivation || 'Tradicional',
         price: Number(formData.price) || 0,
-        potSize: formData.potSize || 'Pote 15',
+        potSize: (formData.potSize || 'M').trim(),
         location: loc,
         status: (formData.status as PlantStatus) || 'disponivel',
         light: (formData.light as LightRequirement) || 'meia-sombra',
@@ -498,7 +503,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
               2. Loja, Estoque e Localização Física
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-brand-text mb-1">
                   Preço de Venda (R$) *
@@ -515,20 +520,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
 
               <div>
                 <label className="block text-xs font-semibold text-brand-text mb-1">
-                  Tamanho do Vaso / Pote
-                </label>
-                <input 
-                  type="text" 
-                  value={formData.potSize}
-                  onChange={e => setFormData({ ...formData, potSize: e.target.value })}
-                  placeholder="Ex: Pote 15, Cuia 21"
-                  className="w-full px-3 py-2 bg-brand-surface-subtle border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-olive focus:outline-none text-brand-text"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-brand-text mb-1">
-                  Status
+                  Status *
                 </label>
                 <select 
                   value={formData.status}
@@ -540,6 +532,73 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({ plantToEdit, isO
                   <option value="vendida">Vendida</option>
                 </select>
               </div>
+            </div>
+
+            {/* SELETOR DE TAMANHO DO VASO / POTE (PP, P, M, G, GG ou Customizado) */}
+            <div className="bg-brand-surface-subtle/80 p-3.5 rounded-2xl border border-brand-border space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-brand-text flex items-center gap-1.5">
+                  <span>🪴</span> Tamanho do Vaso / Pote *
+                </label>
+                {formData.potSize && (
+                  <span className="text-[11px] text-brand-olive font-semibold">
+                    Selecionado: <strong className="font-bold">{formData.potSize}</strong>
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {POT_SIZES.map(size => {
+                  const isSelected = !isCustomPotSize && formData.potSize === size;
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => {
+                        setIsCustomPotSize(false);
+                        setFormData(prev => ({ ...prev, potSize: size }));
+                      }}
+                      className={`min-w-[46px] px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-brand-olive text-white shadow-sm ring-2 ring-brand-olive/30 scale-[1.02]'
+                          : 'bg-brand-surface text-brand-text-muted hover:text-brand-text border border-brand-border hover:border-brand-olive/40'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomPotSize(true);
+                    if (POT_SIZES.includes(formData.potSize as any)) {
+                      setFormData(prev => ({ ...prev, potSize: '' }));
+                    }
+                  }}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    isCustomPotSize
+                      ? 'bg-brand-olive text-white shadow-sm ring-2 ring-brand-olive/30 scale-[1.02]'
+                      : 'bg-brand-surface text-brand-text-muted hover:text-brand-text border border-brand-border hover:border-brand-olive/40'
+                  }`}
+                >
+                  <span>✏️</span> Customizado
+                </button>
+              </div>
+
+              {isCustomPotSize && (
+                <div className="pt-1 animate-in fade-in slide-in-from-top-1">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={formData.potSize || ''}
+                    onChange={e => setFormData({ ...formData, potSize: e.target.value })}
+                    placeholder="Digite o tamanho personalizado (ex: Cuia 21, Pote 15, Jardineira 40cm...)"
+                    className="w-full px-3 py-2 bg-brand-surface border border-brand-border rounded-xl focus:ring-2 focus:ring-brand-olive focus:outline-none text-xs text-brand-text font-medium"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
