@@ -7,13 +7,21 @@ import {
   Droplets, 
   Sun, 
   Sparkles, 
-  Download,
-  MapPin,
-  Layers
+  Download, 
+  MapPin, 
+  Layers,
+  FileSpreadsheet,
+  FileText,
+  HelpCircle,
+  Archive,
+  Loader2,
+  X,
+  Table
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { Plant } from '../types/plant';
 import { configService } from '../services/configService';
+import { labelExportService } from '../services/labelExportService';
 
 interface TagsPrintViewProps {
   plants: Plant[];
@@ -36,6 +44,12 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
   const [showPrice, setShowPrice] = useState(true);
   const [showCareIcons, setShowCareIcons] = useState(true);
   const tagRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Estados de exportação
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isExportingZip, setIsExportingZip] = useState(false);
+  const [zipProgress, setZipProgress] = useState<{ current: number; total: number } | null>(null);
+  const [showNiimbotGuide, setShowNiimbotGuide] = useState(false);
 
   // ── Estados para Placas de Bancadas ─────────────────────────
   const allLocations = useMemo(() => {
@@ -74,7 +88,51 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
     }
   };
 
-  const plantsToPrint = plants.filter(p => selectedIds.includes(p.id));
+  const plantsToPrint = useMemo(() => {
+    return plants.filter(p => selectedIds.includes(p.id));
+  }, [plants, selectedIds]);
+
+  // ── Exportações em Lote ──────────────────────────────────────
+  const handleExportXls = () => {
+    labelExportService.exportToXls(plantsToPrint);
+  };
+
+  const handleExportCsv = () => {
+    labelExportService.exportToCsv(plantsToPrint);
+  };
+
+  const handleExportPdf = async () => {
+    if (!plantsToPrint.length) return;
+    setIsExportingPdf(true);
+    try {
+      await labelExportService.exportThermalPdf(plantsToPrint, showPrice, showCareIcons);
+    } catch (err) {
+      console.error('Erro ao gerar PDF térmico:', err);
+      alert('Houve um problema ao gerar o PDF. Verifique se os elementos foram renderizados.');
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
+  const handleExportZip = async () => {
+    if (!plantsToPrint.length) return;
+    setIsExportingZip(true);
+    setZipProgress({ current: 0, total: plantsToPrint.length });
+    try {
+      await labelExportService.exportZipImages(
+        plantsToPrint,
+        showPrice,
+        showCareIcons,
+        (current, total) => setZipProgress({ current, total })
+      );
+    } catch (err) {
+      console.error('Erro ao gerar arquivo ZIP:', err);
+      alert('Houve um problema ao empacotar as imagens.');
+    } finally {
+      setIsExportingZip(false);
+      setZipProgress(null);
+    }
+  };
 
   // Baixar imagem individual de Vaso para o App Niimbot
   const downloadTagImage = (plant: Plant) => {
@@ -100,33 +158,35 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
 
     // Texto: Tons & Flores
     ctx.fillStyle = '#000000';
-    ctx.font = 'bold 22px Arial, sans-serif';
+    ctx.font = 'bold 20px Arial, sans-serif';
     ctx.fillText('TONS & FLORES', 20, 36);
 
     // Tag ID
-    ctx.font = 'bold 20px monospace';
-    ctx.fillText(`#${plant.id}`, 20, 64);
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText(`#${plant.id}`, 20, 62);
 
     // Nome da Planta
-    ctx.font = 'bold 26px Arial, sans-serif';
-    ctx.fillText(plant.name.slice(0, 18), 20, 115);
+    ctx.font = 'bold 24px Arial, sans-serif';
+    ctx.fillText(plant.name.slice(0, 18), 20, 110);
 
     // Nome Científico / Vaso / Cultivo
-    ctx.font = 'italic 18px Arial, sans-serif';
+    ctx.font = 'italic 16px Arial, sans-serif';
     const subDesc = `${plant.potSize || ''}${plant.cultivation && plant.cultivation !== 'Tradicional' ? ` • ${plant.cultivation}` : ''}`;
-    ctx.fillText(subDesc.slice(0, 22), 20, 145);
+    ctx.fillText(subDesc.slice(0, 22), 20, 138);
 
     // Dicas
-    ctx.font = '16px Arial, sans-serif';
-    const lightText = plant.light === 'sol-pleno' ? 'Sol Pleno' : plant.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra';
-    const waterText = plant.watering === 'baixa' ? 'Pouca Rega' : plant.watering === 'moderada' ? 'Rega 1-2x/sem' : 'Solo Úmido';
-    ctx.fillText(`• ${lightText}`, 20, 190);
-    ctx.fillText(`• ${waterText}`, 20, 220);
+    if (showCareIcons) {
+      ctx.font = '15px Arial, sans-serif';
+      const lightText = plant.light === 'sol-pleno' ? 'Sol Pleno' : plant.light === 'meia-sombra' ? 'Meia Sombra' : 'Sombra';
+      const waterText = plant.watering === 'baixa' ? 'Pouca Rega' : plant.watering === 'moderada' ? 'Rega 1-2x/sem' : 'Solo Úmido';
+      ctx.fillText(`• ${lightText}`, 20, 185);
+      ctx.fillText(`• ${waterText}`, 20, 212);
+    }
 
     // Preço
     if (showPrice) {
-      ctx.font = 'bold 30px Arial, sans-serif';
-      ctx.fillText(`R$ ${plant.price.toFixed(2).replace('.', ',')}`, 20, 275);
+      ctx.font = 'bold 28px Arial, sans-serif';
+      ctx.fillText(`R$ ${plant.price.toFixed(2).replace('.', ',')}`, 20, 272);
     }
 
     // Converter QR Code SVG para imagem e desenhar no Canvas
@@ -138,9 +198,9 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
 
     img.onload = () => {
       ctx.drawImage(img, 300, 35, 180, 180);
-      ctx.font = 'bold 13px Arial, sans-serif';
+      ctx.font = 'bold 12px Arial, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('ESCANEIE O QR', 390, 240);
+      ctx.fillText('ESCANEIE O QR', 390, 235);
 
       const pngUrl = canvas.toDataURL('image/png');
       const downloadLink = document.createElement('a');
@@ -291,7 +351,6 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
         const downloadLink = document.createElement('a');
         downloadLink.download = `Faixa_Bancada_Niimbot_${selectedBancada.replace(/[^a-zA-Z0-9]/g, '_')}.png`;
         downloadLink.href = pngUrl;
-        document.body.appendChild(downloadLink);
         downloadLink.click();
         downloadLink.remove();
         URL.revokeObjectURL(blobURL);
@@ -310,7 +369,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12 animate-in fade-in">
       
-      {/* Estilos específicos para impressão */}
+      {/* Estilos específicos para impressão padrão do navegador */}
       <style>{`
         @media print {
           @page {
@@ -381,42 +440,122 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       {/* ── ABA 1: ETIQUETAS DE VASOS ─────────────────────────────── */}
       {activeTab === 'plants' && (
         <>
-          {/* Barra de Controle de Impressão de Vasos */}
-          <div className="no-print bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Barra de Controle e Exportação Niimbot B1 */}
+          <div className="no-print bg-brand-surface p-6 rounded-3xl border border-brand-border shadow-xs space-y-5">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-brand-olive">
                     Identificação Individual de Vasos
                   </span>
-                  <span className="bg-brand-olive-light text-brand-olive-text border border-brand-olive-border text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    Niimbot (50x30mm) & Grade A4
+                  <span className="bg-brand-olive-light text-brand-olive-text border border-brand-olive-border text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                    Niimbot B1 (50x30mm) & LibreOffice
                   </span>
                 </div>
-                <h2 className="text-2xl font-bold font-serif-title text-brand-text mt-0.5">
-                  Gerador de Tags com QR Code
+                <h2 className="text-2xl font-bold font-serif-title text-brand-text mt-1">
+                  Gerador de Etiquetas & Exportação
                 </h2>
-                <p className="text-xs text-brand-text-muted">
-                  Ao escanear a etiqueta do vaso, o cliente abre direto a ficha de rega, iluminação e valor.
+                <p className="text-xs text-brand-text-muted mt-0.5">
+                  Exporte planilhas para impressão em lote no app Niimbot ou gere PDFs e imagens calibradas em 50x30mm.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              {/* Botão de Ajuda Niimbot */}
+              <button
+                onClick={() => setShowNiimbotGuide(true)}
+                className="self-start lg:self-center flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all cursor-pointer"
+              >
+                <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Como usar no App Niimbot?</span>
+              </button>
+            </div>
+
+            {/* Painel de Ações de Exportação em Lote */}
+            <div className="p-4 bg-brand-surface-subtle border border-brand-border rounded-2xl space-y-3">
+              <div className="text-xs font-bold text-brand-text flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Table className="w-4 h-4 text-brand-olive" />
+                  Opções de Exportação em Lote ({plantsToPrint.length} selecionadas):
+                </span>
+                <span className="text-[11px] text-brand-text-muted font-normal">
+                  Selecione as plantas abaixo para exportar
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                {/* Exportar XLS / LibreOffice */}
+                <button
+                  onClick={handleExportXls}
+                  disabled={plantsToPrint.length === 0}
+                  title="Gera planilha compatível com LibreOffice Calc e o recurso de Importação em Lote do Niimbot"
+                  className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Planilha Excel / LibreOffice (.xls)</span>
+                </button>
+
+                {/* Exportar CSV */}
+                <button
+                  onClick={handleExportCsv}
+                  disabled={plantsToPrint.length === 0}
+                  title="Gera arquivo CSV com codificação UTF-8 e delimitador ';'"
+                  className="bg-brand-surface hover:bg-white disabled:opacity-50 text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  <Table className="w-4 h-4 text-brand-olive" />
+                  <span>Planilha CSV (.csv)</span>
+                </button>
+
+                {/* Exportar PDF Térmico 50x30mm */}
+                <button
+                  onClick={handleExportPdf}
+                  disabled={plantsToPrint.length === 0 || isExportingPdf}
+                  title="Gera arquivo PDF com tamanho exato de 50x30mm por página para abrir no Niimbot"
+                  className="bg-brand-surface hover:bg-white disabled:opacity-50 text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  {isExportingPdf ? (
+                    <Loader2 className="w-4 h-4 text-brand-olive animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4 text-brand-olive" />
+                  )}
+                  <span>PDF Térmico 50x30mm</span>
+                </button>
+
+                {/* Baixar Pacote ZIP */}
+                <button
+                  onClick={handleExportZip}
+                  disabled={plantsToPrint.length === 0 || isExportingZip}
+                  title="Baixa todas as etiquetas selecionadas em um arquivo ZIP com imagens PNG individuais"
+                  className="bg-brand-surface hover:bg-white disabled:opacity-50 text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                >
+                  {isExportingZip ? (
+                    <Loader2 className="w-4 h-4 text-brand-olive animate-spin" />
+                  ) : (
+                    <Archive className="w-4 h-4 text-brand-olive" />
+                  )}
+                  <span>
+                    {isExportingZip && zipProgress 
+                      ? `Gerando ZIP (${zipProgress.current}/${zipProgress.total})...` 
+                      : 'Baixar Todas em ZIP (.png)'}
+                  </span>
+                </button>
+
+                {/* Impressão Nativa do Navegador */}
                 <button 
                   onClick={handlePrint}
                   disabled={plantsToPrint.length === 0}
-                  className="bg-brand-olive hover:bg-brand-olive-hover disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-2xl shadow-xs flex items-center justify-center gap-2 text-sm transition-all shrink-0 cursor-pointer"
+                  title="Imprime diretamente na impressora padrão configurada no navegador"
+                  className="bg-brand-olive hover:bg-brand-olive-hover disabled:opacity-50 text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all ml-auto cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  Imprimir {plantsToPrint.length} Etiquetas
+                  <span>Imprimir no Navegador ({plantsToPrint.length})</span>
                 </button>
               </div>
             </div>
 
             {/* Configurações de Formato e Exibição */}
-            <div className="pt-3 border-t border-brand-border flex flex-wrap items-center justify-between gap-4 text-xs">
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-4 text-xs">
               
-              {/* Seletor de Modo de Impressão */}
+              {/* Seletor de Modo de Visualização */}
               <div className="flex items-center gap-2 bg-brand-surface-subtle p-1 rounded-xl border border-brand-border">
                 <button
                   onClick={() => setPrintMode('niimbot')}
@@ -424,7 +563,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                     printMode === 'niimbot' ? 'bg-white shadow-xs text-brand-olive font-bold' : 'text-brand-text-muted hover:text-brand-text'
                   }`}
                 >
-                  🏷️ Térmica Niimbot (50x30mm)
+                  🏷️ Modelo Niimbot (50x30mm)
                 </button>
                 <button
                   onClick={() => setPrintMode('sheet_a4')}
@@ -493,7 +632,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
             </div>
           </div>
 
-          {/* Visualização e Área de Impressão de Vasos */}
+          {/* Visualização das Etiquetas de Vasos */}
           <div className="bg-brand-surface p-6 sm:p-10 rounded-3xl shadow-sm border border-brand-border max-w-4xl mx-auto">
             {plantsToPrint.length > 0 ? (
               <div className={printMode === 'niimbot' ? 'space-y-6' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'}>
@@ -553,10 +692,10 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                           </span>
                         </div>
 
-                        {/* Botão flutuante para baixar PNG para App Niimbot */}
+                        {/* Botão flutuante para baixar PNG individual */}
                         <button 
                           onClick={() => downloadTagImage(plant)}
-                          title="Baixar imagem PNG 50x30mm para o app Niimbot"
+                          title="Baixar imagem PNG 50x30mm individual"
                           className="no-print absolute -top-3 -right-3 bg-brand-green-950 hover:bg-brand-rose-600 text-white p-1.5 rounded-full shadow-md transition-all cursor-pointer opacity-80 group-hover:opacity-100"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -847,6 +986,126 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                 </div>
               </div>
             )}
+
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: GUIA PASSO A PASSO NIIMBOT B1 & LIBREOFFICE ─────── */}
+      {showNiimbotGuide && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-brand-border space-y-6 animate-in zoom-in-95">
+            
+            <div className="flex items-start justify-between gap-4 border-b border-brand-border pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest bg-brand-olive-light text-brand-olive px-2.5 py-1 rounded-full">
+                    Guia Prático Niimbot B1
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold font-serif-title text-brand-text mt-1">
+                  Como Imprimir em Lote no App Niimbot com LibreOffice
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowNiimbotGuide(false)}
+                className="p-1.5 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs text-brand-text leading-relaxed">
+              
+              {/* Passo 1 */}
+              <div className="flex items-start gap-3 p-3.5 bg-brand-surface-subtle rounded-2xl border border-brand-border">
+                <div className="w-7 h-7 rounded-xl bg-brand-olive text-white font-black flex items-center justify-center shrink-0 text-sm">
+                  1
+                </div>
+                <div className="space-y-1 flex-1">
+                  <div className="font-bold text-sm text-brand-text">
+                    Baixe a Planilha (.xls ou .csv)
+                  </div>
+                  <p className="text-brand-text-muted">
+                    No topo desta tela, selecione os vasos que deseja e clique no botão verde <strong>"Planilha Excel / LibreOffice (.xls)"</strong>. Se preferir abrir e editar no LibreOffice Calc antes de imprimir, você pode usar também o formato <strong>CSV</strong>.
+                  </p>
+                </div>
+              </div>
+
+              {/* Passo 2 */}
+              <div className="flex items-start gap-3 p-3.5 bg-brand-surface-subtle rounded-2xl border border-brand-border">
+                <div className="w-7 h-7 rounded-xl bg-brand-olive text-white font-black flex items-center justify-center shrink-0 text-sm">
+                  2
+                </div>
+                <div className="space-y-1 flex-1">
+                  <div className="font-bold text-sm text-brand-text">
+                    Crie o Modelo de Etiqueta no App Niimbot PC
+                  </div>
+                  <p className="text-brand-text-muted">
+                    Abra o programa da Niimbot no computador e inicie um novo rótulo com dimensões <strong>50mm de largura x 30mm de altura</strong>.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                      • Inserir <strong>Texto</strong> para o Nome da Planta
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                      • Inserir <strong>Código QR</strong> para o Link
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                      • Inserir <strong>Texto</strong> para Cuidados/Vaso
+                    </div>
+                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                      • Inserir <strong>Texto</strong> para o Preço
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Passo 3 */}
+              <div className="flex items-start gap-3 p-3.5 bg-brand-surface-subtle rounded-2xl border border-brand-border">
+                <div className="w-7 h-7 rounded-xl bg-brand-olive text-white font-black flex items-center justify-center shrink-0 text-sm">
+                  3
+                </div>
+                <div className="space-y-1 flex-1">
+                  <div className="font-bold text-sm text-brand-text">
+                    Importar Dados da Planilha (Mala Direta)
+                  </div>
+                  <p className="text-brand-text-muted">
+                    No menu superior do Niimbot, clique em <strong>"Importar Dados"</strong> (ou <em>Excel Batch Print</em>) e selecione o arquivo baixado. Em seguida, vincule cada campo aos dados:
+                  </p>
+                  <ul className="list-disc list-inside space-y-0.5 pt-1 text-stone-700">
+                    <li>Vincule o texto do Nome à coluna <code>Nome</code></li>
+                    <li>Vincule o QR Code à coluna <code>Link_QR_Code</code></li>
+                    <li>Vincule o texto de Preço à coluna <code>Preco_Formatado</code></li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Passo 4 */}
+              <div className="flex items-start gap-3 p-3.5 bg-amber-50 rounded-2xl border border-amber-200">
+                <div className="w-7 h-7 rounded-xl bg-amber-600 text-white font-black flex items-center justify-center shrink-0 text-sm">
+                  💡
+                </div>
+                <div className="space-y-1 flex-1 text-amber-950">
+                  <div className="font-bold text-sm">
+                    Dica de Ouro: Salve o arquivo .jpcs
+                  </div>
+                  <p className="text-xs leading-relaxed">
+                    Depois de desenhar o modelo uma vez no Niimbot, clique em <strong>Salvar Como</strong> e guarde o arquivo <code>Modelo_Tons_Flores.jpcs</code> no seu computador. Nas próximas vezes, basta abrir esse arquivo e só importar a nova planilha!
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-3 border-t border-brand-border">
+              <button
+                onClick={() => setShowNiimbotGuide(false)}
+                className="px-6 py-2.5 bg-brand-olive hover:bg-brand-olive-hover text-white font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs"
+              >
+                Entendi, voltar às etiquetas
+              </button>
+            </div>
 
           </div>
         </div>
