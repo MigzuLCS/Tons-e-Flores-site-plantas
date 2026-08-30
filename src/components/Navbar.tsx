@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Flower2, Store, LayoutGrid, QrCode, Plus, Lock, LogOut, Sun, Moon, Menu, X, ChevronRight } from 'lucide-react';
+import { Store, LayoutGrid, QrCode, Plus, Lock, LogOut, Sun, Moon, Menu, X, ChevronRight } from 'lucide-react';
+import { LogoIcon } from './LogoIcon';
 import { themeService, type Theme } from '../services/configService';
 
 export type AppTab = 'showcase' | 'admin' | 'tags';
@@ -246,8 +247,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => handleNavigate('showcase')}
                 className="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer group shrink-0"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#24201D] group-hover:bg-[#A3B596] group-hover:text-[#181514] rounded-xl sm:rounded-2xl flex items-center justify-center text-[#A3B596] border border-[#3A332F] shadow-xs transition-all shrink-0">
-                  <Flower2 className="w-4 h-4 sm:w-6 sm:h-6 transition-colors" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#24201D] group-hover:bg-[#2C2522] rounded-xl sm:rounded-2xl flex items-center justify-center text-[#A3B596] border border-[#3A332F] shadow-xs transition-all shrink-0">
+                  <LogoIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105" leafColor="#A3B596" flowerColor="#E08F6F" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 sm:gap-2">
@@ -398,7 +399,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center justify-between pb-3.5 border-b border-[#2D2623]">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#24201D] text-[#A3B596] border border-[#3A332F] flex items-center justify-center shadow-xs">
-                  <Flower2 className="w-4 h-4" />
+                  <LogoIcon className="w-4 h-4" leafColor="#A3B596" flowerColor="#E08F6F" />
                 </div>
                 <div>
                   <h2 className="font-bold text-sm text-stone-100 font-serif-title leading-tight">Tons & Flores</h2>

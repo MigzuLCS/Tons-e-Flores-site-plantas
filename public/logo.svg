@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Filtro sutil para suavização -->
+    <filter id="soft-glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.04" />
+    </filter>
+  </defs>
+
+  <!-- GRUPO DO SÍMBOLO BOTÂNICO -->
+  <g id="botanical-symbol" transform="translate(300, 195)" filter="url(#soft-glow)">
+    
+    <!-- Haste Central & Enraizamento Orgânico -->
+    <path 
+      d="M-5,115 C-12,100 -18,70 -6,35 C2,10 0,-15 -25,-40" 
+      stroke="#7D9371" 
+      stroke-width="4.5" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+    />
+    
+    <!-- Ramificação para a Flor -->
+    <path 
+      d="M-6,35 C15,20 40,5 65,-15" 
+      stroke="#C87A5B" 
+      stroke-width="4.5" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+    />
+
+    <!-- Pequena Folha na Base da Haste -->
+    <path 
+      d="M-2,60 C18,52 38,62 48,72 C35,85 12,85 -2,60 Z" 
+      fill="none" 
+      stroke="#7D9371" 
+      stroke-width="3.8" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+    />
+    <path 
+      d="M-2,60 C16,66 32,70 48,72" 
+      stroke="#7D9371" 
+      stroke-width="2.5" 
+      stroke-linecap="round"
+    />
+
+    <!-- FOLHA DE MONSTERA (Costela-de-Adão) À ESQUERDA -->
+    <g id="monstera-leaf" stroke="#7D9371" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <!-- Nervura Principal -->
+      <path d="M-25,-40 C-45,-75 -70,-115 -110,-130" stroke-width="4.5" />
+
+      <!-- Contorno Externo da Folha com Recortes Fenestrados -->
+      <path d="
+        M-25,-40 
+        C-35,-25 -55,-22 -72,-35
+        C-65,-48 -58,-58 -48,-62
+        C-68,-60 -92,-55 -108,-75
+        C-98,-88 -85,-95 -72,-96
+        C-92,-102 -115,-105 -125,-130
+        C-112,-140 -98,-140 -82,-136
+        C-100,-152 -112,-168 -110,-190
+        C-92,-188 -75,-175 -60,-162
+        C-55,-182 -40,-198 -15,-205
+        C-2,-192 2,-175 0,-155
+        C15,-170 35,-178 55,-172
+        C52,-152 40,-138 25,-130
+        C42,-130 62,-120 70,-100
+        C52,-92 38,-95 20,-102
+        C30,-88 35,-70 28,-52
+        C15,-58 2,-70 -8,-82
+        C-5,-62 -12,-48 -25,-40 Z
+      " />
+
+      <!-- Nervuras Secundárias da Monstera -->
+      <path d="M-40,-65 C-55,-80 -80,-85 -100,-82" stroke-width="2.8" />
+      <path d="M-55,-95 C-70,-115 -90,-125 -112,-128" stroke-width="2.8" />
+      <path d="M-70,-128 C-80,-145 -95,-158 -105,-175" stroke-width="2.8" />
+      <path d="M-48,-115 C-40,-140 -25,-165 -15,-190" stroke-width="2.8" />
+      <path d="M-30,-85 C-10,-105 15,-120 38,-125" stroke-width="2.8" />
+      
+      <!-- Fendas/Perfurações Internas Características da Costela-de-Adão -->
+      <ellipse cx="-55" cy="-115" rx="5" ry="14" transform="rotate(-35 -55 -115)" stroke-width="3" />
+      <ellipse cx="-38" cy="-80" rx="4" ry="11" transform="rotate(-25 -38 -80)" stroke-width="3" />
+      <ellipse cx="-20" cy="-125" rx="4" ry="12" transform="rotate(15 -20 -125)" stroke-width="3" />
+    </g>
+
+    <!-- FLOR BOTÂNICA DESABROCHANDO À DIREITA -->
+    <g id="blooming-flower" stroke="#C87A5B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      
+      <!-- Receptáculo e Miolo Floral -->
+      <circle cx="95" cy="-55" r="9" fill="#C87A5B" fill-opacity="0.25" stroke-width="3.5" />
+      
+      <!-- Estames / Pistilo -->
+      <path d="M95,-55 C98,-70 106,-82 112,-90" stroke-width="2.5" />
+      <circle cx="113" cy="-91" r="3" fill="#C87A5B" />
+      <circle cx="77" cy="-89" r="3" fill="#C87A5B" />
+
+      <!-- Pétala Superior Central -->
+      <path d="
+        M90,-64 
+        C80,-105 92,-145 110,-165 
+        C130,-140 135,-100 102,-60
+      " />
+      <path d="M98,-64 C104,-95 110,-125 110,-150" stroke-width="2" stroke-dasharray="2 4" />
+
+      <!-- Pétala Superior Esquerda -->
+      <path d="
+        M86,-55 
+        C60,-80 40,-105 45,-130 
+        C72,-132 90,-105 96,-64
+      " />
+
+      <!-- Pétala Superior Direita -->
+      <path d="
+        M104,-55 
+        C135,-75 165,-90 178,-72 
+        C168,-48 140,-45 104,-48
+      " />
+
+      <!-- Pétala Inferior Direita -->
+      <path d="
+        M102,-46 
+        C135,-35 160,-15 152,10 
+        C128,15 105,-15 94,-46
+      " />
+
+      <!-- Pétala Inferior Esquerda -->
+      <path d="
+        M86,-50 
+        C62,-35 48,-10 58,15 
+        C78,12 88,-20 90,-46
+      " />
+      
+      <!-- Detalhes de Textura e Veios nas Pétalas -->
+      <path d="M52,-115 C65,-100 78,-80 86,-62" stroke-width="2" />
+      <path d="M160,-75 C142,-65 125,-58 104,-52" stroke-width="2" />
+      <path d="M140,2 C125,-8 112,-25 98,-46" stroke-width="2" />
+    </g>
+
+    <!-- Laço Fluido & Elegante de União -->
+    <path 
+      d="M-5,115 C-2,140 -20,150 -30,135 C-42,118 -20,80 -6,35" 
+      stroke="#7D9371" 
+      stroke-width="3" 
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+
+  <!-- TIPOGRAFIA DO LOGO -->
+  <g id="typography">
+    <!-- Nome Principal: TONS & FLORES -->
+    <text 
+      x="300" 
+      y="420" 
+      text-anchor="middle" 
+      font-family="'Playfair Display', 'Cinzel', 'Georgia', 'Times New Roman', serif" 
+      font-size="42" 
+      font-weight="700" 
+      letter-spacing="5" 
+      fill="#231E1B"
+    >
+      TONS &amp; FLORES
+    </text>
+
+    <!-- Linha Divisória Delicada com Folhinha -->
+    <line x1="200" y1="445" x2="275" y2="445" stroke="#C87A5B" stroke-width="1.5" stroke-linecap="round" />
+    <circle cx="300" cy="445" r="3.5" fill="#7D9371" />
+    <line x1="325" y1="445" x2="400" y2="445" stroke="#C87A5B" stroke-width="1.5" stroke-linecap="round" />
+
+    <!-- Subtítulo: BOUTIQUE -->
+    <text 
+      x="300" 
+      y="480" 
+      text-anchor="middle" 
+      font-family="'Plus Jakarta Sans', 'Inter', 'Helvetica Neue', sans-serif" 
+      font-size="15" 
+      font-weight="600" 
+      letter-spacing="12" 
+      fill="#73665D"
+    >
+      BOUTIQUE
+    </text>
+  </g>
+</svg>
