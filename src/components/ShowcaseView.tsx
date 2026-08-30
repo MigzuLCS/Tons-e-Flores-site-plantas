@@ -22,6 +22,7 @@ import { configService } from '../services/configService';
 
 interface ShowcaseViewProps {
   plants: Plant[];
+  isLoading?: boolean;
   onSelectPlant: (plant: Plant) => void;
   activeLocationFilter?: string | null;
   onClearLocationFilter?: () => void;
@@ -29,6 +30,7 @@ interface ShowcaseViewProps {
 
 export const ShowcaseView: React.FC<ShowcaseViewProps> = ({ 
   plants, 
+  isLoading = false,
   onSelectPlant, 
   activeLocationFilter, 
   onClearLocationFilter 
@@ -686,18 +688,54 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
 
       {/* Contagem de Resultados */}
       <div className="text-xs text-stone-500 px-1">
-        <span>
-          Exibindo <strong>{filteredAndSortedPlants.length}</strong> vasos na vitrine
-        </span>
+        {isLoading ? (
+          <div className="h-4 w-44 bg-brand-surface-subtle animate-pulse rounded-md" />
+        ) : (
+          <span>
+            Exibindo <strong>{filteredAndSortedPlants.length}</strong> vasos na vitrine
+          </span>
+        )}
       </div>
 
-      {/* Grade de Plantas */}
-      {filteredAndSortedPlants.length > 0 ? (
+      {/* Grade de Plantas / Skeleton */}
+      {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAndSortedPlants.map((plant) => (
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <div 
+              key={n} 
+              className="bg-brand-surface rounded-2xl border border-brand-border overflow-hidden animate-pulse flex flex-col justify-between h-[380px]"
+            >
+              <div>
+                <div className="h-52 bg-brand-surface-subtle" />
+                <div className="p-5 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="h-3 bg-brand-surface-subtle rounded w-20" />
+                    <div className="h-3 bg-brand-surface-subtle rounded w-12" />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="h-5 bg-brand-surface-subtle rounded w-36" />
+                    <div className="h-5 bg-brand-surface-subtle rounded w-16" />
+                  </div>
+                  <div className="h-3 bg-brand-surface-subtle rounded w-28" />
+                  <div className="flex gap-2 pt-2">
+                    <div className="h-6 bg-brand-surface-subtle rounded-lg w-20" />
+                    <div className="h-6 bg-brand-surface-subtle rounded-lg w-20" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-5 pt-0">
+                <div className="h-9 bg-brand-surface-subtle rounded-xl w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredAndSortedPlants.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAndSortedPlants.map((plant, idx) => (
             <PlantCard 
               key={plant.id} 
               plant={plant} 
+              priority={idx < 3}
               onSelect={onSelectPlant} 
             />
           ))}

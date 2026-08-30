@@ -14,8 +14,24 @@ const PlantFormModal = lazy(() => import('./components/PlantFormModal').then(m =
 const AdminLoginModal = lazy(() => import('./components/AdminLoginModal').then(m => ({ default: m.AdminLoginModal })));
 
 export function App() {
-  const [plants, setPlants] = useState<Plant[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [plants, setPlants] = useState<Plant[]>(() => {
+    try {
+      const raw = localStorage.getItem('tons_e_flores_plants_cache');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem('tons_e_flores_plants_cache');
+      return !raw || JSON.parse(raw).length === 0;
+    } catch {
+      return true;
+    }
+  });
   const [currentTab, setCurrentTab] = useState<AppTab>('showcase');
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -27,10 +43,11 @@ export function App() {
 
   // Carregar plantas do Supabase
   const loadPlants = useCallback(async () => {
-    setIsLoading(true);
     try {
       const loaded = await plantService.getPlants();
-      setPlants(loaded);
+      if (loaded.length > 0) {
+        setPlants(loaded);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -137,24 +154,18 @@ export function App() {
       {/* Conteúdo da Aba Ativa */}
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         {currentTab === 'showcase' && (
-          isLoading ? (
-            <div className="flex items-center justify-center py-32 text-brand-text-muted gap-3">
-              <div className="w-6 h-6 border-2 border-brand-olive border-t-brand-nude rounded-full animate-spin" />
-              <span className="text-sm font-medium text-brand-text">Carregando catálogo Tons & Flores...</span>
-            </div>
-          ) : (
-            <ShowcaseView 
-              plants={plants} 
-              onSelectPlant={handleSelectPlant} 
-              activeLocationFilter={activeLocationFilter}
-              onClearLocationFilter={() => {
-                setActiveLocationFilter(null);
-                if (window.location.hash.startsWith('#bancada=') || window.location.hash.startsWith('#local=')) {
-                  history.pushState('', document.title, window.location.pathname + window.location.search);
-                }
-              }}
-            />
-          )
+          <ShowcaseView 
+            plants={plants} 
+            isLoading={isLoading}
+            onSelectPlant={handleSelectPlant} 
+            activeLocationFilter={activeLocationFilter}
+            onClearLocationFilter={() => {
+              setActiveLocationFilter(null);
+              if (window.location.hash.startsWith('#bancada=') || window.location.hash.startsWith('#local=')) {
+                history.pushState('', document.title, window.location.pathname + window.location.search);
+              }
+            }}
+          />
         )}
 
         {currentTab === 'admin' && isAdmin && (

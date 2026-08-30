@@ -71,6 +71,8 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
               src={plant.imageUrl || 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80'} 
               alt={plant.name} 
               className="w-full h-full object-cover"
+              loading="eager"
+              fetchPriority="high"
               decoding="async"
             />
             <div className="absolute bottom-3 left-3 bg-brand-surface/95 text-brand-text text-xs px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-xs border border-brand-border">

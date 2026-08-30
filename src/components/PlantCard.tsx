@@ -6,23 +6,25 @@ import { CareBadge } from './CareBadge';
 interface PlantCardProps {
   plant: Plant;
   onSelect: (plant: Plant) => void;
+  priority?: boolean;
 }
 
-export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect }) => {
+export const PlantCard: React.FC<PlantCardProps> = React.memo(({ plant, onSelect, priority = false }) => {
   return (
     <div 
       onClick={() => onSelect(plant)}
-      className="bg-brand-surface rounded-2xl border border-brand-border shadow-xs overflow-hidden hover:shadow-md hover:border-brand-olive/50 transition-[border-color,box-shadow,transform] duration-200 ease-out group flex flex-col justify-between cursor-pointer transform-gpu will-change-[transform,box-shadow]"
+      className="bg-brand-surface rounded-2xl border border-brand-border shadow-xs overflow-hidden hover:shadow-md hover:border-brand-olive/50 transition-[border-color,box-shadow,transform] duration-200 ease-out group flex flex-col justify-between cursor-pointer"
       style={{ contentVisibility: 'auto', containIntrinsicSize: '0 380px' }}
     >
       <div>
-        {/* Imagem do Vaso com aceleração GPU isolada */}
-        <div className="relative h-52 bg-brand-surface-subtle overflow-hidden [transform:translateZ(0)]">
+        {/* Imagem do Vaso com priorização LCP */}
+        <div className="relative h-52 bg-brand-surface-subtle overflow-hidden">
           <img 
             src={plant.imageUrl || 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=600&q=80'} 
             alt={plant.name} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 ease-out transform-gpu will-change-transform"
-            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 ease-out"
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
             decoding="async"
           />
           

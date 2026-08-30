@@ -131,6 +131,27 @@ function plantToRow(plant: Plant) {
   };
 }
 
+const PLANTS_CACHE_KEY = 'tons_e_flores_plants_cache';
+
+function getCachedPlants(): Plant[] {
+  try {
+    const raw = localStorage.getItem(PLANTS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function setCachedPlants(plants: Plant[]): void {
+  try {
+    localStorage.setItem(PLANTS_CACHE_KEY, JSON.stringify(plants));
+  } catch {
+    // Ignore quota errors
+  }
+}
+
 // ─── Serviço ──────────────────────────────────────────────────────────────────
 async function getPlants(): Promise<Plant[]> {
   try {
@@ -141,16 +162,22 @@ async function getPlants(): Promise<Plant[]> {
 
     if (error) {
       console.error('[plantService] Erro ao buscar plantas no Supabase:', error.message);
-      return [];
+      return getCachedPlants();
     }
-    return (data ?? []).map(rowToPlant);
+    const formatted = (data ?? []).map(rowToPlant);
+    setCachedPlants(formatted);
+    return formatted;
   } catch (err) {
     console.error('[plantService] Exceção ao buscar plantas:', err);
-    return [];
+    return getCachedPlants();
   }
 }
 
 async function getPlantById(id: string): Promise<Plant | null> {
+  // 1. Tenta pegar do cache imediato
+  const cached = getCachedPlants().find(p => p.id === id);
+  if (cached) return cached;
+
   try {
     const { data, error } = await supabase
       .from('plants')
