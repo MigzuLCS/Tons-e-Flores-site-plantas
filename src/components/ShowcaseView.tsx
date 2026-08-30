@@ -11,13 +11,10 @@ import {
   Droplet,
   SlidersHorizontal, 
   RotateCcw, 
-  LayoutGrid, 
   Check, 
   X, 
-  Layers, 
   ChevronRight,
-  Sparkles,
-  MapPin
+  Sparkles
 } from 'lucide-react';
 import type { Plant } from '../types/plant';
 import { PlantCard } from './PlantCard';
@@ -44,13 +41,13 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
   const [selectedWater, setSelectedWater] = useState<string>('all');
   const [petFriendlyOnly, setPetFriendlyOnly] = useState<boolean>(false);
   
-  // Modais
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [categorySearchQuery, setCategorySearchQuery] = useState('');
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [locationSearchQuery, setLocationSearchQuery] = useState('');
-  const [isCareModalOpen, setIsCareModalOpen] = useState(false);
+  // Modais / Painéis de Filtro
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isMobileFilterSheetOpen, setIsMobileFilterSheetOpen] = useState(false);
+  
+  // Buscas internas no modal de filtros
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
 
   // Sincroniza quando activeLocationFilter mudar externamente (ex: leitura de QR code)
   useEffect(() => {
@@ -137,15 +134,6 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
     };
   }, [plants]);
 
-  // Quantidade de filtros de cuidados ativos no momento
-  const activeCareFiltersCount = useMemo(() => {
-    let count = 0;
-    if (selectedLight !== 'all') count++;
-    if (selectedWater !== 'all') count++;
-    if (petFriendlyOnly) count++;
-    return count;
-  }, [selectedLight, selectedWater, petFriendlyOnly]);
-
   // Localizações filtradas dentro do modal de seleção
   const filteredModalLocations = useMemo(() => {
     if (!locationSearchQuery.trim()) return allLocations;
@@ -226,12 +214,6 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
     }
   };
 
-  const handleResetCareFilters = () => {
-    setSelectedLight('all');
-    setSelectedWater('all');
-    setPetFriendlyOnly(false);
-  };
-
   const hasActiveFilters =
     searchTerm !== '' ||
     selectedCategory !== 'all' ||
@@ -252,6 +234,16 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
     if (petFriendlyOnly) count++;
     return count;
   }, [searchTerm, selectedCategory, selectedCultivation, selectedLocation, selectedLight, selectedWater, petFriendlyOnly]);
+
+  const getCultivationIcon = (name: string) => {
+    const lower = name.toLowerCase();
+    if (lower.includes('tradicional')) return '🪴';
+    if (lower.includes('muda')) return '🌱';
+    if (lower.includes('bonsai')) return '🎍';
+    if (lower.includes('arranjo')) return '💐';
+    if (lower.includes('kokedama') || lower.includes('coquedama')) return '🧶';
+    return '🌿';
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in duration-300">
@@ -467,382 +459,227 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       </div>
 
       {/* ======================================================== */}
-      {/* 2. VERSÃO DESKTOP DA CAIXA DE BUSCA E FILTROS RÁPIDOS    */}
+      {/* 2. NOVA VERSÃO DESKTOP (MODERNA, LIMPA & UNIFICADA)       */}
       {/* ======================================================== */}
-      <div className="hidden lg:block bg-brand-surface p-5 rounded-2xl border border-brand-border shadow-xs space-y-4">
+      <div className="hidden lg:block bg-brand-surface p-5 rounded-3xl border border-brand-border shadow-xs space-y-4">
         
-        {/* Campo de Busca Desktop */}
-        <div className="relative">
-          <Search className="w-5 h-5 absolute left-4 top-3.5 text-brand-text-light" />
-          <input 
-            type="text" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={selectedLocation !== 'all' ? `Pesquisar em "${selectedLocation}"...` : "Pesquisar por nome popular, científico, tag #TF ou categoria..."} 
-            className="w-full pl-12 pr-10 py-3 text-sm bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-brand-olive font-medium transition-all text-brand-text placeholder:text-brand-text-light"
-          />
-          {searchTerm && (
-            <button 
-              onClick={() => setSearchTerm('')}
-              className="absolute right-3.5 top-3 text-xs text-brand-text-muted hover:text-brand-text bg-brand-border hover:bg-brand-border-subtle w-5 h-5 rounded-full flex items-center justify-center font-bold cursor-pointer"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-
-        {/* Barra de Seleção e Filtro de Localização / Bancadas */}
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-1">
-          {/* Botão Geral de Bancadas */}
-          <button 
-            onClick={() => setIsLocationModalOpen(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0 ${
-              selectedLocation !== 'all' 
-                ? 'bg-brand-olive text-white shadow-xs hover:bg-brand-olive-hover' 
-                : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
-            }`}
-            title="Abrir mapa de bancadas e setores"
-          >
-            <MapPin className="w-4 h-4 text-brand-olive shrink-0" />
-            <span>Bancadas</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              selectedLocation !== 'all' 
-                ? 'bg-white/20 text-white' 
-                : 'bg-brand-olive-light text-brand-olive-text border border-brand-olive-border'
-            }`}>
-              {allLocations.length}
-            </span>
-            <ChevronRight className="w-3.5 h-3.5 opacity-70 ml-0.5" />
-          </button>
-
-          {/* Chips Rápidos de Bancadas */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar flex-1">
-            <button 
-              onClick={() => setSelectedLocation('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
-                selectedLocation === 'all' 
-                  ? 'bg-brand-olive text-white shadow-xs font-bold' 
-                  : 'bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light'
-              }`}
-            >
-              Todas as Bancadas ({locationCounts.all || 0})
-            </button>
-
-            {/* Se houver uma bancada ativa, mostra chip de destaque com botão de remoção */}
-            {selectedLocation !== 'all' && (
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-olive text-white rounded-full text-xs font-semibold shadow-xs shrink-0 animate-in fade-in">
-                <span>📍 {selectedLocation}</span>
-                <span className="text-white/80 text-[10px]">({locationCounts[selectedLocation] || 0})</span>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleClearLocation();
-                  }}
-                  title="Remover filtro de bancada"
-                  className="ml-1 w-4 h-4 bg-white/20 hover:bg-white/40 rounded-full inline-flex items-center justify-center text-[10px] cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            {/* Primeiras bancadas para acesso rápido */}
-            {allLocations.slice(0, 4).map((loc) => {
-              if (loc === selectedLocation) return null;
-              return (
-                <button 
-                  key={loc}
-                  onClick={() => setSelectedLocation(loc)}
-                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light transition-all cursor-pointer"
-                >
-                  {loc} {locationCounts[loc] !== undefined && `(${locationCounts[loc]})`}
-                </button>
-              );
-            })}
-
-            {/* Botão Ver Todas as Bancadas */}
-            {allLocations.length > 4 && (
+        {/* Linha Principal: Busca Ampla + Botão Unificado de Filtros */}
+        <div className="flex items-center gap-3">
+          {/* Campo de Busca Principal */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-4 top-3.5 text-brand-text-light pointer-events-none" />
+            <input 
+              type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={selectedLocation !== 'all' ? `Pesquisar plantas em "${selectedLocation}"...` : "Buscar por nome popular, científico, categoria, tag #TF..."} 
+              className="w-full pl-11 pr-10 py-2.5 text-sm bg-brand-surface-subtle border border-brand-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-olive focus:border-brand-olive font-medium transition-all text-brand-text placeholder:text-brand-text-light"
+            />
+            {searchTerm && (
               <button 
-                onClick={() => setIsLocationModalOpen(true)}
-                className="px-3 py-1.5 rounded-full text-xs font-bold shrink-0 text-brand-olive bg-brand-olive-light hover:bg-brand-olive-border/40 border border-dashed border-brand-olive-border transition-all cursor-pointer"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3.5 top-2.5 text-xs text-brand-text-muted hover:text-brand-text bg-brand-border hover:bg-brand-border-subtle w-5 h-5 rounded-full flex items-center justify-center font-bold cursor-pointer"
+                title="Limpar busca"
               >
-                + Ver Todas ({allLocations.length})
+                ✕
               </button>
             )}
           </div>
+
+          {/* Botão Principal Unificado de Filtros (Abre o Centro de Filtros Desktop) */}
+          <button 
+            onClick={() => setIsFilterModalOpen(true)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0 border ${
+              totalActiveFiltersCount > 0
+                ? 'bg-brand-olive text-white border-brand-olive hover:bg-brand-olive-hover'
+                : 'bg-brand-surface-subtle hover:bg-brand-olive-light text-brand-text border-brand-border hover:border-brand-olive-border'
+            }`}
+            title="Abrir painel de filtros completo"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-inherit shrink-0" />
+            <span>Filtros do Catálogo</span>
+            {totalActiveFiltersCount > 0 ? (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-brand-nude text-white shadow-xs">
+                {totalActiveFiltersCount}
+              </span>
+            ) : (
+              <span className="text-[11px] text-brand-text-muted font-semibold">
+                (Todos)
+              </span>
+            )}
+            <ChevronRight className="w-3.5 h-3.5 opacity-60 ml-0.5" />
+          </button>
         </div>
 
-        {/* Barra de Seleção e Filtro de Categorias */}
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-2 border-t border-brand-border">
-          {/* Botão Geral de Categorias */}
-          <button 
-            onClick={() => setIsCategoryModalOpen(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0 ${
-              selectedCategory !== 'all' 
-                ? 'bg-brand-olive text-white shadow-xs hover:bg-brand-olive-hover' 
-                : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
-            }`}
-            title="Abrir catálogo completo de categorias"
-          >
-            <LayoutGrid className="w-4 h-4 text-brand-olive shrink-0" />
-            <span>Categorias</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-              selectedCategory !== 'all' 
-                ? 'bg-white/20 text-white' 
-                : 'bg-brand-olive-light text-brand-olive-text border border-brand-olive-border'
-            }`}>
-              {allCategories.length}
-            </span>
-            <ChevronRight className="w-3.5 h-3.5 opacity-70 ml-0.5" />
-          </button>
+        {/* Linha Secundária: Pílulas Rápidas de Categorias & Acesso Direto */}
+        <div className="flex items-center gap-2 pt-1 border-t border-brand-border/60">
+          <span className="text-xs font-bold text-brand-text-muted flex items-center gap-1 shrink-0 mr-1">
+            <span>🌿</span> Categorias:
+          </span>
 
-          {/* Chips Rápidos de Categorias */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar flex-1">
-            <button 
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 hide-scrollbar flex-1 text-xs">
+            {/* Pílula: Todas */}
+            <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
-                selectedCategory === 'all' 
-                  ? 'bg-brand-olive text-white shadow-xs font-bold' 
+              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer shrink-0 ${
+                selectedCategory === 'all'
+                  ? 'bg-brand-olive text-white shadow-xs font-bold'
                   : 'bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light'
               }`}
             >
               Todas ({categoryCounts.all || 0})
             </button>
 
-            {/* Se houver uma categoria ativa que não está nas primeiras, mostra chip de destaque com botão de remoção */}
-            {selectedCategory !== 'all' && (
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-olive text-white rounded-full text-xs font-semibold shadow-xs shrink-0 animate-in fade-in">
-                <span>{selectedCategory}</span>
-                <span className="text-white/80 text-[10px]">({categoryCounts[selectedCategory] || 0})</span>
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedCategory('all');
-                  }}
-                  title="Remover filtro de categoria"
-                  className="ml-1 w-4 h-4 bg-white/20 hover:bg-white/40 rounded-full inline-flex items-center justify-center text-[10px] cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-
-            {/* Primeiras categorias para acesso rápido */}
-            {allCategories.slice(0, 5).map((cat) => {
-              if (cat === selectedCategory) return null; // Já mostrado no chip ativo
+            {/* Categorias em destaque para clique rápido */}
+            {allCategories.slice(0, 6).map((cat) => {
+              const isSelected = selectedCategory === cat;
               return (
-                <button 
+                <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light transition-all cursor-pointer"
+                  onClick={() => setSelectedCategory(isSelected ? 'all' : cat)}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer shrink-0 border ${
+                    isSelected
+                      ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
+                      : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                  }`}
                 >
-                  {cat} {categoryCounts[cat] !== undefined && `(${categoryCounts[cat]})`}
+                  <span>{cat}</span>
+                  {categoryCounts[cat] !== undefined && (
+                    <span className={`text-[10px] ml-1.5 ${isSelected ? 'text-white/80 font-bold' : 'text-brand-text-muted'}`}>
+                      ({categoryCounts[cat]})
+                    </span>
+                  )}
+                  {isSelected && <span className="text-[10px] ml-1 opacity-80">✕</span>}
                 </button>
               );
             })}
 
-            {/* Botão Ver Todas caso tenha mais categorias */}
-            {allCategories.length > 5 && (
-              <button 
-                onClick={() => setIsCategoryModalOpen(true)}
-                className="px-3 py-1.5 rounded-full text-xs font-bold shrink-0 text-brand-olive bg-brand-olive-light hover:bg-brand-olive-border/40 border border-dashed border-brand-olive-border transition-all cursor-pointer"
+            {/* Botão Ver Todas as Categorias no Modal */}
+            {allCategories.length > 6 && (
+              <button
+                onClick={() => setIsFilterModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl font-bold shrink-0 text-brand-olive bg-brand-olive-light hover:bg-brand-olive-border/40 border border-dashed border-brand-olive-border transition-all cursor-pointer text-xs"
               >
-                + Ver Todas ({allCategories.length})
+                + Mais Categorias ({allCategories.length})
               </button>
             )}
           </div>
         </div>
 
-        {/* Barra de Seleção e Filtro de Cultivo / Formato */}
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 pt-2 border-t border-brand-border">
-          {/* Label de Cultivo */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-surface-subtle text-brand-text border border-brand-border shrink-0">
-            <span>🪴</span>
-            <span>Cultivo</span>
-          </div>
-
-          {/* Chips de Cultivo */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar flex-1">
-            <button 
-              onClick={() => setSelectedCultivation('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer ${
-                selectedCultivation === 'all' 
-                  ? 'bg-brand-olive text-white shadow-xs font-bold' 
-                  : 'bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light'
-              }`}
-            >
-              Todos ({cultivationCounts.all || 0})
-            </button>
-
-            {allCultivations.map((cul) => {
-              const isSelected = selectedCultivation === cul;
-              const getIcon = (name: string) => {
-                const lower = name.toLowerCase();
-                if (lower.includes('tradicional')) return '🪴';
-                if (lower.includes('muda')) return '🌱';
-                if (lower.includes('bonsai')) return '🎍';
-                if (lower.includes('arranjo')) return '💐';
-                if (lower.includes('kokedama') || lower.includes('coquedama')) return '🧶';
-                return '🌿';
-              };
-
-              return (
-                <button 
-                  key={cul}
-                  onClick={() => setSelectedCultivation(isSelected ? 'all' : cul)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-brand-olive text-white shadow-xs font-bold'
-                      : 'bg-brand-surface-subtle border border-brand-border text-brand-text hover:bg-brand-olive-light'
-                  }`}
-                >
-                  <span>{getIcon(cul)}</span>
-                  <span>{cul}</span>
-                  {cultivationCounts[cul] !== undefined && (
-                    <span className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-brand-text-muted'}`}>
-                      ({cultivationCounts[cul]})
-                    </span>
-                  )}
-                  {isSelected && <span className="text-[10px] text-white/80 ml-0.5">✕</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Barra de Cuidados Específicos */}
-        <div className="pt-3 border-t border-brand-border flex flex-wrap sm:flex-nowrap items-center gap-2.5">
-          {/* Botão Geral de Cuidados */}
-          <button 
-            onClick={() => setIsCareModalOpen(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0 ${
-              activeCareFiltersCount > 0 
-                ? 'bg-brand-olive text-white shadow-xs hover:bg-brand-olive-hover' 
-                : 'bg-brand-surface-subtle text-brand-text border border-brand-border hover:bg-brand-olive-light'
-            }`}
-            title="Abrir painel completo de cuidados (Luz, Rega e Pets)"
-          >
-            <SlidersHorizontal className="w-4 h-4 text-brand-olive shrink-0" />
-            <span>Cuidados</span>
-            {activeCareFiltersCount > 0 ? (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/20 text-white">
-                {activeCareFiltersCount} {activeCareFiltersCount === 1 ? 'ativo' : 'ativos'}
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-brand-olive-light text-brand-olive-text border border-brand-olive-border">
-                Todos
-              </span>
-            )}
-            <ChevronRight className="w-3.5 h-3.5 opacity-70 ml-0.5" />
-          </button>
-
-          {/* Chips Rápidos de Cuidados */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar flex-1 text-xs">
-            {/* Sol Pleno */}
-            <button 
-              onClick={() => setSelectedLight(selectedLight === 'sol-pleno' ? 'all' : 'sol-pleno')}
-              className={`px-3 py-1.5 rounded-full font-semibold shrink-0 flex items-center gap-1.5 border transition-all cursor-pointer ${
-                selectedLight === 'sol-pleno' 
-                  ? 'bg-amber-50 border-amber-300 text-amber-900 font-bold shadow-xs' 
-                  : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
-              }`}
-            >
-              <Sun className="w-3.5 h-3.5 text-amber-500" />
-              <span>Sol Pleno ({careCounts.solPleno})</span>
-              {selectedLight === 'sol-pleno' && <span className="text-[10px] text-amber-800 ml-0.5">✕</span>}
-            </button>
-
-            {/* Meia Sombra */}
-            <button 
-              onClick={() => setSelectedLight(selectedLight === 'meia-sombra' ? 'all' : 'meia-sombra')}
-              className={`px-3 py-1.5 rounded-full font-semibold shrink-0 flex items-center gap-1.5 border transition-all cursor-pointer ${
-                selectedLight === 'meia-sombra' 
-                  ? 'bg-orange-50 border-orange-300 text-orange-900 font-bold shadow-xs' 
-                  : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
-              }`}
-            >
-              <CloudSun className="w-3.5 h-3.5 text-orange-500" />
-              <span>Meia Sombra ({careCounts.meiaSombra})</span>
-              {selectedLight === 'meia-sombra' && <span className="text-[10px] text-orange-800 ml-0.5">✕</span>}
-            </button>
-
-            {/* Sombra Difusa */}
-            <button 
-              onClick={() => setSelectedLight(selectedLight === 'sombra-difusa' ? 'all' : 'sombra-difusa')}
-              className={`px-3 py-1.5 rounded-full font-semibold shrink-0 flex items-center gap-1.5 border transition-all cursor-pointer ${
-                selectedLight === 'sombra-difusa' 
-                  ? 'bg-indigo-50 border-indigo-300 text-indigo-900 font-bold shadow-xs' 
-                  : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
-              }`}
-            >
-              <Cloud className="w-3.5 h-3.5 text-indigo-500" />
-              <span>Sombra / Difusa ({careCounts.sombraDifusa})</span>
-              {selectedLight === 'sombra-difusa' && <span className="text-[10px] text-indigo-800 ml-0.5">✕</span>}
-            </button>
-
-            {/* Pouca Rega */}
-            <button 
-              onClick={() => setSelectedWater(selectedWater === 'baixa' ? 'all' : 'baixa')}
-              className={`px-3 py-1.5 rounded-full font-semibold shrink-0 flex items-center gap-1.5 border transition-all cursor-pointer ${
-                selectedWater === 'baixa' 
-                  ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs' 
-                  : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
-              }`}
-            >
-              <Droplets className="w-3.5 h-3.5 text-blue-500" />
-              <span>Pouca Rega ({careCounts.poucaRega})</span>
-              {selectedWater === 'baixa' && <span className="text-[10px] text-blue-800 ml-0.5">✕</span>}
-            </button>
-
-            {/* Pet Friendly (Separado com tom Nude Suave) */}
-            <button 
-              onClick={() => setPetFriendlyOnly(!petFriendlyOnly)}
-              className={`px-3 py-1.5 rounded-full font-semibold shrink-0 flex items-center gap-1.5 border transition-all cursor-pointer ${
-                petFriendlyOnly 
-                  ? 'bg-brand-nude-light border-brand-nude-border text-brand-nude-text font-bold shadow-xs' 
-                  : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-nude-light'
-              }`}
-            >
-              <Heart className={`w-3.5 h-3.5 ${petFriendlyOnly ? 'text-brand-nude fill-brand-nude' : 'text-brand-text-light'}`} />
-              <span>Pet Friendly ({careCounts.petFriendly})</span>
-              {petFriendlyOnly && <span className="text-[10px] text-brand-nude-text ml-0.5">✕</span>}
-            </button>
-
-            {/* Botão para ver todos os cuidados em detalhe */}
-            <button 
-              onClick={() => setIsCareModalOpen(true)}
-              className="px-3 py-1.5 rounded-full text-xs font-bold shrink-0 text-brand-olive bg-brand-olive-light hover:bg-brand-olive-border/40 border border-dashed border-brand-olive-border transition-all cursor-pointer"
-            >
-              + Personalizar
-            </button>
-          </div>
-
-          {activeCareFiltersCount > 0 && (
-            <button 
-              onClick={handleResetCareFilters}
-              title="Limpar filtros de cuidados"
-              className="text-brand-text-muted hover:text-brand-olive font-semibold flex items-center gap-1 text-xs hover:underline cursor-pointer shrink-0"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Limpar
-            </button>
-          )}
-        </div>
-
-        {/* Barra de Status de Filtros Globais se houver qualquer filtro ativo */}
+        {/* Linha de Chips de Filtros Ativos no Desktop (Design inspirado no Mobile) */}
         {hasActiveFilters && (
-          <div className="pt-2 border-t border-brand-border flex items-center justify-between text-xs text-brand-text-muted">
-            <span className="flex items-center gap-1.5 text-brand-text font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-brand-olive" />
-              Filtros ativos aplicados ao catálogo
-            </span>
-            <button 
-              onClick={handleResetFilters}
-              className="text-brand-text-muted hover:text-brand-olive font-bold flex items-center gap-1.5 hover:underline cursor-pointer"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Limpar Todos os Filtros
-            </button>
+          <div className="pt-2 border-t border-brand-border/70 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-brand-text-muted text-xs font-bold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-brand-olive" />
+                Filtros ativos:
+              </span>
+
+              {searchTerm && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-xl font-medium animate-in fade-in">
+                  🔍 "{searchTerm}"
+                  <button 
+                    onClick={() => setSearchTerm('')} 
+                    className="hover:text-red-500 font-bold ml-1 cursor-pointer"
+                    title="Remover busca"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedCategory !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-xl font-medium animate-in fade-in">
+                  🌱 Categoria: {selectedCategory}
+                  <button 
+                    onClick={() => setSelectedCategory('all')} 
+                    className="hover:text-red-500 font-bold ml-1 cursor-pointer"
+                    title="Remover categoria"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedCultivation !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-xl font-medium animate-in fade-in">
+                  🪴 Cultivo: {selectedCultivation}
+                  <button 
+                    onClick={() => setSelectedCultivation('all')} 
+                    className="hover:text-red-500 font-bold ml-1 cursor-pointer"
+                    title="Remover cultivo"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedLocation !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-olive/15 text-brand-olive-text border border-brand-olive/30 rounded-xl font-medium animate-in fade-in">
+                  📍 Bancada: {selectedLocation}
+                  <button 
+                    onClick={handleClearLocation} 
+                    className="hover:text-red-500 font-bold ml-1 cursor-pointer"
+                    title="Remover bancada"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedLight !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 rounded-xl font-medium animate-in fade-in">
+                  ☀️ Luz: {selectedLight === 'sol-pleno' ? 'Sol Pleno' : selectedLight === 'meia-sombra' ? 'Meia-Sombra' : 'Sombra'}
+                  <button 
+                    onClick={() => setSelectedLight('all')} 
+                    className="hover:text-red-500 font-bold ml-1 cursor-pointer"
+                    title="Remover luz"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {selectedWater !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-500/30 rounded-xl font-medium animate-in fade-in">
+                  💧 Rega: {selectedWater === 'baixa' ? 'Baixa' : selectedWater === 'moderada' ? 'Moderada' : 'Frequente'}
+                  <button 
+                    onClick={() => setSelectedWater('all')} 
+                    className="hover:text-red-500 font-bold ml-1 cursor-pointer"
+                    title="Remover rega"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+
+              {petFriendlyOnly && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-nude-light text-brand-nude-text border border-brand-nude-border rounded-xl font-medium animate-in fade-in">
+                  🐾 100% Pet Friendly
+                  <button 
+                    onClick={() => setPetFriendlyOnly(false)} 
+                    className="hover:text-red-500 font-bold ml-1 cursor-pointer"
+                    title="Remover pet friendly"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+            </div>
+
+            {/* Ações Rápidas: Limpar Todos e Total de Vasos */}
+            <div className="flex items-center gap-4 text-xs">
+              <button 
+                onClick={handleResetFilters}
+                className="text-brand-text-muted hover:text-brand-olive font-bold flex items-center gap-1.5 hover:underline cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Limpar Todos os Filtros
+              </button>
+              <span className="text-xs text-brand-text-muted font-medium bg-brand-surface-subtle px-2.5 py-1 rounded-lg border border-brand-border">
+                {filteredAndSortedPlants.length} {filteredAndSortedPlants.length === 1 ? 'vaso' : 'vasos'}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -883,743 +720,515 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
         </div>
       )}
 
-      {/* Modal de Seleção de Bancadas Completo */}
-      {isLocationModalOpen && (
+      {/* ======================================================== */}
+      {/* 3. MODAL UNIFICADO DE FILTROS DESKTOP                     */}
+      {/* ======================================================== */}
+      {isFilterModalOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
-          onClick={() => {
-            setIsLocationModalOpen(false);
-            setLocationSearchQuery('');
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setIsFilterModalOpen(false)}
         >
           <div 
-            className="bg-brand-surface rounded-3xl shadow-xl border border-brand-border w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-brand-surface rounded-3xl shadow-2xl border border-brand-border w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 text-brand-text"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Cabeçalho do Modal */}
-            <div className="p-5 sm:p-6 border-b border-brand-border flex items-center justify-between bg-brand-surface-subtle">
+            <div className="p-6 border-b border-brand-border flex items-center justify-between bg-brand-surface-subtle">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-brand-olive-light text-brand-olive-text flex items-center justify-center shadow-xs">
-                  <MapPin className="w-5 h-5" />
+                <div className="w-11 h-11 rounded-2xl bg-brand-olive-light text-brand-olive-text flex items-center justify-center shadow-xs">
+                  <SlidersHorizontal className="w-5 h-5 text-brand-olive" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-brand-text font-serif-title flex items-center gap-2">
-                    Bancadas & Setores da Loja
-                    <span className="text-xs px-2 py-0.5 bg-brand-olive-light text-brand-olive-text rounded-full font-sans font-semibold border border-brand-olive-border">
-                      {allLocations.length}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-brand-text-muted">
-                    Selecione uma bancada para explorar os vasos organizados naquele espaço
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setIsLocationModalOpen(false);
-                  setLocationSearchQuery('');
-                }}
-                className="w-8 h-8 rounded-full bg-brand-border hover:bg-brand-border-subtle text-brand-text-muted hover:text-brand-text flex items-center justify-center transition-colors cursor-pointer"
-                title="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Campo de Busca de Bancadas */}
-            <div className="p-4 sm:px-6 border-b border-brand-border bg-brand-surface">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3.5 top-3 text-brand-text-light" />
-                <input
-                  type="text"
-                  value={locationSearchQuery}
-                  onChange={(e) => setLocationSearchQuery(e.target.value)}
-                  placeholder="Buscar bancada ou setor..."
-                  className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive font-medium transition-all text-brand-text"
-                  autoFocus
-                />
-                {locationSearchQuery && (
-                  <button
-                    onClick={() => setLocationSearchQuery('')}
-                    className="absolute right-3 top-2.5 text-xs text-brand-text-muted hover:text-brand-text bg-brand-border hover:bg-brand-border-subtle w-4 h-4 rounded-full flex items-center justify-center font-bold cursor-pointer"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Lista e Grade de Bancadas */}
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3">
-              {/* Opção: Todas as Bancadas */}
-              {(!locationSearchQuery || 'todas as bancadas'.includes(locationSearchQuery.toLowerCase())) && (
-                <button
-                  onClick={() => {
-                    handleClearLocation();
-                    setIsLocationModalOpen(false);
-                    setLocationSearchQuery('');
-                  }}
-                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                    selectedLocation === 'all'
-                      ? 'bg-brand-olive-light border-brand-olive ring-2 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                      : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${selectedLocation === 'all' ? 'bg-brand-olive text-white' : 'bg-brand-border text-brand-text-muted'}`}>
-                      <Layers className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold">Todas as Bancadas</div>
-                      <div className="text-xs text-brand-text-muted">Exibir catálogo geral da loja sem restrição de local</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-0.5 bg-brand-olive-light text-brand-olive-text border border-brand-olive-border rounded-full font-bold">
-                      {locationCounts.all || 0} vasos
-                    </span>
-                    {selectedLocation === 'all' && (
-                      <Check className="w-4 h-4 text-brand-olive font-bold" />
-                    )}
-                  </div>
-                </button>
-              )}
-
-              {/* Grade com Todas as Bancadas */}
-              {filteredModalLocations.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                  {filteredModalLocations.map((loc) => {
-                    const count = locationCounts[loc] || 0;
-                    const isSelected = selectedLocation === loc;
-                    return (
-                      <button
-                        key={loc}
-                        onClick={() => {
-                          setSelectedLocation(loc);
-                          setIsLocationModalOpen(false);
-                          setLocationSearchQuery('');
-                        }}
-                        className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-brand-olive-light border-brand-olive ring-2 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                            : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light hover:border-brand-olive-border'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 truncate pr-2">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
-                            isSelected ? 'bg-brand-olive text-white' : 'bg-brand-surface-subtle text-brand-text-muted'
-                          }`}>
-                            📍
-                          </div>
-                          <span className="text-xs sm:text-sm font-semibold truncate">{loc}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                            count > 0 ? 'bg-brand-surface-subtle text-brand-text-muted' : 'bg-brand-surface-subtle text-brand-text-light'
-                          }`}>
-                            {count} {count === 1 ? 'vaso' : 'vasos'}
-                          </span>
-                          {isSelected && (
-                            <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="py-10 text-center text-brand-text-muted space-y-2">
-                  <p className="text-sm font-medium">Nenhuma bancada encontrada para "{locationSearchQuery}".</p>
-                  <button
-                    onClick={() => setLocationSearchQuery('')}
-                    className="text-xs text-brand-olive font-bold hover:underline cursor-pointer"
-                  >
-                    Limpar busca
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Rodapé do Modal */}
-            <div className="p-4 border-t border-brand-border bg-brand-surface-subtle flex items-center justify-between text-xs">
-              <span className="text-brand-text-muted font-medium">
-                Total: <strong>{allLocations.length}</strong> bancadas cadastradas
-              </span>
-              <button
-                onClick={() => {
-                  setIsLocationModalOpen(false);
-                  setLocationSearchQuery('');
-                }}
-                className="px-4 py-2 bg-brand-border hover:bg-brand-border-subtle text-brand-text font-bold rounded-xl transition-colors cursor-pointer"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Seleção de Categorias Completo */}
-      {isCategoryModalOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
-          onClick={() => {
-            setIsCategoryModalOpen(false);
-            setCategorySearchQuery('');
-          }}
-        >
-          <div 
-            className="bg-brand-surface rounded-3xl shadow-xl border border-brand-border w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Cabeçalho do Modal */}
-            <div className="p-5 sm:p-6 border-b border-brand-border flex items-center justify-between bg-brand-surface-subtle">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-brand-olive-light text-brand-olive-text flex items-center justify-center shadow-xs">
-                  <LayoutGrid className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold text-brand-text font-serif-title flex items-center gap-2">
-                    Todas as Categorias
-                    <span className="text-xs px-2 py-0.5 bg-brand-olive-light text-brand-olive-text rounded-full font-sans font-semibold border border-brand-olive-border">
-                      {allCategories.length}
-                    </span>
-                  </h3>
-                  <p className="text-xs text-brand-text-muted">
-                    Selecione uma categoria para filtrar o catálogo de plantas
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setIsCategoryModalOpen(false);
-                  setCategorySearchQuery('');
-                }}
-                className="w-8 h-8 rounded-full bg-brand-border hover:bg-brand-border-subtle text-brand-text-muted hover:text-brand-text flex items-center justify-center transition-colors cursor-pointer"
-                title="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Campo de Busca de Categorias */}
-            <div className="p-4 sm:px-6 border-b border-brand-border bg-brand-surface">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3.5 top-3 text-brand-text-light" />
-                <input
-                  type="text"
-                  value={categorySearchQuery}
-                  onChange={(e) => setCategorySearchQuery(e.target.value)}
-                  placeholder="Buscar categoria..."
-                  className="w-full pl-10 pr-9 py-2 text-xs sm:text-sm bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-olive font-medium transition-all text-brand-text"
-                  autoFocus
-                />
-                {categorySearchQuery && (
-                  <button
-                    onClick={() => setCategorySearchQuery('')}
-                    className="absolute right-3 top-2.5 text-xs text-brand-text-muted hover:text-brand-text bg-brand-border hover:bg-brand-border-subtle w-4 h-4 rounded-full flex items-center justify-center font-bold cursor-pointer"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Lista e Grade de Categorias */}
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-3">
-              {/* Opção: Todas as Categorias */}
-              {(!categorySearchQuery || 'todas as categorias'.includes(categorySearchQuery.toLowerCase())) && (
-                <button
-                  onClick={() => {
-                    setSelectedCategory('all');
-                    setIsCategoryModalOpen(false);
-                    setCategorySearchQuery('');
-                  }}
-                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                    selectedCategory === 'all'
-                      ? 'bg-brand-olive-light border-brand-olive ring-2 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                      : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${selectedCategory === 'all' ? 'bg-brand-olive text-white' : 'bg-brand-border text-brand-text-muted'}`}>
-                      <Layers className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold">Todas as Categorias</div>
-                      <div className="text-xs text-brand-text-muted">Exibir catálogo completo da loja</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-0.5 bg-brand-olive-light text-brand-olive-text border border-brand-olive-border rounded-full font-bold">
-                      {categoryCounts.all || 0} vasos
-                    </span>
-                    {selectedCategory === 'all' && (
-                      <Check className="w-4 h-4 text-brand-olive font-bold" />
-                    )}
-                  </div>
-                </button>
-              )}
-
-              {/* Grade com Todas as Categorias Existentes */}
-              {filteredModalCategories.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                  {filteredModalCategories.map((cat) => {
-                    const count = categoryCounts[cat] || 0;
-                    const isSelected = selectedCategory === cat;
-                    return (
-                      <button
-                        key={cat}
-                        onClick={() => {
-                          setSelectedCategory(cat);
-                          setIsCategoryModalOpen(false);
-                          setCategorySearchQuery('');
-                        }}
-                        className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-brand-olive-light border-brand-olive ring-2 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                            : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light hover:border-brand-olive-border'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 truncate pr-2">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${
-                            isSelected ? 'bg-brand-olive text-white' : 'bg-brand-surface-subtle text-brand-text-muted'
-                          }`}>
-                            🌿
-                          </div>
-                          <span className="text-xs sm:text-sm font-semibold truncate">{cat}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                            count > 0 ? 'bg-brand-surface-subtle text-brand-text-muted' : 'bg-brand-surface-subtle text-brand-text-light'
-                          }`}>
-                            {count} {count === 1 ? 'vaso' : 'vasos'}
-                          </span>
-                          {isSelected && (
-                            <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="py-10 text-center text-brand-text-muted space-y-2">
-                  <p className="text-sm font-medium">Nenhuma categoria encontrada para "{categorySearchQuery}".</p>
-                  <button
-                    onClick={() => setCategorySearchQuery('')}
-                    className="text-xs text-brand-olive font-bold hover:underline cursor-pointer"
-                  >
-                    Limpar busca
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Rodapé do Modal */}
-            <div className="p-4 border-t border-brand-border bg-brand-surface-subtle flex items-center justify-between text-xs">
-              <span className="text-brand-text-muted font-medium">
-                Total: <strong>{allCategories.length}</strong> categorias disponíveis
-              </span>
-              <button
-                onClick={() => {
-                  setIsCategoryModalOpen(false);
-                  setCategorySearchQuery('');
-                }}
-                className="px-4 py-2 bg-brand-border hover:bg-brand-border-subtle text-brand-text font-bold rounded-xl transition-colors cursor-pointer"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Modal de Seleção de Cuidados Completo */}
-      {isCareModalOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
-          onClick={() => setIsCareModalOpen(false)}
-        >
-          <div 
-            className="bg-brand-surface rounded-3xl shadow-xl border border-brand-border w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Cabeçalho do Modal */}
-            <div className="p-5 sm:p-6 border-b border-brand-border flex items-center justify-between bg-brand-surface-subtle">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-brand-olive-light text-brand-olive-text flex items-center justify-center shadow-xs">
-                  <SlidersHorizontal className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold text-brand-text font-serif-title flex items-center gap-2">
-                    Filtros & Guia de Cuidados
-                    {activeCareFiltersCount > 0 && (
-                      <span className="text-xs px-2 py-0.5 bg-brand-olive-light text-brand-olive-text rounded-full font-sans font-bold border border-brand-olive-border">
-                        {activeCareFiltersCount} {activeCareFiltersCount === 1 ? 'ativo' : 'ativos'}
+                  <h3 className="text-lg font-bold text-brand-text font-serif-title flex items-center gap-2">
+                    Filtros do Catálogo
+                    {totalActiveFiltersCount > 0 && (
+                      <span className="text-xs px-2.5 py-0.5 bg-brand-olive text-white rounded-full font-sans font-bold">
+                        {totalActiveFiltersCount} {totalActiveFiltersCount === 1 ? 'ativo' : 'ativos'}
                       </span>
                     )}
                   </h3>
                   <p className="text-xs text-brand-text-muted">
-                    Selecione as condições ideais de luz, rega e ambiente para o seu espaço
+                    Selecione categorias, bancadas físicas, tipo de cultivo e rotinas de cuidado
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setIsCareModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-brand-border hover:bg-brand-border-subtle text-brand-text-muted hover:text-brand-text flex items-center justify-center transition-colors cursor-pointer"
+                onClick={() => setIsFilterModalOpen(false)}
+                className="w-9 h-9 rounded-full bg-brand-border hover:bg-brand-border-subtle text-brand-text-muted hover:text-brand-text flex items-center justify-center transition-colors cursor-pointer"
                 title="Fechar"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Conteúdo do Modal: 3 Seções de Cuidados */}
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
+            {/* Conteúdo Rolável do Modal (2 Colunas Elegantes) */}
+            <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 text-xs">
               
-              {/* Seção 1: Iluminação / Luz */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-brand-text uppercase tracking-wide flex items-center gap-1.5">
-                    <Sun className="w-4 h-4 text-amber-500" />
-                    1. Luminosidade & Exposição Solar
-                  </span>
-                  {selectedLight !== 'all' && (
-                    <button 
-                      onClick={() => setSelectedLight('all')} 
-                      className="text-[11px] text-brand-olive font-bold hover:underline cursor-pointer"
+              {/* COLUNA ESQUERDA: Categoria, Cultivo e Bancadas */}
+              <div className="space-y-6">
+                
+                {/* Seção 1: Categorias */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-brand-text text-sm flex items-center gap-1.5">
+                      <span>🌿</span> Categorias da Loja
+                    </h4>
+                    {selectedCategory !== 'all' && (
+                      <button 
+                        onClick={() => setSelectedCategory('all')}
+                        className="text-brand-olive font-bold hover:underline cursor-pointer text-[11px]"
+                      >
+                        Todas as categorias
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Campo de Busca de Categorias */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-brand-text-light" />
+                    <input
+                      type="text"
+                      value={categorySearchQuery}
+                      onChange={(e) => setCategorySearchQuery(e.target.value)}
+                      placeholder="Buscar categoria..."
+                      className="w-full pl-9 pr-7 py-1.5 text-xs bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-olive text-brand-text"
+                    />
+                    {categorySearchQuery && (
+                      <button
+                        onClick={() => setCategorySearchQuery('')}
+                        className="absolute right-2 top-2 text-[10px] text-brand-text-muted hover:text-brand-text"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Grade de Categorias */}
+                  <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-0.5">
+                    <button
+                      onClick={() => setSelectedCategory('all')}
+                      className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer border ${
+                        selectedCategory === 'all'
+                          ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
+                          : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                      }`}
                     >
-                      Qualquer luz
+                      Todas ({categoryCounts.all || 0})
                     </button>
-                  )}
+                    {filteredModalCategories.map((cat) => {
+                      const isSelected = selectedCategory === cat;
+                      const count = categoryCounts[cat] || 0;
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(isSelected ? 'all' : cat)}
+                          className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
+                              : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                          }`}
+                        >
+                          <span>{cat}</span>
+                          <span className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-brand-text-muted'}`}>
+                            ({count})
+                          </span>
+                          {isSelected && <Check className="w-3 h-3 text-white font-bold" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* Opção: Qualquer Luz */}
-                  <button
-                    onClick={() => setSelectedLight('all')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedLight === 'all'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs sm:text-sm font-bold">Qualquer Luminosidade</div>
-                      <div className="text-[11px] text-brand-text-muted">Sem preferência de sol</div>
-                    </div>
-                    {selectedLight === 'all' && <Check className="w-4 h-4 text-brand-olive font-bold" />}
-                  </button>
+                {/* Seção 2: Tipo de Cultivo */}
+                <div className="space-y-3 pt-4 border-t border-brand-border">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-brand-text text-sm flex items-center gap-1.5">
+                      <span>🪴</span> Tipo de Cultivo / Formato
+                    </h4>
+                    {selectedCultivation !== 'all' && (
+                      <button 
+                        onClick={() => setSelectedCultivation('all')}
+                        className="text-brand-olive font-bold hover:underline cursor-pointer text-[11px]"
+                      >
+                        Todos os cultivos
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Opção: Sol Pleno */}
-                  <button
-                    onClick={() => setSelectedLight('sol-pleno')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedLight === 'sol-pleno'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                        selectedLight === 'sol-pleno' 
-                          ? 'bg-brand-olive text-white' 
-                          : 'bg-brand-surface-subtle text-brand-text-muted border border-brand-border/50'
-                      }`}>
-                        <Sun className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold">Sol Pleno</div>
-                        <div className="text-[11px] text-brand-text-muted">Sol direto 4h+ ao dia (varandas, quintais)</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-surface-subtle text-brand-text-muted font-medium border border-brand-border/60">
-                        {careCounts.solPleno}
-                      </span>
-                      {selectedLight === 'sol-pleno' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
-                    </div>
-                  </button>
-
-                  {/* Opção: Meia Sombra */}
-                  <button
-                    onClick={() => setSelectedLight('meia-sombra')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedLight === 'meia-sombra'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                        selectedLight === 'meia-sombra' 
-                          ? 'bg-brand-olive text-white' 
-                          : 'bg-brand-surface-subtle text-brand-text-muted border border-brand-border/50'
-                      }`}>
-                        <CloudSun className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold">Meia Sombra</div>
-                        <div className="text-[11px] text-brand-text-muted">Luz indireta abundante ou sol fraco matinal</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-surface-subtle text-brand-text-muted font-medium border border-brand-border/60">
-                        {careCounts.meiaSombra}
-                      </span>
-                      {selectedLight === 'meia-sombra' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
-                    </div>
-                  </button>
-
-                  {/* Opção: Sombra Difusa */}
-                  <button
-                    onClick={() => setSelectedLight('sombra-difusa')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedLight === 'sombra-difusa'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                        selectedLight === 'sombra-difusa' 
-                          ? 'bg-brand-olive text-white' 
-                          : 'bg-brand-surface-subtle text-brand-text-muted border border-brand-border/50'
-                      }`}>
-                        <Cloud className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold">Sombra / Difusa</div>
-                        <div className="text-[11px] text-brand-text-muted">Ambientes internos sem incidência solar direta</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-surface-subtle text-brand-text-muted font-medium border border-brand-border/60">
-                        {careCounts.sombraDifusa}
-                      </span>
-                      {selectedLight === 'sombra-difusa' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
-                    </div>
-                  </button>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      onClick={() => setSelectedCultivation('all')}
+                      className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer border ${
+                        selectedCultivation === 'all'
+                          ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
+                          : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                      }`}
+                    >
+                      Todos ({cultivationCounts.all || 0})
+                    </button>
+                    {allCultivations.map((cul) => {
+                      const isSelected = selectedCultivation === cul;
+                      const count = cultivationCounts[cul] || 0;
+                      return (
+                        <button
+                          key={cul}
+                          onClick={() => setSelectedCultivation(isSelected ? 'all' : cul)}
+                          className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                            isSelected
+                              ? 'bg-brand-olive text-white border-brand-olive shadow-xs font-bold'
+                              : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                          }`}
+                        >
+                          <span>{getCultivationIcon(cul)}</span>
+                          <span>{cul}</span>
+                          <span className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-brand-text-muted'}`}>
+                            ({count})
+                          </span>
+                          {isSelected && <Check className="w-3 h-3 text-white font-bold" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* Seção 3: Bancadas & Setores da Loja */}
+                <div className="space-y-3 pt-4 border-t border-brand-border">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-brand-text text-sm flex items-center gap-1.5">
+                      <span>📍</span> Bancadas Físicas & Setores
+                    </h4>
+                    {selectedLocation !== 'all' && (
+                      <button 
+                        onClick={handleClearLocation}
+                        className="text-brand-olive font-bold hover:underline cursor-pointer text-[11px]"
+                      >
+                        Todas as bancadas
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Campo de Busca de Bancadas */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-brand-text-light" />
+                    <input
+                      type="text"
+                      value={locationSearchQuery}
+                      onChange={(e) => setLocationSearchQuery(e.target.value)}
+                      placeholder="Buscar bancada ou setor..."
+                      className="w-full pl-9 pr-7 py-1.5 text-xs bg-brand-surface-subtle border border-brand-border rounded-xl focus:outline-none focus:ring-1 focus:ring-brand-olive text-brand-text"
+                    />
+                    {locationSearchQuery && (
+                      <button
+                        onClick={() => setLocationSearchQuery('')}
+                        className="absolute right-2 top-2 text-[10px] text-brand-text-muted hover:text-brand-text"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Grade de Bancadas */}
+                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-0.5">
+                    <button
+                      onClick={handleClearLocation}
+                      className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedLocation === 'all'
+                          ? 'bg-brand-olive-light border-brand-olive text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                      }`}
+                    >
+                      <span className="truncate">Todas as Bancadas</span>
+                      <span className="text-[10px] text-brand-text-muted ml-1 font-normal">
+                        ({locationCounts.all || 0})
+                      </span>
+                    </button>
+                    {filteredModalLocations.map((loc) => {
+                      const isSelected = selectedLocation === loc;
+                      const count = locationCounts[loc] || 0;
+                      return (
+                        <button
+                          key={loc}
+                          onClick={() => setSelectedLocation(isSelected ? 'all' : loc)}
+                          className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-brand-olive-light border-brand-olive text-brand-olive-text font-bold shadow-xs'
+                              : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-olive-light'
+                          }`}
+                        >
+                          <span className="truncate">📍 {loc}</span>
+                          <span className="text-[10px] text-brand-text-muted ml-1 shrink-0 font-normal">
+                            ({count})
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
               </div>
 
-              {/* Seção 2: Frequência de Rega */}
-              <div className="space-y-2.5 pt-2 border-t border-brand-border">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-brand-text uppercase tracking-wide flex items-center gap-1.5">
-                    <Droplets className="w-4 h-4 text-brand-olive" />
-                    2. Frequência & Rotina de Rega
-                  </span>
-                  {selectedWater !== 'all' && (
-                    <button 
-                      onClick={() => setSelectedWater('all')} 
-                      className="text-[11px] text-brand-olive font-bold hover:underline cursor-pointer"
+              {/* COLUNA DIREITA: Cuidados (Luz, Rega e Pets) */}
+              <div className="space-y-6">
+                
+                {/* Seção 4: Luminosidade & Exposição Solar */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-brand-text text-sm flex items-center gap-1.5">
+                      <Sun className="w-4 h-4 text-amber-500" />
+                      Luminosidade & Exposição Solar
+                    </h4>
+                    {selectedLight !== 'all' && (
+                      <button 
+                        onClick={() => setSelectedLight('all')} 
+                        className="text-[11px] text-brand-olive font-bold hover:underline cursor-pointer"
+                      >
+                        Qualquer sol
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {/* Qualquer */}
+                    <button
+                      onClick={() => setSelectedLight('all')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedLight === 'all'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                      }`}
                     >
-                      Qualquer rega
+                      <div>
+                        <div className="font-bold text-xs">Qualquer Luz</div>
+                        <div className="text-[10px] text-brand-text-muted">Sem preferência solar</div>
+                      </div>
+                      {selectedLight === 'all' && <Check className="w-4 h-4 text-brand-olive font-bold" />}
                     </button>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* Opção: Qualquer Rega */}
-                  <button
-                    onClick={() => setSelectedWater('all')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedWater === 'all'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs sm:text-sm font-bold">Qualquer Frequência</div>
-                      <div className="text-[11px] text-brand-text-muted">Sem preferência de umidade</div>
-                    </div>
-                    {selectedWater === 'all' && <Check className="w-4 h-4 text-brand-olive font-bold" />}
-                  </button>
-
-                  {/* Opção: Pouca Rega */}
-                  <button
-                    onClick={() => setSelectedWater('baixa')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedWater === 'baixa'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                        selectedWater === 'baixa' 
-                          ? 'bg-brand-olive text-white' 
-                          : 'bg-brand-surface-subtle text-brand-text-muted border border-brand-border/50'
-                      }`}>
-                        <Droplets className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold">Pouca Rega (Solo Seco)</div>
-                        <div className="text-[11px] text-brand-text-muted">1x a cada 10-15 dias (suculentas, cactos, espadas)</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-surface-subtle text-brand-text-muted font-medium border border-brand-border/60">
-                        {careCounts.poucaRega}
-                      </span>
-                      {selectedWater === 'baixa' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
-                    </div>
-                  </button>
-
-                  {/* Opção: Rega Moderada */}
-                  <button
-                    onClick={() => setSelectedWater('moderada')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedWater === 'moderada'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                        selectedWater === 'moderada' 
-                          ? 'bg-brand-olive text-white' 
-                          : 'bg-brand-surface-subtle text-brand-text-muted border border-brand-border/50'
-                      }`}>
-                        <Droplet className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold">Rega Moderada</div>
-                        <div className="text-[11px] text-brand-text-muted">1 a 2 vezes por semana (regar quando secar a superfície)</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-surface-subtle text-brand-text-muted font-medium border border-brand-border/60">
-                        {careCounts.regaModerada}
-                      </span>
-                      {selectedWater === 'moderada' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
-                    </div>
-                  </button>
-
-                  {/* Opção: Rega Frequente */}
-                  <button
-                    onClick={() => setSelectedWater('frequente')}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      selectedWater === 'frequente'
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 font-bold text-xs ${
-                        selectedWater === 'frequente' 
-                          ? 'bg-brand-olive text-white' 
-                          : 'bg-brand-surface-subtle text-brand-text-muted border border-brand-border/50'
-                      }`}>
-                        3x
-                      </div>
-                      <div>
-                        <div className="text-xs sm:text-sm font-bold">Rega Frequente</div>
-                        <div className="text-[11px] text-brand-text-muted">Solo sempre úmido (samambaias, avencas, marantas)</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-surface-subtle text-brand-text-muted font-medium border border-brand-border/60">
-                        {careCounts.regaFrequente}
-                      </span>
-                      {selectedWater === 'frequente' && <Check className="w-3.5 h-3.5 text-brand-olive font-bold" />}
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Seção 3: Convivência com Pets & Crianças */}
-              <div className="space-y-2.5 pt-2 border-t border-brand-border">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-brand-text uppercase tracking-wide flex items-center gap-1.5">
-                    <Heart className="w-4 h-4 text-brand-nude" />
-                    3. Segurança com Animais de Estimação (Pets)
-                  </span>
-                  {petFriendlyOnly && (
-                    <button 
-                      onClick={() => setPetFriendlyOnly(false)} 
-                      className="text-[11px] text-brand-nude-text font-bold hover:underline cursor-pointer"
+                    {/* Sol Pleno */}
+                    <button
+                      onClick={() => setSelectedLight('sol-pleno')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedLight === 'sol-pleno'
+                          ? 'bg-amber-500/15 border-amber-500 text-amber-900 dark:text-amber-300 font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-amber-500/10'
+                      }`}
                     >
-                      Todas as plantas
+                      <div className="flex items-start gap-2">
+                        <Sun className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-xs">Sol Pleno</div>
+                          <div className="text-[10px] text-brand-text-muted">4h+ sol direto/dia ({careCounts.solPleno})</div>
+                        </div>
+                      </div>
+                      {selectedLight === 'sol-pleno' && <Check className="w-3.5 h-3.5 text-amber-600 font-bold" />}
                     </button>
-                  )}
+
+                    {/* Meia Sombra */}
+                    <button
+                      onClick={() => setSelectedLight('meia-sombra')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedLight === 'meia-sombra'
+                          ? 'bg-orange-500/15 border-orange-500 text-orange-900 dark:text-orange-300 font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-orange-500/10'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <CloudSun className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-xs">Meia Sombra</div>
+                          <div className="text-[10px] text-brand-text-muted">Luz indireta ({careCounts.meiaSombra})</div>
+                        </div>
+                      </div>
+                      {selectedLight === 'meia-sombra' && <Check className="w-3.5 h-3.5 text-orange-600 font-bold" />}
+                    </button>
+
+                    {/* Sombra Difusa */}
+                    <button
+                      onClick={() => setSelectedLight('sombra-difusa')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedLight === 'sombra-difusa'
+                          ? 'bg-indigo-500/15 border-indigo-500 text-indigo-900 dark:text-indigo-300 font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-indigo-500/10'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <Cloud className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-xs">Sombra Difusa</div>
+                          <div className="text-[10px] text-brand-text-muted">Sem sol direto ({careCounts.sombraDifusa})</div>
+                        </div>
+                      </div>
+                      {selectedLight === 'sombra-difusa' && <Check className="w-3.5 h-3.5 text-indigo-600 font-bold" />}
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* Opção: Todas as Espécies */}
-                  <button
-                    onClick={() => setPetFriendlyOnly(false)}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
-                      !petFriendlyOnly
-                        ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle hover:border-brand-olive/40'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs sm:text-sm font-bold">Todas as Espécies</div>
-                      <div className="text-[11px] text-brand-text-muted">Inclui plantas ornamentais tradicionais</div>
-                    </div>
-                    {!petFriendlyOnly && <Check className="w-4 h-4 text-brand-olive font-bold" />}
-                  </button>
+                {/* Seção 5: Frequência de Rega */}
+                <div className="space-y-3 pt-4 border-t border-brand-border">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-brand-text text-sm flex items-center gap-1.5">
+                      <Droplets className="w-4 h-4 text-brand-olive" />
+                      Frequência de Rega
+                    </h4>
+                    {selectedWater !== 'all' && (
+                      <button 
+                        onClick={() => setSelectedWater('all')} 
+                        className="text-[11px] text-brand-olive font-bold hover:underline cursor-pointer"
+                      >
+                        Qualquer rega
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Opção: Apenas Pet Friendly */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {/* Qualquer */}
+                    <button
+                      onClick={() => setSelectedWater('all')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedWater === 'all'
+                          ? 'bg-brand-olive-light border-brand-olive ring-1 ring-brand-olive/20 text-brand-olive-text font-bold shadow-xs'
+                          : 'bg-brand-surface-subtle border-brand-border text-brand-text hover:bg-brand-olive-light'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-bold text-xs">Qualquer Rega</div>
+                        <div className="text-[10px] text-brand-text-muted">Sem preferência</div>
+                      </div>
+                      {selectedWater === 'all' && <Check className="w-4 h-4 text-brand-olive font-bold" />}
+                    </button>
+
+                    {/* Pouca Rega */}
+                    <button
+                      onClick={() => setSelectedWater('baixa')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedWater === 'baixa'
+                          ? 'bg-blue-500/15 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-blue-500/10'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <Droplets className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-xs">Pouca Rega</div>
+                          <div className="text-[10px] text-brand-text-muted">Solo seco (1x cada 10-15d) ({careCounts.poucaRega})</div>
+                        </div>
+                      </div>
+                      {selectedWater === 'baixa' && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                    </button>
+
+                    {/* Rega Moderada */}
+                    <button
+                      onClick={() => setSelectedWater('moderada')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedWater === 'moderada'
+                          ? 'bg-blue-500/15 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-blue-500/10'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <Droplet className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-xs">Moderada</div>
+                          <div className="text-[10px] text-brand-text-muted">1 a 2x por semana ({careCounts.regaModerada})</div>
+                        </div>
+                      </div>
+                      {selectedWater === 'moderada' && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                    </button>
+
+                    {/* Rega Frequente */}
+                    <button
+                      onClick={() => setSelectedWater('frequente')}
+                      className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                        selectedWater === 'frequente'
+                          ? 'bg-blue-500/15 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-xs'
+                          : 'bg-brand-surface border-brand-border text-brand-text hover:bg-blue-500/10'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <Droplets className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-xs">Frequente</div>
+                          <div className="text-[10px] text-brand-text-muted">Solo sempre úmido ({careCounts.regaFrequente})</div>
+                        </div>
+                      </div>
+                      {selectedWater === 'frequente' && <Check className="w-3.5 h-3.5 text-blue-600 font-bold" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Seção 6: Segurança com Pets */}
+                <div className="space-y-3 pt-4 border-t border-brand-border">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-brand-text text-sm flex items-center gap-1.5">
+                      <Heart className="w-4 h-4 text-brand-nude" />
+                      Segurança Pet & Crianças
+                    </h4>
+                  </div>
+
                   <button
-                    onClick={() => setPetFriendlyOnly(true)}
-                    className={`p-3 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                    onClick={() => setPetFriendlyOnly(!petFriendlyOnly)}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                       petFriendlyOnly
                         ? 'bg-brand-nude-light border-brand-nude ring-1 ring-brand-nude/20 text-brand-nude-text font-bold shadow-xs'
-                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-nude-light hover:border-brand-nude-border'
+                        : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-nude-light'
                     }`}
                   >
-                    <div className="flex items-start gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                        petFriendlyOnly 
-                          ? 'bg-brand-nude text-white' 
-                          : 'bg-brand-nude-light text-brand-nude-text'
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                        petFriendlyOnly ? 'bg-brand-nude text-white' : 'bg-brand-nude-light text-brand-nude-text'
                       }`}>
-                        <Heart className={`w-4 h-4 ${petFriendlyOnly ? 'fill-white text-white' : 'fill-brand-nude text-brand-nude'}`} />
+                        <Heart className={`w-5 h-5 ${petFriendlyOnly ? 'fill-white text-white' : 'fill-brand-nude text-brand-nude'}`} />
                       </div>
                       <div>
-                        <div className="text-xs sm:text-sm font-bold">100% Pet Friendly (Não Tóxica)</div>
-                        <div className="text-[11px] text-brand-text-muted">Totalmente seguras para cães e gatos</div>
+                        <div className="font-bold text-xs sm:text-sm">100% Pet Friendly (Não Tóxica)</div>
+                        <div className="text-[11px] text-brand-text-muted">
+                          Espécies seguras para cães e gatos ({careCounts.petFriendly} vasos)
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-surface-subtle text-brand-text-muted font-medium border border-brand-border/60">
-                        {careCounts.petFriendly}
+                    {petFriendlyOnly ? (
+                      <span className="px-3 py-1 bg-brand-nude text-white rounded-xl text-[10px] font-bold">
+                        Ativo ✓
                       </span>
-                      {petFriendlyOnly && <Check className="w-3.5 h-3.5 text-brand-nude font-bold" />}
-                    </div>
+                    ) : (
+                      <span className="text-[11px] text-brand-text-muted font-medium">
+                        Desativado
+                      </span>
+                    )}
                   </button>
                 </div>
+
               </div>
 
             </div>
 
-            {/* Rodapé do Modal */}
-            <div className="p-4 sm:p-5 border-t border-brand-border bg-brand-surface-subtle flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div>
-                {activeCareFiltersCount > 0 ? (
-                  <button
-                    onClick={handleResetCareFilters}
-                    className="text-brand-text-muted hover:text-brand-olive font-bold flex items-center gap-1.5 hover:underline cursor-pointer"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Limpar Cuidados Selecionados
-                  </button>
-                ) : (
-                  <span className="text-brand-text-muted">Nenhum filtro de cuidado aplicado</span>
-                )}
-              </div>
-
+            {/* Rodapé Fixo do Modal Desktop */}
+            <div className="p-5 border-t border-brand-border bg-brand-surface-subtle flex items-center justify-between text-xs">
               <button
-                onClick={() => setIsCareModalOpen(false)}
-                className="px-5 py-2.5 bg-brand-olive hover:bg-brand-olive-hover text-white font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-2"
+                onClick={handleResetFilters}
+                className="text-brand-text-muted hover:text-brand-olive font-bold flex items-center gap-1.5 hover:underline cursor-pointer"
               >
-                <span>Ver {filteredAndSortedPlants.length} vasos na vitrine</span>
-                <ChevronRight className="w-4 h-4" />
+                <RotateCcw className="w-3.5 h-3.5" />
+                Limpar Todos os Filtros
               </button>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsFilterModalOpen(false)}
+                  className="px-4 py-2.5 bg-brand-border hover:bg-brand-border-subtle text-brand-text font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Fechar
+                </button>
+                <button
+                  onClick={() => setIsFilterModalOpen(false)}
+                  className="px-6 py-2.5 bg-brand-olive hover:bg-brand-olive-hover text-white font-bold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <span>Ver {filteredAndSortedPlants.length} Vasos na Vitrine</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
+
           </div>
         </div>
       )}
