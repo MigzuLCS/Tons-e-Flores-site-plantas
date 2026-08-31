@@ -365,11 +365,11 @@ export const QuickManageView: React.FC<QuickManageViewProps> = ({
               onClick={() => setStatusFilter(statusFilter === 'reservada' ? 'all' : 'reservada')}
               className={`p-2 rounded-xl text-center transition-all cursor-pointer border ${
                 statusFilter === 'reservada' 
-                  ? 'bg-[#FAF4EE] dark:bg-[#2B211B] border-[#9E6738] text-[#9E6738] dark:text-[#E8B3A6] font-bold shadow-xs' 
+                  ? 'bg-amber-100/90 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 font-bold shadow-xs' 
                   : 'bg-brand-surface-subtle border-brand-border text-brand-text-muted hover:bg-brand-surface'
               }`}
             >
-              <span className="block text-base sm:text-lg font-bold leading-tight text-[#9E6738] dark:text-[#DE9B8B]">
+              <span className="block text-base sm:text-lg font-bold leading-tight text-amber-800 dark:text-amber-300">
                 {stats.reservadas}
               </span>
               <span className="text-[10px] sm:text-xs">Reservadas</span>
@@ -485,7 +485,7 @@ export const QuickManageView: React.FC<QuickManageViewProps> = ({
                       : isSold 
                       ? 'opacity-65 border-brand-border-subtle bg-brand-surface-subtle' 
                       : isReserved
-                      ? 'border-[#DE9B8B]/40 bg-[#FAF4EE]/30'
+                      ? 'border-amber-300/60 dark:border-amber-800/40 bg-amber-50/30 dark:bg-amber-950/20'
                       : 'border-brand-border hover:border-brand-olive/50'
                   }`}
                 >
@@ -575,8 +575,8 @@ export const QuickManageView: React.FC<QuickManageViewProps> = ({
                       onClick={() => handleStatusChange(plant, 'reservada')}
                       className={`py-2 px-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 border ${
                         isReserved
-                          ? 'bg-[#9E6738] dark:bg-[#7D4D24] text-[#FDF6F0] border-[#9E6738] shadow-xs font-bold'
-                          : 'bg-brand-surface-subtle text-brand-text-muted border-brand-border hover:bg-[#FAF4EE]'
+                          ? 'bg-amber-100/95 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800 shadow-xs font-bold'
+                          : 'bg-brand-surface-subtle text-brand-text-muted border-brand-border hover:bg-amber-50 dark:hover:bg-amber-950/30'
                       }`}
                     >
                       <Clock className="w-3.5 h-3.5" />

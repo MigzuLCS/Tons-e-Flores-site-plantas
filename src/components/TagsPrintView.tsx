@@ -554,7 +554,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   onClick={handleExportCsv}
                   disabled={plantsToPrint.length === 0}
                   title="Gera arquivo CSV com codificação UTF-8 e delimitador ';'"
-                  className="bg-brand-surface hover:bg-white disabled:opacity-50 text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                  className="bg-brand-surface hover:bg-brand-surface-subtle disabled:opacity-50 text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
                   <Table className="w-4 h-4 text-brand-olive" />
                   <span>Planilha CSV (.csv)</span>
@@ -635,7 +635,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-all cursor-pointer ${
                     selectedIds.includes(plant.id)
                       ? 'bg-brand-olive-light border-brand-olive-border text-brand-olive-text font-bold shadow-xs'
-                      : 'bg-white border-brand-border text-brand-text hover:bg-brand-olive-light'
+                      : 'bg-brand-surface border-brand-border text-brand-text hover:bg-brand-surface-subtle'
                   }`}
                 >
                   #{plant.id} - {plant.name}
@@ -781,7 +781,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                 <button
                   onClick={handleExportBancadasCsv}
                   title="Gera arquivo CSV com os links de todas as bancadas"
-                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                  className="bg-brand-surface hover:bg-brand-surface-subtle text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
                   <Table className="w-4 h-4 text-brand-olive" />
                   <span>Planilha CSV (.csv)</span>
@@ -792,7 +792,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   onClick={handleExportBancadasPdf}
                   disabled={isExportingPdf}
                   title="Gera arquivo PDF com todas as bancadas no formato selecionado"
-                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                  className="bg-brand-surface hover:bg-brand-surface-subtle text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
                   {isExportingPdf ? (
                     <Loader2 className="w-4 h-4 text-brand-olive animate-spin" />
@@ -809,7 +809,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   onClick={handleExportBancadasZip}
                   disabled={isExportingZip}
                   title="Baixa todas as bancadas em imagens PNG compactadas em ZIP"
-                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                  className="bg-brand-surface hover:bg-brand-surface-subtle text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
                   {isExportingZip ? (
                     <Loader2 className="w-4 h-4 text-brand-olive animate-spin" />
@@ -826,7 +826,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                 {/* Baixar Imagem Individual */}
                 <button
                   onClick={downloadBancadaPlate}
-                  className="bg-brand-surface hover:bg-white text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                  className="bg-brand-surface hover:bg-brand-surface-subtle text-brand-text font-bold px-4 py-2.5 rounded-xl border border-brand-border shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-brand-olive" />
                   <span>Baixar Esta Placa (PNG)</span>
@@ -878,7 +878,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                     onClick={() => setBancadaFormat('display_a5')}
                     className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       bancadaFormat === 'display_a5'
-                        ? 'bg-white shadow-xs text-brand-olive font-bold'
+                        ? 'bg-brand-surface shadow-xs text-brand-olive font-bold'
                         : 'text-brand-text-muted hover:text-brand-text'
                     }`}
                   >
@@ -888,7 +888,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                     onClick={() => setBancadaFormat('niimbot')}
                     className={`py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       bancadaFormat === 'niimbot'
-                        ? 'bg-white shadow-xs text-brand-olive font-bold'
+                        ? 'bg-brand-surface shadow-xs text-brand-olive font-bold'
                         : 'text-brand-text-muted hover:text-brand-text'
                     }`}
                   >
@@ -902,7 +902,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
             <div className="p-3 bg-brand-olive-light/60 border border-brand-olive-border rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-brand-olive-text">Link do QR Code:</span>
-                <code className="px-2 py-0.5 bg-white rounded font-mono text-[11px] text-brand-olive-text border border-brand-olive-border">
+                <code className="px-2 py-0.5 bg-brand-surface rounded font-mono text-[11px] text-brand-olive-text border border-brand-olive-border">
                   {bancadaUrl}
                 </code>
               </div>
@@ -1020,7 +1020,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
       {/* ── MODAL: GUIA PASSO A PASSO NIIMBOT B1 & LIBREOFFICE ─────── */}
       {showNiimbotGuide && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-brand-border space-y-6 animate-in zoom-in-95">
+          <div className="bg-brand-surface text-brand-text rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-brand-border space-y-6 animate-in zoom-in-95">
             
             <div className="flex items-start justify-between gap-4 border-b border-brand-border pb-4">
               <div>
@@ -1035,7 +1035,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
               </div>
               <button
                 onClick={() => setShowNiimbotGuide(false)}
-                className="p-1.5 rounded-full hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-brand-surface-subtle text-brand-text-muted hover:text-brand-text transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1071,16 +1071,16 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                     Abra o programa da Niimbot no computador e inicie um novo rótulo com dimensões <strong>50mm de largura x 30mm de altura</strong>.
                   </p>
                   <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
-                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                    <div className="p-2 bg-brand-surface rounded-lg border border-brand-border">
                       • Inserir <strong>Texto</strong> para o Nome / Bancada
                     </div>
-                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                    <div className="p-2 bg-brand-surface rounded-lg border border-brand-border">
                       • Inserir <strong>Código QR</strong> para o Link
                     </div>
-                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                    <div className="p-2 bg-brand-surface rounded-lg border border-brand-border">
                       • Inserir <strong>Texto</strong> para Cuidados/Vaso
                     </div>
-                    <div className="p-2 bg-white rounded-lg border border-brand-border">
+                    <div className="p-2 bg-brand-surface rounded-lg border border-brand-border">
                       • Inserir <strong>Texto</strong> para o Preço
                     </div>
                   </div>

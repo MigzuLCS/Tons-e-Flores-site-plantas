@@ -84,7 +84,7 @@ export const PlantDetailModal: React.FC<PlantDetailModalProps> = ({ plant, onClo
                 plant.status === 'disponivel' 
                   ? 'bg-brand-olive text-white border-brand-olive/50' 
                   : plant.status === 'reservada' 
-                  ? 'bg-[#9E6738] dark:bg-[#7D4D24] text-[#FDF6F0] border-[#C2854F]/40' 
+                  ? 'bg-amber-100/90 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border-amber-300/60 dark:border-amber-800/50' 
                   : 'bg-brand-nude text-white border-brand-nude-border/50'
               }`}>
                 {plant.status === 'disponivel' ? 'Disponível na Loja' : plant.status === 'reservada' ? 'Reservada' : 'Vendida'}

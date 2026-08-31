@@ -221,7 +221,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       <header
-        className={`no-print bg-brand-surface/95 backdrop-blur-md text-brand-text sticky top-0 z-40 shadow-xs border-b border-brand-border transition-transform duration-300 ease-in-out ${
+        className={`no-print bg-[#181514]/95 backdrop-blur-md text-stone-100 sticky top-0 z-40 shadow-sm border-b border-[#2C2623] transition-transform duration-300 ease-in-out ${
           isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
@@ -237,9 +237,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setIsDrawerOpen(true)}
                 aria-label="Abrir menu de navegação"
                 title="Abrir menu"
-                className="lg:hidden bg-brand-surface-subtle hover:bg-brand-border-subtle text-brand-text p-2 rounded-xl border border-brand-border shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                className="lg:hidden bg-[#221E1C] hover:bg-[#2C2522] text-stone-200 hover:text-white p-2 rounded-xl border border-[#2F2926] shadow-xs transition-colors cursor-pointer flex items-center justify-center shrink-0"
               >
-                <Menu className="w-5 h-5 text-brand-text" />
+                <Menu className="w-5 h-5 text-stone-200" />
               </button>
 
               {/* Logo & Nome da Loja */}
@@ -247,19 +247,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => handleNavigate('showcase')}
                 className="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer group shrink-0"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-brand-surface-subtle group-hover:bg-brand-border-subtle rounded-xl sm:rounded-2xl flex items-center justify-center text-brand-olive border border-brand-border shadow-xs transition-all shrink-0">
-                  <LogoIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105" leafColor="var(--color-brand-olive)" flowerColor="var(--color-brand-nude)" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#24201D] group-hover:bg-[#2C2522] rounded-xl sm:rounded-2xl flex items-center justify-center text-[#A3B596] border border-[#3A332F] shadow-xs transition-all shrink-0">
+                  <LogoIcon className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105" leafColor="#A3B596" flowerColor="#E08F6F" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 sm:gap-2">
-                    <span className="font-bold text-sm sm:text-lg leading-tight tracking-tight font-serif-title text-brand-text group-hover:text-brand-olive transition-colors">
+                    <span className="font-bold text-sm sm:text-lg leading-tight tracking-tight font-serif-title text-stone-100 group-hover:text-[#A3B596] transition-colors">
                       Tons & Flores
                     </span>
-                    <span className="text-[10px] bg-brand-olive-light text-brand-olive-text border border-brand-olive-border px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
+                    <span className="text-[10px] bg-[#27211E] text-[#B8CBB0] border border-[#3C332E] px-1.5 sm:px-2 py-0.5 rounded-full font-bold">
                       {plantCount}
                     </span>
                   </div>
-                  <p className="text-[10px] sm:text-[11px] text-brand-text-muted font-medium hidden xs:block tracking-wide">
+                  <p className="text-[10px] sm:text-[11px] text-stone-400 font-medium hidden xs:block tracking-wide">
                     Boutique & Catálogo Digital
                   </p>
                 </div>
@@ -268,13 +268,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Abas de Navegação no Desktop (quando for Admin) */}
             {isAdmin && (
-              <nav className="hidden lg:flex items-center bg-brand-surface-subtle p-1 rounded-2xl border border-brand-border text-xs font-semibold gap-1">
+              <nav className="hidden lg:flex items-center bg-[#221E1C] p-1 rounded-2xl border border-[#2F2926] text-xs font-semibold gap-1">
                 <button
                   onClick={() => onSelectTab('showcase')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     currentTab === 'showcase'
                       ? 'bg-brand-olive text-white shadow-xs font-bold'
-                      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-surface'
+                      : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                   }`}
                 >
                   <Store className="w-3.5 h-3.5" />
@@ -286,7 +286,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     currentTab === 'manage'
                       ? 'bg-brand-olive text-white shadow-xs font-bold'
-                      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-surface'
+                      : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                   }`}
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -298,7 +298,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     currentTab === 'admin'
                       ? 'bg-brand-olive text-white shadow-xs font-bold'
-                      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-surface'
+                      : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                   }`}
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
@@ -310,7 +310,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     currentTab === 'tags'
                       ? 'bg-brand-olive text-white shadow-xs font-bold'
-                      : 'text-brand-text-muted hover:text-brand-text hover:bg-brand-surface'
+                      : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                   }`}
                 >
                   <QrCode className="w-3.5 h-3.5" />
@@ -326,12 +326,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={handleToggleTheme}
                 title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
                 aria-label="Alternar tema"
-                className="bg-brand-surface-subtle hover:bg-brand-border-subtle text-brand-text-muted hover:text-brand-text p-2 sm:p-2.5 rounded-xl border border-brand-border shadow-xs transition-all cursor-pointer flex items-center justify-center"
+                className="bg-[#221E1C] hover:bg-[#2C2522] text-stone-300 hover:text-white p-2 sm:p-2.5 rounded-xl border border-[#2F2926] shadow-xs transition-all cursor-pointer flex items-center justify-center"
               >
                 {theme === 'dark' ? (
                   <Sun className="w-4 h-4 text-amber-300 animate-in spin-in-45 duration-300" />
                 ) : (
-                  <Moon className="w-4 h-4 text-brand-text-muted hover:text-brand-olive animate-in -spin-in-45 duration-300" />
+                  <Moon className="w-4 h-4 text-stone-300 hover:text-[#A3B596] animate-in -spin-in-45 duration-300" />
                 )}
               </button>
 
@@ -349,7 +349,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     onClick={onLogout}
                     title="Sair do modo administrador"
-                    className="bg-brand-surface-subtle hover:bg-brand-border-subtle text-brand-text-muted hover:text-brand-text px-3 py-2 rounded-xl border border-brand-border text-xs transition-colors cursor-pointer flex items-center gap-1"
+                    className="bg-[#221E1C] hover:bg-[#2C2522] text-stone-400 hover:text-stone-200 px-3 py-2 rounded-xl border border-[#2F2926] text-xs transition-colors cursor-pointer flex items-center gap-1"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Sair</span>
@@ -358,9 +358,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button
                   onClick={onOpenLoginModal}
-                  className="hidden lg:flex bg-brand-surface-subtle hover:bg-brand-border-subtle text-brand-text text-xs font-semibold px-3.5 py-2 rounded-xl border border-brand-border shadow-xs items-center gap-1.5 transition-colors cursor-pointer"
+                  className="hidden lg:flex bg-[#221E1C] hover:bg-[#2C2522] text-stone-200 hover:text-white text-xs font-semibold px-3.5 py-2 rounded-xl border border-[#2F2926] shadow-xs items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <Lock className="w-3.5 h-3.5 text-brand-olive" />
+                  <Lock className="w-3.5 h-3.5 text-[#A3B596]" />
                   <span>Área do Lojista</span>
                 </button>
               )}
@@ -393,7 +393,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             opacity: backdropOpacity,
             transition: dragProgress !== null ? 'none' : 'opacity 280ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+          className="absolute inset-0 bg-black backdrop-blur-xs"
         />
 
         {/* Painel lateral deslizante da esquerda com física fluida */}
@@ -402,26 +402,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             transform: `translateX(${translateX}%)`,
             transition: dragProgress !== null ? 'none' : 'transform 280ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
-          className="absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-brand-surface text-brand-text border-r border-brand-border shadow-2xl flex flex-col justify-between p-5 z-10 will-change-transform transform-gpu"
+          className="absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-[#1A1615] text-stone-100 border-r border-[#2F2926] shadow-2xl flex flex-col justify-between p-5 z-10 will-change-transform transform-gpu"
         >
           {/* Topo do Drawer */}
           <div className="space-y-4">
             
             {/* Cabeçalho do Drawer com Logo e Fechar */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-brand-border">
+            <div className="flex items-center justify-between pb-3.5 border-b border-[#2D2623]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-brand-surface-subtle text-brand-olive border border-brand-border flex items-center justify-center shadow-xs">
-                  <LogoIcon className="w-4 h-4" leafColor="var(--color-brand-olive)" flowerColor="var(--color-brand-nude)" />
+                <div className="w-8 h-8 rounded-xl bg-[#24201D] text-[#A3B596] border border-[#3A332F] flex items-center justify-center shadow-xs">
+                  <LogoIcon className="w-4 h-4" leafColor="#A3B596" flowerColor="#E08F6F" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-sm text-brand-text font-serif-title leading-tight">Tons & Flores</h2>
-                  <p className="text-[10px] text-brand-text-muted">Menu Principal</p>
+                  <h2 className="font-bold text-sm text-stone-100 font-serif-title leading-tight">Tons & Flores</h2>
+                  <p className="text-[10px] text-stone-400">Menu Principal</p>
                 </div>
               </div>
 
               <button 
                 onClick={() => setIsDrawerOpen(false)}
-                className="w-8 h-8 rounded-xl bg-brand-surface-subtle text-brand-text-muted hover:text-brand-text hover:bg-brand-border-subtle flex items-center justify-center transition-colors cursor-pointer border border-brand-border"
+                className="w-8 h-8 rounded-xl bg-[#251F1D] text-stone-400 hover:text-stone-100 hover:bg-[#2F2825] flex items-center justify-center transition-colors cursor-pointer border border-[#332A26]"
                 title="Fechar menu"
               >
                 <X className="w-4 h-4" />
@@ -429,10 +429,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Badge de Identificação de Perfil */}
-            <div className="px-3 py-2 bg-brand-surface-subtle rounded-xl border border-brand-border text-xs flex items-center justify-between">
-              <span className="text-brand-text-muted">Acesso:</span>
-              <span className="font-bold flex items-center gap-1.5 text-brand-olive">
-                <span className="w-2 h-2 rounded-full bg-brand-olive animate-pulse"></span>
+            <div className="px-3 py-2 bg-[#221D1A] rounded-xl border border-[#2E2724] text-xs flex items-center justify-between">
+              <span className="text-stone-400">Acesso:</span>
+              <span className={`font-bold flex items-center gap-1.5 ${isAdmin ? 'text-emerald-400' : 'text-[#A3B596]'}`}>
+                <span className={`w-2 h-2 rounded-full ${isAdmin ? 'bg-emerald-400 animate-pulse' : 'bg-[#A3B596]'}`}></span>
                 {isAdmin ? 'Administrador' : 'Visitante'}
               </span>
             </div>
@@ -444,8 +444,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => handleNavigate('showcase')}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   currentTab === 'showcase'
-                    ? 'bg-brand-olive text-white font-bold shadow-xs'
-                    : 'bg-brand-surface-subtle text-brand-text hover:bg-brand-border-subtle border border-brand-border'
+                    ? 'bg-[#A3B596] text-[#181514] font-bold shadow-xs'
+                    : 'bg-[#221D1A] text-stone-200 hover:bg-[#2C2522] border border-[#2E2724]'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -462,8 +462,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => handleNavigate('manage')}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       currentTab === 'manage'
-                        ? 'bg-brand-olive text-white font-bold shadow-xs'
-                        : 'bg-brand-surface-subtle text-brand-text hover:bg-brand-border-subtle border border-brand-border'
+                        ? 'bg-[#A3B596] text-[#181514] font-bold shadow-xs'
+                        : 'bg-[#221D1A] text-stone-200 hover:bg-[#2C2522] border border-[#2E2724]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -477,8 +477,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => handleNavigate('admin')}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       currentTab === 'admin'
-                        ? 'bg-brand-olive text-white font-bold shadow-xs'
-                        : 'bg-brand-surface-subtle text-brand-text hover:bg-brand-border-subtle border border-brand-border'
+                        ? 'bg-[#A3B596] text-[#181514] font-bold shadow-xs'
+                        : 'bg-[#221D1A] text-stone-200 hover:bg-[#2C2522] border border-[#2E2724]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -492,8 +492,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => handleNavigate('tags')}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       currentTab === 'tags'
-                        ? 'bg-brand-olive text-white font-bold shadow-xs'
-                        : 'bg-brand-surface-subtle text-brand-text hover:bg-brand-border-subtle border border-brand-border'
+                        ? 'bg-[#A3B596] text-[#181514] font-bold shadow-xs'
+                        : 'bg-[#221D1A] text-stone-200 hover:bg-[#2C2522] border border-[#2E2724]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -519,14 +519,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* BASE / RODAPÉ DO DRAWER */}
-          <div className="pt-4 border-t border-brand-border space-y-2">
+          <div className="pt-4 border-t border-[#2D2623] space-y-2">
             {isAdmin ? (
               <button
                 onClick={() => {
                   setIsDrawerOpen(false);
                   onLogout();
                 }}
-                className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-brand-nude-light hover:bg-brand-nude-border/40 text-brand-nude-text border border-brand-nude-border text-xs font-bold transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-red-950/40 hover:bg-red-900/50 text-red-300 hover:text-red-200 border border-red-900/40 text-xs font-bold transition-all cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sair da Conta</span>
@@ -537,9 +537,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setIsDrawerOpen(false);
                   onOpenLoginModal();
                 }}
-                className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-brand-surface-subtle hover:bg-brand-border-subtle text-brand-text border border-brand-border text-xs font-semibold transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#221D1A] hover:bg-[#2C2522] text-stone-200 hover:text-white border border-[#2E2724] text-xs font-semibold transition-all cursor-pointer"
               >
-                <Lock className="w-3.5 h-3.5 text-brand-olive" />
+                <Lock className="w-3.5 h-3.5 text-[#A3B596]" />
                 <span>Acesso lojista</span>
               </button>
             )}

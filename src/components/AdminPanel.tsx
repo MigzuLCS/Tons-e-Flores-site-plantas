@@ -242,12 +242,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
 
           <div className="bg-brand-surface p-4 rounded-2xl border border-brand-border shadow-xs flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#9E6738]/15 dark:bg-[#7D4D24]/30 border border-[#9E6738]/30 flex items-center justify-center text-[#9E6738] dark:text-[#E6B894]">
+            <div className="w-10 h-10 rounded-xl bg-amber-100/80 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-800/40 flex items-center justify-center text-amber-800 dark:text-amber-300">
               <Clock className="w-5 h-5" />
             </div>
             <div>
               <div className="text-[11px] font-semibold text-brand-text-muted uppercase">Reservadas</div>
-              <div className="text-xl font-extrabold text-[#9E6738] dark:text-[#E6B894]">{stats.reserved}</div>
+              <div className="text-xl font-extrabold text-amber-800 dark:text-amber-300">{stats.reserved}</div>
             </div>
           </div>
 
@@ -480,12 +480,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           plant.status === 'disponivel'
                             ? 'bg-brand-olive-light border-brand-olive-border text-brand-olive-text'
                             : plant.status === 'reservada'
-                            ? 'bg-[#9E6738]/15 border-[#9E6738]/30 text-[#9E6738] dark:text-[#E6B894]'
+                            ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800/50 text-amber-800 dark:text-amber-300'
                             : 'bg-brand-nude-light border-brand-nude-border text-brand-nude-text'
                         }`}
                       >
                         <option value="disponivel">🟢 Disponível</option>
-                        <option value="reservada">🟡 Reservada</option>
+                        <option value="reservada">🟠 Reservada</option>
                         <option value="vendida">⚪ Vendida</option>
                       </select>
                     </td>
