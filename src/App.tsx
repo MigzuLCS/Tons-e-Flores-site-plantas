@@ -9,6 +9,7 @@ import type { Plant, PlantStatus } from './types/plant';
 
 // Carregamento sob demanda (Code-Splitting) para manter a vitrine inicial ultra-rápida
 const AdminPanel = lazy(() => import('./components/AdminPanel').then(m => ({ default: m.AdminPanel })));
+const QuickManageView = lazy(() => import('./components/QuickManageView').then(m => ({ default: m.QuickManageView })));
 const TagsPrintView = lazy(() => import('./components/TagsPrintView').then(m => ({ default: m.TagsPrintView })));
 const PlantFormModal = lazy(() => import('./components/PlantFormModal').then(m => ({ default: m.PlantFormModal })));
 const AdminLoginModal = lazy(() => import('./components/AdminLoginModal').then(m => ({ default: m.AdminLoginModal })));
@@ -60,10 +61,15 @@ export function App() {
     configService.syncCategoriesWithCloud();
     setIsAdmin(authService.isAuthenticated());
 
-    // Verificação de URL Hash (Ex: #p-TF-001 para vaso ou #bancada=NomeDaBancada para setor)
+    // Verificação de URL Hash (Ex: #manejo para loja, #p-TF-001 para vaso ou #bancada=NomeDaBancada para setor)
     const checkHash = async () => {
       const hash = window.location.hash;
-      if (hash.startsWith('#p-')) {
+      if (hash === '#manejo' || hash === '#estoque') {
+        setCurrentTab('manage');
+        if (!authService.isAuthenticated()) {
+          setIsLoginModalOpen(true);
+        }
+      } else if (hash.startsWith('#p-')) {
         const plantId = hash.replace('#p-', '');
         const found = await plantService.getPlantById(plantId);
         if (found) {
@@ -92,6 +98,13 @@ export function App() {
     await loadPlants();
     setPlantToEdit(null);
   }, [plantToEdit, loadPlants]);
+
+  const handleQuickUpdatePlant = useCallback(async (updated: Plant) => {
+    // Atualização otimista imediata na UI
+    setPlants(prev => prev.map(p => p.id === updated.id ? updated : p));
+    await plantService.updatePlant(updated);
+    await loadPlants();
+  }, [loadPlants]);
 
   const handleDeletePlant = useCallback(async (id: string) => {
     await plantService.deletePlant(id);
@@ -166,6 +179,22 @@ export function App() {
               }
             }}
           />
+        )}
+
+        {currentTab === 'manage' && isAdmin && (
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-32 text-brand-text-muted gap-3">
+              <div className="w-6 h-6 border-2 border-emerald-500 border-t-brand-nude rounded-full animate-spin" />
+              <span className="text-sm font-medium text-brand-text">Carregando manejo da loja...</span>
+            </div>
+          }>
+            <QuickManageView 
+              plants={plants}
+              isLoading={isLoading}
+              onUpdatePlant={handleQuickUpdatePlant}
+              onRefresh={loadPlants}
+            />
+          </Suspense>
         )}
 
         {currentTab === 'admin' && isAdmin && (

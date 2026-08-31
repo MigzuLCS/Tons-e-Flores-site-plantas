@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Store, LayoutGrid, QrCode, Plus, Lock, LogOut, Sun, Moon, Menu, X, ChevronRight } from 'lucide-react';
+import { Store, LayoutGrid, QrCode, Plus, Lock, LogOut, Sun, Moon, Menu, X, ChevronRight, Sprout } from 'lucide-react';
 import { LogoIcon } from './LogoIcon';
 import { themeService, type Theme } from '../services/configService';
 
-export type AppTab = 'showcase' | 'admin' | 'tags';
+export type AppTab = 'showcase' | 'manage' | 'admin' | 'tags';
 
 interface NavbarProps {
   currentTab: AppTab;
@@ -282,6 +282,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
 
                 <button
+                  onClick={() => onSelectTab('manage')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    currentTab === 'manage'
+                      ? 'bg-emerald-700 text-white shadow-xs font-bold'
+                      : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
+                  }`}
+                >
+                  <Sprout className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Manejo Rápido</span>
+                </button>
+
+                <button
                   onClick={() => onSelectTab('admin')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     currentTab === 'admin'
@@ -447,6 +459,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               {isAdmin && (
                 <>
                   <button
+                    onClick={() => handleNavigate('manage')}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                      currentTab === 'manage'
+                        ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                        : 'bg-[#221D1A] text-stone-200 hover:bg-[#2C2522] border border-[#2E2724]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Sprout className="w-4 h-4 text-emerald-400" />
+                      <span>Manejo Rápido (Loja)</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                  </button>
+
+                  <button
                     onClick={() => handleNavigate('admin')}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       currentTab === 'admin'
@@ -456,7 +483,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   >
                     <div className="flex items-center gap-2.5">
                       <LayoutGrid className="w-4 h-4" />
-                      <span>Painel lojista</span>
+                      <span>Painel Completo</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 opacity-60" />
                   </button>

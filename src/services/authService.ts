@@ -8,13 +8,17 @@ const getInitialPassword = (): string => {
 
 export const authService = {
   isAuthenticated(): boolean {
-    return sessionStorage.getItem(ADMIN_KEY) === 'true';
+    return (
+      sessionStorage.getItem(ADMIN_KEY) === 'true' ||
+      localStorage.getItem(ADMIN_KEY) === 'true'
+    );
   },
 
   login(password: string): boolean {
     const savedPassword = localStorage.getItem(PASSWORD_KEY) || getInitialPassword();
     if (password === savedPassword) {
       sessionStorage.setItem(ADMIN_KEY, 'true');
+      localStorage.setItem(ADMIN_KEY, 'true');
       return true;
     }
     return false;
@@ -22,6 +26,7 @@ export const authService = {
 
   logout(): void {
     sessionStorage.removeItem(ADMIN_KEY);
+    localStorage.removeItem(ADMIN_KEY);
   },
 
   changePassword(currentPass: string, newPass: string): boolean {
