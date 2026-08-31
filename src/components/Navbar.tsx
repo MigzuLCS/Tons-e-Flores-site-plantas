@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Store, LayoutGrid, QrCode, Plus, Lock, LogOut, Sun, Moon, Menu, X, ChevronRight, Sprout } from 'lucide-react';
+import { Store, LayoutGrid, QrCode, Plus, Lock, LogOut, Sun, Moon, Menu, X, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { LogoIcon } from './LogoIcon';
 import { themeService, type Theme } from '../services/configService';
 
@@ -285,11 +285,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => onSelectTab('manage')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
                     currentTab === 'manage'
-                      ? 'bg-emerald-700 text-white shadow-xs font-bold'
+                      ? 'bg-brand-olive text-white shadow-xs font-bold'
                       : 'text-stone-400 hover:text-stone-100 hover:bg-[#2C2522]'
                   }`}
                 >
-                  <Sprout className="w-3.5 h-3.5 text-emerald-400" />
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
                   <span>Manejo Rápido</span>
                 </button>
 
@@ -462,12 +462,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => handleNavigate('manage')}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       currentTab === 'manage'
-                        ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                        ? 'bg-[#A3B596] text-[#181514] font-bold shadow-xs'
                         : 'bg-[#221D1A] text-stone-200 hover:bg-[#2C2522] border border-[#2E2724]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Sprout className="w-4 h-4 text-emerald-400" />
+                      <SlidersHorizontal className="w-4 h-4" />
                       <span>Manejo Rápido (Loja)</span>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 opacity-60" />
