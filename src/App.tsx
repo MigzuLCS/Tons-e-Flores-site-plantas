@@ -184,13 +184,14 @@ export function App() {
         {currentTab === 'manage' && isAdmin && (
           <Suspense fallback={
             <div className="flex items-center justify-center py-32 text-brand-text-muted gap-3">
-              <div className="w-6 h-6 border-2 border-emerald-500 border-t-brand-nude rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-brand-olive border-t-brand-nude rounded-full animate-spin" />
               <span className="text-sm font-medium text-brand-text">Carregando manejo da loja...</span>
             </div>
           }>
             <QuickManageView 
               plants={plants}
               isLoading={isLoading}
+              activeLocationFilter={activeLocationFilter}
               onUpdatePlant={handleQuickUpdatePlant}
               onRefresh={loadPlants}
             />
@@ -240,30 +241,30 @@ export function App() {
       </main>
 
       {/* Rodapé da Loja (Não aparece na impressão) */}
-      <footer className="no-print bg-[#181514] text-stone-400 border-t border-[#2C2623] py-8 px-6 text-center text-xs space-y-2.5">
-        <div className="flex items-center justify-center gap-2 font-serif-title font-bold text-stone-100 text-base">
+      <footer className="no-print bg-brand-surface text-brand-text-muted border-t border-brand-border py-8 px-6 text-center text-xs space-y-2.5">
+        <div className="flex items-center justify-center gap-2 font-serif-title font-bold text-brand-text text-base">
           <span className="tracking-wide">Tons & Flores</span>
-          <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-[#27211E] text-[#B8CBB0] border border-[#3C332E] font-semibold">
+          <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-brand-olive-light text-brand-olive-text border border-brand-olive-border font-semibold">
             Boutique de Plantas
           </span>
         </div>
-        <p className="text-stone-400 text-xs max-w-md mx-auto">
+        <p className="text-brand-text-muted text-xs max-w-md mx-auto">
           Catálogo Botânico & Gestão de Plantas com Identificação por QR Code.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          <p className="text-stone-500 text-[11px]">
+          <p className="text-brand-text-light text-[11px]">
             © {new Date().getFullYear()} Tons & Flores Boutique
           </p>
-          <span className="text-stone-700">•</span>
+          <span className="text-brand-border">•</span>
           {!isAdmin ? (
             <button 
               onClick={() => setIsLoginModalOpen(true)}
-              className="text-[#A3B596] hover:text-[#B8CBB0] text-[11px] font-medium underline cursor-pointer"
+              className="text-brand-olive hover:text-brand-olive-hover text-[11px] font-medium underline cursor-pointer"
             >
               Área do Lojista
             </button>
           ) : (
-            <span className="text-[#A3B596] font-bold text-[11px] flex items-center gap-1">
+            <span className="text-brand-olive font-bold text-[11px] flex items-center gap-1">
               <span>🌿</span> Modo Administrador Ativo
             </span>
           )}

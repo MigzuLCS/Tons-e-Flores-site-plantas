@@ -21,6 +21,7 @@ import { configService } from '../services/configService';
 interface QuickManageViewProps {
   plants: Plant[];
   isLoading?: boolean;
+  activeLocationFilter?: string | null;
   onUpdatePlant: (plant: Plant) => Promise<void> | void;
   onRefresh: () => void;
 }
@@ -28,12 +29,19 @@ interface QuickManageViewProps {
 export const QuickManageView: React.FC<QuickManageViewProps> = ({
   plants,
   isLoading = false,
+  activeLocationFilter,
   onUpdatePlant,
   onRefresh
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>('all');
+  const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>(activeLocationFilter || 'all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  useEffect(() => {
+    if (activeLocationFilter) {
+      setSelectedLocationFilter(activeLocationFilter);
+    }
+  }, [activeLocationFilter]);
   
   // Modais de Edição Rápida
   const [priceModalPlant, setPriceModalPlant] = useState<Plant | null>(null);
@@ -223,7 +231,34 @@ export const QuickManageView: React.FC<QuickManageViewProps> = ({
       navigator.vibrate([40, 30, 40]);
     }
 
-    // Extrai o código da planta (Ex: "TF-001" de "#p-TF-001" ou "https://site.com/#p-TF-001")
+    // 1. Verifica se é um QR Code de Bancada/Setor da Loja (ex: #bancada=... ou #local=... ou nome direto)
+    const bancadaMatch = decodedText.match(/[#&?](?:bancada|local)=([^&]+)/i);
+    let scannedLocation: string | null = null;
+
+    if (bancadaMatch) {
+      scannedLocation = decodeURIComponent(bancadaMatch[1].replace(/\+/g, ' '));
+    } else {
+      // Verifica se o texto lido corresponde exatamente a alguma bancada cadastrada
+      const matchedLoc = locations.find(
+        (loc) => loc.toLowerCase() === decodedText.trim().toLowerCase()
+      );
+      if (matchedLoc) {
+        scannedLocation = matchedLoc;
+      }
+    }
+
+    if (scannedLocation) {
+      await stopQrScanner();
+      setIsQrScannerOpen(false);
+      setSelectedLocationFilter(scannedLocation);
+      setSearchTerm('');
+      setStatusFilter('all');
+      const count = plants.filter((p) => p.location === scannedLocation).length;
+      showToast(`📍 Setor identificado: ${scannedLocation} (${count} vasos)`);
+      return;
+    }
+
+    // 2. Extrai o código da planta (Ex: "TF-001" de "#p-TF-001" ou "https://site.com/#p-TF-001")
     const match = decodedText.match(/TF-\d+/i) || decodedText.match(/#p-(TF-\d+)/i);
     const plantId = match ? (match[1] || match[0]).toUpperCase() : decodedText.trim().toUpperCase();
 
@@ -246,7 +281,7 @@ export const QuickManageView: React.FC<QuickManageViewProps> = ({
         setHighlightedPlantId(null);
       }, 8000);
     } else {
-      showToast(`Código "${plantId}" não corresponde a nenhuma planta cadastrada.`, 'info');
+      showToast(`Código "${plantId}" não corresponde a nenhuma planta ou bancada.`, 'info');
     }
   };
 

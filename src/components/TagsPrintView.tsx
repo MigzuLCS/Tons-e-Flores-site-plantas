@@ -543,7 +543,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                   onClick={handleExportXls}
                   disabled={plantsToPrint.length === 0}
                   title="Gera planilha compatível com LibreOffice Calc e o recurso de Importação em Lote do Niimbot"
-                  className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                  className="bg-brand-olive hover:bg-brand-olive-hover disabled:opacity-50 text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                   <span>Planilha Excel / LibreOffice (.xls)</span>
@@ -771,7 +771,7 @@ export const TagsPrintView: React.FC<TagsPrintViewProps> = ({ plants, selectedPl
                 <button
                   onClick={handleExportBancadasXls}
                   title="Gera planilha com todas as bancadas para LibreOffice Calc e Niimbot"
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
+                  className="bg-brand-olive hover:bg-brand-olive-hover text-white font-bold px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-2 text-xs transition-all cursor-pointer"
                 >
                   <FileSpreadsheet className="w-4 h-4" />
                   <span>Planilha Bancadas (.xls)</span>
