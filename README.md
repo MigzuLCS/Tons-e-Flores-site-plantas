@@ -72,6 +72,13 @@ Uma aplicação web moderna, elegante e intuitiva desenvolvida para apresentaç�
 
 ---
 
-## 📄 Licença
+## 📄 Licença e Termos de Uso
 
-Este projeto está sob a licença MIT. Sinta-se livre para usar, modificar e contribuir! 🌿
+Este projeto é disponibilizado publicamente **estritamente para fins acadêmicos, educacionais e de demonstração de portfólio**.
+
+- **Todos os direitos reservados** a Miguel Luiz ([@MigzuLCS](https://github.com/MigzuLCS)).
+- **Proibido uso comercial, cópia, alteração ou redistribuição** de qualquer parte do código sem autorização expressa prévia.
+- **Isenção de Responsabilidade:** O software é fornecido "como está" (*AS IS*), sem garantias de funcionamento ou adequação a qualquer finalidade.
+
+Consulte o arquivo [LICENSE](LICENSE) para ler os termos jurídicos integrais. 🌿
+

@@ -1,0 +1,85 @@
+ACADEMIC VIEW-ONLY & PROPRIETARY LICENSE
+LICENÇA DE VISUALIZAÇÃO ACADÊMICA E PROPRIEDADE INTELECTUAL
+
+Copyright (c) 2026 Miguel Luiz (@MigzuLCS). Todos os direitos reservados.
+Copyright (c) 2026 Miguel Luiz (@MigzuLCS). All rights reserved.
+
+================================================================================
+                               [PORTUGUÊS]
+================================================================================
+
+Este software, código-fonte, arquitetura, design e documentação associada são 
+protegidos pela Lei Federal nº 9.609/1998 (Proteção da Propriedade Intelectual de 
+Programa de Computador), pela Lei Federal nº 9.610/1998 (Direitos Autorais) da 
+República Federativa do Brasil e pelas convenções internacionais de propriedade 
+intelectual (Convenção de Berna).
+
+1. FINALIDADE E DISPONIBILIDADE PÚBLICA
+A disponibilização pública deste repositório destina-se EXCLUSIVAMENTE para fins 
+acadêmicos, pedagógicos, científicos, inspeção curricular e demonstração de 
+portfólio técnico individual do autor.
+
+2. RESTRIÇÕES DE USO (TODOS OS DIREITOS RESERVADOS)
+Nenhum direito de exploração comercial, reprodução ou modificação é concedido. 
+É estritamente PROIBIDO a qualquer pessoa, física ou jurídica, sem autorização 
+prévia, expressa e formal do titular dos direitos autorais:
+a) Copiar, clonar, baixar ou reproduzir, no todo ou em parte, este código-fonte 
+   para integração em projetos pessoais, de terceiros ou comerciais;
+b) Modificar, alterar, transformar, descompilar, traduzir ou criar obras derivadas 
+   a partir deste software;
+c) Distribuir, redistribuir, publicar, sublicenciar, alugar, vender ou comercializar 
+   qualquer parte deste código;
+d) Utilizar este repositório ou seu conteúdo para alimentar, treinar ou ajustar 
+   modelos de Inteligência Artificial / Aprendizado de Máquina (Machine Learning).
+
+É PERMITIDO apenas:
+- A leitura e visualização do código-fonte para estudo individual e avaliação 
+  acadêmica direta.
+
+3. ISENÇÃO TOTAL DE GARANTIA E RESPONSABILIDADE (DISCLAIMER)
+ESTE SOFTWARE É DISPONIBILIZADO PELO AUTOR "COMO ESTÁ" ("AS IS"), SEM NENHUM TIPO 
+DE GARANTIA EXPRESSA OU IMPLÍCITA, INCLUINDO, MAS NÃO SE LIMITANDO A, GARANTIAS 
+DE FUNCIONAMENTO ININTERRUPTO, COMERCIALIZAÇÃO OU ADEQUAÇÃO A UMA FINALIDADE ESPECÍFICA.
+
+EM NENHUMA HIPÓTESE O AUTOR OU DETENTOR DOS DIREITOS AUTORAIS SERÁ RESPONSABILIZADO 
+POR QUAISQUER DANOS DIRETOS, INDIRETOS, ACIDENTAIS, ESPECIAIS, PUNITIVOS OU 
+CONSEQUENCIAIS (INCLUINDO, MAS NÃO SE LIMITANDO A, MAU FUNCIONAMENTO, PERDA DE 
+DADOS, FALHAS DE SISTEMA, INTERRUPÇÃO DE ATIVIDADES OU PREJUÍZOS FINANCEIROS) 
+DECORRENTES DO ACESSO, USO OU IMPOSSIBILIDADE DE USO DESTE SOFTWARE, MESMO QUE 
+ALERTADO SOBRE A POSSIBILIDADE DE TAIS DANOS.
+
+================================================================================
+                                [ENGLISH]
+================================================================================
+
+This software and its associated source code, design, and documentation are 
+protected under international copyright laws, including the Berne Convention, 
+the Brazilian Software Law (Federal Law No. 9,609/1998), and the Brazilian 
+Copyright Law (Federal Law No. 9,610/1998).
+
+1. PURPOSE & PUBLIC AVAILABILITY
+This repository is made publicly available SOLELY for academic, educational, 
+pedagogical reference, curricular evaluation, and personal portfolio display.
+
+2. RESERVATION OF RIGHTS & RESTRICTIONS
+NO license or permission is granted to use, alter, or monetize this software.
+Without prior express written consent from the copyright holder, you may NOT:
+a) Copy, reproduce, duplicate, or clone the codebase (wholly or partially) for 
+   use in personal, third-party academic, or commercial projects;
+b) Modify, adapt, translate, reverse engineer, or create derivative works;
+c) Distribute, sublicense, rent, sell, monetize, or publicly convey this software;
+d) Scrape, ingest, or use this repository for training or tuning artificial 
+   intelligence or machine learning models.
+
+The ONLY permitted action is:
+- Directly reading and viewing the code for academic inspection and portfolio review.
+
+3. DISCLAIMER OF WARRANTY & LIMITATION OF LIABILITY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS 
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, 
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING 
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE, ITS MALFUNCTION, LOSS OF DATA, 
+OR ANY DEALINGS IN THE SOFTWARE.
